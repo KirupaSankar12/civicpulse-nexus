@@ -24,6 +24,7 @@ public interface ComplaintRepository extends JpaRepository<Complaint, UUID> {
     List<Complaint> findByPriority(Priority priority);
 
     List<Complaint> findByDepartmentIgnoreCase(String department);
+    Page<Complaint> findByDepartmentIgnoreCase(String department, Pageable pageable);
 
     List<Complaint> findByLocationContainingIgnoreCase(String locationKeyword);
 

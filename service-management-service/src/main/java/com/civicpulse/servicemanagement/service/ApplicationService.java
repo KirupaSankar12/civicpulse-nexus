@@ -86,8 +86,8 @@ public class ApplicationService {
 
     private String getDepartmentForServiceType(ServiceType serviceType) {
         return switch (serviceType) {
-            case BIRTH_CERTIFICATE, DEATH_CERTIFICATE -> "Health Department";
-            case INCOME_CERTIFICATE, RESIDENCE_CERTIFICATE -> "Revenue Department";
+            case BIRTH_CERTIFICATE, DEATH_CERTIFICATE -> "Health";
+            case INCOME_CERTIFICATE, RESIDENCE_CERTIFICATE -> "Revenue";
             case TRADE_LICENSE -> "Municipal Corporation";
         };
     }

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import keycloak from '../keycloak.js';
 import NotificationCenter from './NotificationCenter.jsx';
@@ -10,6 +10,8 @@ function getInitials(name) {
 
 function AppShell({ children, title }) {
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'premium');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const location = useLocation();
 
   useEffect(() => {
     if (theme === 'basic') {
@@ -18,6 +20,10 @@ function AppShell({ children, title }) {
       document.body.classList.remove('theme-basic');
     }
   }, [theme]);
+
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [location.pathname]);
 
   const toggleTheme = () => {
     const newTheme = theme === 'premium' ? 'basic' : 'premium';
@@ -44,7 +50,7 @@ function AppShell({ children, title }) {
   const officerLinks = [
     { to: '/dashboard', icon: '📊', label: 'Dashboard' },
     { to: '/officer', icon: '📋', label: 'Assigned Complaints' },
-    { to: '/services/approvals', icon: '✅', label: 'Service Approvals' },
+    { to: '/services/officer/dashboard', icon: '✅', label: 'Service Approvals' },
   ];
 
   const adminLinks = [
@@ -53,7 +59,7 @@ function AppShell({ children, title }) {
     { to: '/admin/assign', icon: '👥', label: 'Assign Officers' },
     { to: '/admin/officers', icon: '🧑‍💼', label: 'Manage Officers' },
     { to: '/admin/departments', icon: '🏢', label: 'Departments' },
-    { to: '/services/approvals', icon: '✅', label: 'Service Approvals' },
+    { to: '/services/officer/dashboard', icon: '✅', label: 'Service Approvals' },
   ];
 
   const links = isAdmin ? adminLinks : isOfficer ? officerLinks : citizenLinks;
@@ -62,8 +68,15 @@ function AppShell({ children, title }) {
 
   return (
     <div className="app-shell">
-      {/* Sidebar */}
-      <aside className="sidebar">
+      {sidebarOpen && (
+        <div
+          className="sidebar-overlay"
+          onClick={() => setSidebarOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      <aside className={`sidebar${sidebarOpen ? ' sidebar-open' : ''}`}>
         <div className="sidebar-brand">
           <div className="logo-text">
             <div className="logo-icon">🏛️</div>
@@ -75,7 +88,7 @@ function AppShell({ children, title }) {
         </div>
 
         <div className="sidebar-section-label">Navigation</div>
-        <nav className="sidebar-nav">
+        <nav className="sidebar-nav" aria-label="Main navigation">
           {links.map((link) => (
             <NavLink
               key={link.to}
@@ -83,7 +96,7 @@ function AppShell({ children, title }) {
               className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`}
               end={link.to === '/dashboard'}
             >
-              <span className="nav-icon">{link.icon}</span>
+              <span className="nav-icon" aria-hidden="true">{link.icon}</span>
               <span>{link.label}</span>
             </NavLink>
           ))}
@@ -91,7 +104,7 @@ function AppShell({ children, title }) {
 
         <div className="sidebar-footer">
           <div className="sidebar-user">
-            <div className="sidebar-avatar">{getInitials(name)}</div>
+            <div className="sidebar-avatar" aria-hidden="true">{getInitials(name)}</div>
             <div className="sidebar-user-info">
               <div className="name">{name}</div>
               <span className="role-badge" style={{ background: roleColor + '33', color: roleColor }}>
@@ -99,48 +112,61 @@ function AppShell({ children, title }) {
               </span>
             </div>
           </div>
-          <button className="btn-logout-sidebar" onClick={() => keycloak.logout()}>
+          <button className="btn-logout-sidebar" onClick={() => keycloak.logout()} type="button">
             🚪 Sign Out
           </button>
         </div>
       </aside>
 
-      {/* Main */}
       <main className="main-content">
         <div className="topbar">
-          <div className="topbar-title">{title || 'CivicPulse Nexus'}</div>
-          <div className="topbar-right">
-            <button 
-              onClick={toggleTheme} 
-              style={{
-                background: 'transparent',
-                border: '1px solid var(--border)',
-                borderRadius: 'var(--radius-sm)',
-                padding: '6px 12px',
-                fontSize: '12.5px',
-                fontWeight: '600',
-                color: 'var(--text-secondary)',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                transition: 'all 0.2s ease',
-                marginRight: '8px'
-              }}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <button
+              type="button"
+              className="menu-toggle"
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              aria-label="Toggle navigation menu"
+              aria-expanded={sidebarOpen}
             >
-              {theme === 'premium' ? '🔵 Switch to Basic UI' : '🎨 Switch to Premium UI'}
+              ☰
+            </button>
+            <div className="topbar-title">{title || 'CivicPulse Nexus'}</div>
+          </div>
+          <div className="topbar-right">
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="btn btn-ghost btn-sm"
+              style={{ border: '1px solid var(--border)' }}
+              aria-label={theme === 'premium' ? 'Switch to basic theme' : 'Switch to premium theme'}
+            >
+              {theme === 'premium' ? '🔵 Basic UI' : '🎨 Premium UI'}
             </button>
             <NotificationCenter />
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--text-secondary)' }}>
-              <div style={{ width: '30px', height: '30px', borderRadius: '50%', background: 'var(--primary)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700', fontSize: '12px' }}>
+              <div
+                style={{
+                  width: '30px',
+                  height: '30px',
+                  borderRadius: '50%',
+                  background: 'var(--primary)',
+                  color: 'white',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontWeight: '700',
+                  fontSize: '12px',
+                }}
+                aria-hidden="true"
+              >
                 {getInitials(name)}
               </div>
-              {username}
+              <span>{username}</span>
             </div>
           </div>
         </div>
 
-        <div className="page-content">
+        <div className="page-content page-enter">
           {children}
         </div>
       </main>

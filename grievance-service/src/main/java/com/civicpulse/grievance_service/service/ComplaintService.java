@@ -71,6 +71,37 @@ public class ComplaintService {
     }
 
     // ----------------------------------------------------------------
+    // DEPARTMENT MAPPING UTILITIES
+    // ----------------------------------------------------------------
+    private String getOfficerForDepartment(String department) {
+        if (department == null) return null;
+        return switch (department.toLowerCase()) {
+            case "health" -> "john";
+            case "water" -> "chris";
+            case "roads" -> "ethan";
+            case "electricity" -> "jack";
+            case "sanitation" -> "david";
+            case "revenue" -> "mark";
+            case "municipal corporation" -> "ryan";
+            default -> null;
+        };
+    }
+
+    private String getDepartmentForOfficer(String officerUsername) {
+        if (officerUsername == null) return null;
+        return switch (officerUsername.toLowerCase()) {
+            case "john" -> "Health";
+            case "chris" -> "Water";
+            case "ethan" -> "Roads";
+            case "jack" -> "Electricity";
+            case "david" -> "Sanitation";
+            case "mark" -> "Revenue";
+            case "ryan" -> "Municipal Corporation";
+            default -> null;
+        };
+    }
+
+    // ----------------------------------------------------------------
     // CREATE
     // ----------------------------------------------------------------
     public Complaint createComplaint(Complaint complaint) {
@@ -79,6 +110,15 @@ public class ComplaintService {
 
         if (complaint.getStatus() == null)   complaint.setStatus(ComplaintStatus.NEW);
         if (complaint.getPriority() == null) complaint.setPriority(Complaint.Priority.MEDIUM);
+
+        // Auto-assign officer based on department
+        if (complaint.getDepartment() != null) {
+            String assignedOfficer = getOfficerForDepartment(complaint.getDepartment());
+            if (assignedOfficer != null) {
+                complaint.setAssignedOfficer(assignedOfficer);
+                complaint.setStatus(ComplaintStatus.ASSIGNED); // Automatically transition to ASSIGNED
+            }
+        }
 
         // Calculate SLA deadline from priority
         LocalDateTime sla;
@@ -94,7 +134,7 @@ public class ComplaintService {
         Complaint saved = complaintRepository.save(complaint);
 
         // Log the initial creation in history
-        logHistory(saved.getComplaintId(), null, "NEW", "Complaint filed by citizen");
+        logHistory(saved.getComplaintId(), null, saved.getStatus().name(), "Complaint filed by citizen");
 
         // Kafka: typed complaint-created event
         ComplaintEvent createdEvent = new ComplaintEvent(
@@ -103,7 +143,7 @@ public class ComplaintService {
                 saved.getCitizenId(),
                 saved.getDepartment(),
                 null,
-                "NEW",
+                saved.getStatus().name(),
                 "Complaint filed",
                 now
         );
@@ -129,6 +169,11 @@ public class ComplaintService {
     }
 
     public Page<Complaint> getByOfficer(String username, Pageable pageable) {
+        String department = getDepartmentForOfficer(username);
+        if (department != null) {
+            return complaintRepository.findByDepartmentIgnoreCase(department, pageable);
+        }
+        // Fallback for unknown users (e.g. admin or missing mapping)
         return complaintRepository.findByAssignedOfficer(username, pageable);
     }
 

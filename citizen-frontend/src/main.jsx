@@ -59,8 +59,12 @@ function Root() {
   if (!kcReady) {
     return (
       <div className="loading-screen">
-        <div className="spinner" />
-        <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '14px' }}>Loading CivicPulse Nexus...</p>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: '48px', marginBottom: '16px' }}>🏛️</div>
+          <div className="spinner" />
+          <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '15px', marginTop: '16px', fontWeight: '500' }}>Loading CivicPulse Nexus...</p>
+          <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '12px', marginTop: '6px' }}>Smart Governance Platform</p>
+        </div>
       </div>
     );
   }

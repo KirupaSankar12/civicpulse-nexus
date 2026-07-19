@@ -4,7 +4,7 @@ import api from '../api.js';
 import keycloak from '../keycloak.js';
 import AppShell from '../components/AppShell.jsx';
 
-const DEPARTMENTS = ['SANITATION', 'ROADS', 'WATER', 'ELECTRICITY', 'HEALTH'];
+const DEPARTMENTS = ['Health', 'Water', 'Roads', 'Electricity', 'Sanitation', 'Revenue', 'Municipal Corporation'];
 const CATEGORIES = [
   'Water Leakage', 'Water Shortage', 'No Water Supply', 'Water Tanker Request',
   'Pothole', 'Road Damage', 'Traffic Signal Issue', 'Encroachment',
@@ -79,7 +79,7 @@ function ComplaintForm() {
                   <label>Department *</label>
                   <select className="form-control" value={form.department} onChange={set('department')} required>
                     <option value="">— Select Department —</option>
-                    {DEPARTMENTS.map(d => <option key={d} value={d}>{d.charAt(0) + d.slice(1).toLowerCase()}</option>)}
+                    {DEPARTMENTS.map(d => <option key={d} value={d}>{d}</option>)}
                   </select>
                 </div>
                 <div className="form-group">

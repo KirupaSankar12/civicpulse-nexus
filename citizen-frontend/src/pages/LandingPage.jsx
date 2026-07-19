@@ -2,21 +2,28 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
 const notices = [
-  { text: 'Water Supply Maintenance scheduled in Ward 7–12 on 10th July. Expect disruption 6AM–2PM.', date: 'July 8, 2026' },
-  { text: 'Road Repair Notice: NH-48 flyover under construction. Use alternate route via Ring Road.', date: 'July 6, 2026' },
-  { text: 'Emergency Helpline: 1800-XXX-XXXX available 24×7 for disaster-related complaints.', date: 'July 4, 2026' },
-  { text: 'New e-Service: Residence Certificates can now be applied online — No office visit needed!', date: 'July 1, 2026' },
+  { text: 'Water Supply Maintenance scheduled in Ward 7–12 on 10th July. Expect disruption 6AM–2PM.', date: 'July 8, 2026', type: 'alert' },
+  { text: 'Road Repair Notice: NH-48 flyover under construction. Use alternate route via Ring Road.', date: 'July 6, 2026', type: 'info' },
+  { text: 'Emergency Helpline: 1800-XXX-XXXX available 24×7 for disaster-related complaints.', date: 'July 4, 2026', type: 'emergency' },
+  { text: 'New e-Service: Residence Certificates can now be applied online — No office visit needed!', date: 'July 1, 2026', type: 'new' },
 ];
 
 const services = [
-  { icon: '💧', name: 'Water Supply', desc: 'Leakage, shortage, tanker requests' },
-  { icon: '🛣️', name: 'Roads & Traffic', desc: 'Potholes, signals, encroachments' },
-  { icon: '⚡', name: 'Electricity', desc: 'Outages, street lights, billing' },
-  { icon: '🗑️', name: 'Sanitation', desc: 'Garbage, drains, public hygiene' },
-  { icon: '🏥', name: 'Health', desc: 'Public health, mosquitoes, stray animals' },
-  { icon: '📜', name: 'Birth Certificate', desc: 'Apply for official birth record' },
-  { icon: '📋', name: 'Death Certificate', desc: 'Register and obtain death record' },
-  { icon: '💼', name: 'Trade License', desc: 'Commercial shop/trade registration' },
+  { icon: '💧', name: 'Water Supply', desc: 'Leakage, shortage, tanker requests', dept: 'Water Dept' },
+  { icon: '🛣️', name: 'Roads & Traffic', desc: 'Potholes, signals, encroachments', dept: 'Public Works' },
+  { icon: '⚡', name: 'Electricity', desc: 'Outages, street lights, billing', dept: 'Electricity Board' },
+  { icon: '🗑️', name: 'Sanitation', desc: 'Garbage, drains, public hygiene', dept: 'Sanitation Dept' },
+  { icon: '🏥', name: 'Health', desc: 'Public health, mosquitoes, stray animals', dept: 'Health Dept' },
+  { icon: '📜', name: 'Birth Certificate', desc: 'Apply for official birth record', dept: 'Health Dept' },
+  { icon: '📋', name: 'Death Certificate', desc: 'Register and obtain death record', dept: 'Health Dept' },
+  { icon: '💼', name: 'Trade License', desc: 'Commercial shop/trade registration', dept: 'Municipal Corp' },
+];
+
+const quickAccess = [
+  { icon: '📝', title: 'File Complaint', to: '/login', desc: 'Report civic issues' },
+  { icon: '📜', title: 'Apply Certificate', to: '/login', desc: 'Birth, income & more' },
+  { icon: '🔍', title: 'Track Status', to: '/login', desc: 'Check application progress' },
+  { icon: '👤', title: 'Citizen Login', to: '/login', desc: 'Access your account' },
 ];
 
 const features = [
@@ -26,6 +33,12 @@ const features = [
   { icon: '🏛️', title: 'Government Standard', desc: 'Built to comply with Government of India digital services standards.' },
   { icon: '📊', title: 'SLA Monitoring', desc: 'Strict Service Level Agreements with escalation when deadlines are missed.' },
   { icon: '🔔', title: 'Smart Notifications', desc: 'Instant alerts via in-app notifications on every status change.' },
+];
+
+const helpItems = [
+  { icon: '📞', title: 'Helpline Support', desc: 'Call 1800-XXX-XXXX (Mon–Sat, 9AM–6PM) for assistance with services and applications.' },
+  { icon: '📖', title: 'User Guide', desc: 'Step-by-step guides for filing complaints, applying for certificates, and tracking status.' },
+  { icon: '❓', title: 'FAQs', desc: 'Find answers to common questions about registration, documents, and processing times.' },
 ];
 
 function LandingPage() {
@@ -47,49 +60,36 @@ function LandingPage() {
 
   return (
     <div className="public-layout">
-      {/* NAV */}
       <nav className="public-nav">
-        <div className="nav-brand">
+        <Link to="/" className="nav-brand">
           <div className="brand-icon">🏛️</div>
           <div>
             <div className="brand-name">CivicPulse Nexus</div>
             <span className="brand-sub">Smart Governance Platform</span>
           </div>
-        </div>
+        </Link>
 
         <div className="nav-links">
           <a href="#services">Services</a>
+          <a href="#quick-access">Quick Access</a>
           <a href="#about">About</a>
-          <a href="#features">Features</a>
-          <a href="#contact">Contact</a>
+          <a href="#help">Help</a>
         </div>
 
         <div className="nav-actions">
-          <button 
-            onClick={toggleTheme} 
-            style={{
-              background: 'transparent',
-              border: '1px solid var(--border)',
-              borderRadius: 'var(--radius-sm)',
-              padding: '6px 14px',
-              fontSize: '13px',
-              fontWeight: '600',
-              color: 'var(--text)',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              marginRight: '8px'
-            }}
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="btn btn-ghost btn-sm"
+            style={{ border: '1px solid var(--border)' }}
           >
-            {theme === 'premium' ? '🔵 Switch to Basic UI' : '🎨 Switch to Premium UI'}
+            {theme === 'premium' ? '🔵 Basic UI' : '🎨 Premium UI'}
           </button>
           <Link to="/login" className="btn btn-outline btn-sm">Login</Link>
           <Link to="/register" className="btn btn-primary btn-sm">Register</Link>
         </div>
       </nav>
 
-      {/* HERO */}
       <section className="hero">
         <div className="hero-content">
           <div className="hero-text">
@@ -97,19 +97,18 @@ function LandingPage() {
               🇮🇳 Government of India — Digital Services
             </div>
             <h1>
-              Smart <span>Governance</span><br />
-              Platform
+              Your Gateway to <span>Smart Governance</span>
             </h1>
             <p>
               CivicPulse Nexus empowers citizens to file grievances, track status in real-time,
-              and access government services — all from one unified digital portal.
+              apply for certificates, and access government services — all from one unified digital portal.
             </p>
             <div className="hero-actions">
               <Link to="/register" className="btn btn-hero-primary btn-xl">
-                🚀 Register as Citizen
+                Register as Citizen
               </Link>
               <Link to="/login" className="btn btn-hero-outline btn-xl">
-                🔐 Login
+                Sign In
               </Link>
             </div>
 
@@ -129,9 +128,8 @@ function LandingPage() {
             </div>
           </div>
 
-          {/* Right panel — notices */}
           <div className="hero-panel">
-            <h3>📢 Latest Government Notices</h3>
+            <h3>📢 Latest Announcements</h3>
             {notices.map((n, i) => (
               <div className="notice-item" key={i}>
                 <div className="notice-dot" />
@@ -150,8 +148,26 @@ function LandingPage() {
         </div>
       </section>
 
-      {/* POPULAR SERVICES */}
-      <div id="services" style={{ background: 'white' }}>
+      <div id="quick-access" style={{ background: 'white' }}>
+        <div className="section">
+          <div className="section-label">Quick Access</div>
+          <h2 className="section-title">Get Started in Seconds</h2>
+          <p className="section-sub">
+            Jump directly to the most used citizen services. Login required for authenticated services.
+          </p>
+          <div className="quick-access-grid">
+            {quickAccess.map((item, i) => (
+              <Link to={item.to} className="quick-access-card" key={i}>
+                <span className="qa-icon-lg">{item.icon}</span>
+                <div className="qa-title">{item.title}</div>
+                <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px' }}>{item.desc}</div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div id="services" style={{ background: '#f8fafc' }}>
         <div className="section">
           <div className="section-label">Our Services</div>
           <h2 className="section-title">Popular Government Services</h2>
@@ -162,17 +178,17 @@ function LandingPage() {
 
           <div className="services-grid">
             {services.map((s, i) => (
-              <div className="service-card" key={i} onClick={() => window.location.href = '/login'}>
+              <div className="service-card" key={i} onClick={() => { window.location.href = '/login'; }} role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && (window.location.href = '/login')}>
                 <span className="svc-icon">{s.icon}</span>
                 <div className="svc-name">{s.name}</div>
                 <div className="svc-desc">{s.desc}</div>
+                <div style={{ fontSize: '11px', color: 'var(--accent)', fontWeight: '600', marginTop: '8px' }}>{s.dept}</div>
               </div>
             ))}
           </div>
         </div>
       </div>
 
-      {/* CITIZEN STATS */}
       <div className="stats-section">
         <div className="stats-section-inner">
           <div className="citizen-stat">
@@ -194,8 +210,7 @@ function LandingPage() {
         </div>
       </div>
 
-      {/* ABOUT */}
-      <div id="about" style={{ background: '#f8fafc' }}>
+      <div id="about" style={{ background: 'white' }}>
         <div className="section">
           <div className="section-label">About CivicPulse</div>
           <h2 className="section-title">A Modern Platform for Public Governance</h2>
@@ -204,9 +219,9 @@ function LandingPage() {
             transparency, speed, and accountability to civic complaint management and government
             citizen service delivery.
           </p>
-          <div style={{ marginTop: '28px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', maxWidth: '600px' }}>
+          <div style={{ marginTop: '28px', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '16px' }}>
             {['Built on Microservices Architecture', 'Powered by Keycloak SSO', 'Event-Driven with Apache Kafka', 'Real-time SLA Monitoring & Alerts'].map((p, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '14px', color: 'var(--text)' }}>
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '14px', color: 'var(--text)', padding: '12px 16px', background: 'var(--surface2)', borderRadius: 'var(--radius)', border: '1px solid var(--border-light)' }}>
                 <span style={{ color: 'var(--accent)', fontSize: '16px' }}>✓</span> {p}
               </div>
             ))}
@@ -214,8 +229,7 @@ function LandingPage() {
         </div>
       </div>
 
-      {/* FEATURES */}
-      <div id="features" style={{ background: 'white' }}>
+      <div id="features" style={{ background: '#f8fafc' }}>
         <div className="section">
           <div className="section-label">Why Choose CivicPulse</div>
           <h2 className="section-title">Enterprise-Grade Features</h2>
@@ -226,7 +240,7 @@ function LandingPage() {
 
           <div className="features-grid">
             {features.map((f, i) => (
-              <div className="feature-card" key={i}>
+              <div className="feature-card animate-fade-in" key={i} style={{ animationDelay: `${i * 0.05}s` }}>
                 <div className="fc-icon" style={{ color: 'white' }}>{f.icon}</div>
                 <h4>{f.title}</h4>
                 <p>{f.desc}</p>
@@ -236,7 +250,28 @@ function LandingPage() {
         </div>
       </div>
 
-      {/* FOOTER */}
+      <div id="help" className="help-section">
+        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+          <div className="section-label">Need Help?</div>
+          <h2 className="section-title">We're Here to Assist You</h2>
+          <p className="section-sub">
+            Get support for registration, complaints, certificate applications, and more.
+          </p>
+          <div className="help-grid">
+            {helpItems.map((h, i) => (
+              <div className="help-card" key={i}>
+                <span className="help-icon">{h.icon}</span>
+                <h4>{h.title}</h4>
+                <p>{h.desc}</p>
+              </div>
+            ))}
+          </div>
+          <div style={{ textAlign: 'center', marginTop: '32px' }}>
+            <Link to="/register" className="btn btn-primary btn-lg">Create Your Citizen Account</Link>
+          </div>
+        </div>
+      </div>
+
       <footer className="public-footer" id="contact">
         <div className="footer-grid">
           <div className="footer-brand">
@@ -249,14 +284,15 @@ function LandingPage() {
             </div>
             <p>
               A Cloud-Native Smart Governance and Citizen Services Management Platform
-              built for Infosys Capstone Evaluation.
+              built for transparent, accountable public service delivery.
             </p>
           </div>
           <div className="footer-col">
             <h5>Platform</h5>
             <a href="#services">Services</a>
+            <a href="#quick-access">Quick Access</a>
             <a href="#about">About</a>
-            <a href="#features">Features</a>
+            <a href="#help">Help</a>
           </div>
           <div className="footer-col">
             <h5>Legal</h5>
@@ -266,14 +302,14 @@ function LandingPage() {
           </div>
           <div className="footer-col">
             <h5>Support</h5>
-            <a href="#">Help Center</a>
+            <a href="#help">Help Center</a>
             <a href="#">Contact Us</a>
             <a href="#">Emergency: 112</a>
           </div>
         </div>
         <div className="footer-bottom">
           <span>© 2026 CivicPulse Nexus. Government of India Digital Initiative.</span>
-          <span>Built with ❤️ for citizens.</span>
+          <span>Built with care for citizens.</span>
         </div>
       </footer>
     </div>

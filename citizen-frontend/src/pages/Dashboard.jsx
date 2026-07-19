@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import api from '../api.js';
 import keycloak from '../keycloak.js';
 import AppShell from '../components/AppShell.jsx';
+import PageLoader from '../components/PageLoader.jsx';
 
 function slaBadge(s) {
   if (s === 'ON_TIME') return 'badge-green';
@@ -65,28 +66,21 @@ function CitizenDashboard() {
 
   if (loading) return (
     <AppShell title="Citizen Dashboard">
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '300px' }}>
-        <div className="spinner-sm" style={{ width: '32px', height: '32px', borderColor: 'var(--border)', borderTopColor: 'var(--primary)' }} />
-      </div>
+      <PageLoader message="Loading your dashboard..." />
     </AppShell>
   );
 
   return (
     <AppShell title="Citizen Dashboard">
-      {/* Welcome card */}
-      <div className="card" style={{ marginBottom: '24px', background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%)', border: 'none' }}>
-        <div className="card-body" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: '13px' }}>Welcome back,</div>
-            <h2 style={{ color: 'white', fontSize: '1.6rem', marginTop: '4px' }}>👋 {name}</h2>
-            <p style={{ color: 'rgba(255,255,255,0.75)', marginTop: '6px', fontSize: '13.5px' }}>
-              Your grievances are being handled. Track your complaints below.
-            </p>
-          </div>
-          <Link to="/complaints/new" className="btn btn-accent btn-lg" style={{ flexShrink: 0 }}>
-            ➕ Raise Complaint
-          </Link>
+      <div className="welcome-banner">
+        <div>
+          <div className="welcome-label">Citizen Portal</div>
+          <h2>Welcome back, {name}</h2>
+          <p>Your grievances are being handled. Track complaints and access services below.</p>
         </div>
+        <Link to="/complaints/new" className="btn btn-accent btn-lg" style={{ flexShrink: 0 }}>
+          + Raise Complaint
+        </Link>
       </div>
 
       {/* Citizen stats */}
@@ -227,21 +221,17 @@ function OfficerDashboardView() {
 
   if (loading) return (
     <AppShell title="Officer Dashboard">
-      <div style={{ display: 'flex', justifyContent: 'center', padding: '80px' }}>
-        <div className="spinner-sm" style={{ width: '32px', height: '32px', borderColor: 'var(--border)', borderTopColor: 'var(--primary)' }} />
-      </div>
+      <PageLoader message="Loading officer dashboard..." />
     </AppShell>
   );
 
   return (
     <AppShell title="Officer Dashboard">
-      {/* Welcome */}
-      <div className="card" style={{ marginBottom: '24px', background: 'linear-gradient(135deg, #1e3a5f 0%, #2d5a8e 100%)', border: 'none' }}>
-        <div className="card-body">
-          <h2 style={{ color: 'white' }}>👮 Welcome, {keycloak.tokenParsed?.name || name} ({keycloak.tokenParsed?.preferred_username || username})</h2>
-          <p style={{ color: 'rgba(255,255,255,0.75)', marginTop: '4px' }}>
-            Manage and resolve assigned complaints. Update status and add remarks.
-          </p>
+      <div className="welcome-banner">
+        <div>
+          <div className="welcome-label">Officer Portal</div>
+          <h2>Welcome, {keycloak.tokenParsed?.name || name}</h2>
+          <p>Manage and resolve assigned complaints. Update status and add remarks.</p>
         </div>
       </div>
 
@@ -417,9 +407,7 @@ function AdminDashboard() {
 
   if (loading && allComplaints.length === 0) return (
     <AppShell title="Admin Dashboard">
-      <div style={{ display: 'flex', justifyContent: 'center', padding: '80px' }}>
-        <div className="spinner-sm" style={{ width: '32px', height: '32px', borderColor: 'var(--border)', borderTopColor: 'var(--primary)' }} />
-      </div>
+      <PageLoader message="Loading admin dashboard..." />
     </AppShell>
   );
 
@@ -429,34 +417,26 @@ function AdminDashboard() {
     <AppShell title="Admin Dashboard">
       {/* Toast Notification */}
       {toast && (
-        <div style={{
-          position: 'fixed', top: '20px', right: '20px', zIndex: 9999,
-          background: toast.type === 'success' ? '#27ae60' : '#e74c3c',
-          color: 'white', padding: '12px 20px', borderRadius: '10px',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.3)', fontSize: '14px', fontWeight: '500',
-          maxWidth: '380px', lineHeight: '1.4'
-        }}>
-          {toast.msg}
+        <div className="toast-container">
+          <div className={`toast toast-${toast.type === 'success' ? 'success' : 'error'}`} role="status">
+            {toast.msg}
+          </div>
         </div>
       )}
 
-      {/* Welcome */}
-      <div className="card" style={{ marginBottom: '24px', background: 'linear-gradient(135deg, #142840 0%, #1e3a5f 100%)', border: 'none' }}>
-        <div className="card-body" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            <h2 style={{ color: 'white' }}>🏛️ Admin Control Panel</h2>
-            <p style={{ color: 'rgba(255,255,255,0.7)', marginTop: '4px' }}>
-              Monitor all complaints, assign officers, manage departments and track SLA.
-            </p>
-          </div>
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <Link to="/admin/officers" className="btn btn-outline btn-sm" style={{ color: 'white', borderColor: 'rgba(255,255,255,0.4)' }}>
-              👮 Manage Officers
-            </Link>
-            <Link to="/admin/departments" className="btn btn-accent btn-sm">
-              🏢 Departments
-            </Link>
-          </div>
+      <div className="welcome-banner">
+        <div>
+          <div className="welcome-label">Administrator</div>
+          <h2>Admin Control Panel</h2>
+          <p>Monitor all complaints, assign officers, manage departments and track SLA.</p>
+        </div>
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+          <Link to="/admin/officers" className="btn btn-outline btn-sm" style={{ color: 'white', borderColor: 'rgba(255,255,255,0.4)' }}>
+            Manage Officers
+          </Link>
+          <Link to="/admin/departments" className="btn btn-accent btn-sm">
+            Departments
+          </Link>
         </div>
       </div>
 
