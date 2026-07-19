@@ -13,7 +13,8 @@ import ComplaintForm from './pages/ComplaintForm.jsx';
 import ComplaintTimeline from './pages/ComplaintTimeline.jsx';
 import ServiceApplicationForm from './pages/ServiceApplicationForm.jsx';
 import ServiceTracker from './pages/ServiceTracker.jsx';
-import OfficerApprovals from './pages/OfficerApprovals.jsx';
+import OfficerDashboard from './pages/OfficerDashboard.jsx';
+import OfficerApplicationView from './pages/OfficerApplicationView.jsx';
 import CitizenRegister from './pages/CitizenRegister.jsx';
 
 // Guard: redirects to /login if not authenticated
@@ -73,13 +74,16 @@ function App({ authenticated }) {
         <Route path="/services/tracker" element={
           <Protected><ServiceTracker /></Protected>
         } />
-        <Route path="/services/approvals" element={
-          <Protected><OfficerApprovals /></Protected>
+        <Route path="/services/officer/dashboard" element={
+          <Protected><OfficerDashboard /></Protected>
+        } />
+        <Route path="/services/officer/verify/:id" element={
+          <Protected><OfficerApplicationView /></Protected>
         } />
 
         {/* Officer route (also accessible via dashboard) */}
         <Route path="/officer" element={
-          <Protected><Dashboard /></Protected>
+          <Protected><OfficerDashboard /></Protected>
         } />
 
         {/* Admin routes */}
@@ -109,10 +113,10 @@ import AppShell from './components/AppShell.jsx';
 
 function ManageOfficersPage() {
   const officers = [
-    { name: 'Jane Officer', dept: 'Water Supply', email: 'jane_officer@civicpulse.gov', phone: '9876500001', status: 'Active' },
-    { name: 'Raj Sharma', dept: 'Roads & Traffic', email: 'raj_officer@civicpulse.gov', phone: '9876500002', status: 'Active' },
-    { name: 'Priya Singh', dept: 'Electricity', email: 'priya_officer@civicpulse.gov', phone: '9876500003', status: 'Active' },
-    { name: 'Amit Kumar', dept: 'Sanitation', email: 'amit_officer@civicpulse.gov', phone: '9876500004', status: 'Inactive' },
+    { username: 'sibi',   name: 'Sibi Officer',   dept: 'Water',           email: 'sibi@muni.gov',   phone: '9100000001', role: 'Field Officer (Junior)',    status: 'Active' },
+    { username: 'joyel',  name: 'Joyel Officer',  dept: 'Public Works',    email: 'joyel@muni.gov',  phone: '9100000002', role: 'Field Officer (Junior)',    status: 'Active' },
+    { username: 'kirupa', name: 'Kirupa Officer', dept: 'Sanitation Dept', email: 'kirupa@muni.gov', phone: '9100000003', role: 'Senior Officer (Approver)', status: 'Active' },
+    { username: 'harish', name: 'Harish Officer', dept: 'Water',           email: 'harish@muni.gov', phone: '9100000004', role: 'Senior Officer (Approver)', status: 'Active' },
   ];
 
   return (
@@ -120,7 +124,7 @@ function ManageOfficersPage() {
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between' }}>
         <div>
           <h1 style={{ color: 'var(--primary)' }}>🧑‍💼 Manage Officers</h1>
-          <p className="text-muted">View, add, and manage department field officers.</p>
+          <p className="text-muted">View and manage field officers assigned to municipal departments.</p>
         </div>
         <button className="btn btn-primary" onClick={() => alert('Add Officer — use Keycloak Admin Console to create officer accounts.')}>
           ➕ Add Officer
@@ -131,22 +135,22 @@ function ManageOfficersPage() {
         <div className="table-wrapper">
           <table className="data-table">
             <thead>
-              <tr><th>#</th><th>Officer Name</th><th>Department</th><th>Email</th><th>Phone</th><th>Status</th><th>Actions</th></tr>
+              <tr><th>#</th><th>Officer Name</th><th>Username</th><th>Department</th><th>Role</th><th>Email</th><th>Phone</th><th>Status</th></tr>
             </thead>
             <tbody>
               {officers.map((o, i) => (
                 <tr key={i}>
                   <td>{i + 1}</td>
                   <td style={{ fontWeight: '600' }}>{o.name}</td>
+                  <td style={{ fontFamily: 'monospace', fontSize: '13px', color: 'var(--text-secondary)' }}>{o.username}</td>
                   <td>{o.dept}</td>
+                  <td>
+                    <span className={`badge ${o.role.includes('Senior') ? 'badge-purple' : 'badge-blue'}`}>{o.role}</span>
+                  </td>
                   <td style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>{o.email}</td>
                   <td style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>{o.phone}</td>
                   <td>
                     <span className={`badge ${o.status === 'Active' ? 'badge-green' : 'badge-gray'}`}>{o.status}</span>
-                  </td>
-                  <td style={{ display: 'flex', gap: '6px' }}>
-                    <button className="btn btn-outline btn-sm">Edit</button>
-                    <button className="btn btn-danger btn-sm">Deactivate</button>
                   </td>
                 </tr>
               ))}

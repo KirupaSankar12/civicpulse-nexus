@@ -1,118 +1,129 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../api.js';
-import keycloak from '../keycloak.js';
-import { Link } from 'react-router-dom';
-
-function slaCss(status) {
-  if (status === 'ON_TIME') return 'sla-ontime';
-  if (status === 'NEAR_DEADLINE') return 'sla-near';
-  if (status === 'OVERDUE') return 'sla-overdue';
-  return '';
-}
+import AppShell from '../components/AppShell.jsx';
 
 function OfficerDashboard() {
-  const [complaints, setComplaints] = useState([]);
-  const [error, setError] = useState(null);
+  const [stats, setStats] = useState(null);
+  const [recentApps, setRecentApps] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
-  const username = keycloak.tokenParsed?.preferred_username;
-
-  const loadComplaints = () => {
-    if (!username) return;
-    api.get(`/grievance-service/api/complaints/officer/${username}`)
-      .then((res) => {
-        setComplaints(res.data);
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const [statsRes, recentRes] = await Promise.all([
+          api.get('/service-management-service/api/services/officer/stats'),
+          api.get('/service-management-service/api/services/officer/recent')
+        ]);
+        setStats(statsRes.data);
+        setRecentApps(recentRes.data);
         setIsLoading(false);
-      })
-      .catch((err) => {
+      } catch (err) {
         console.error(err);
-        setError('Failed to fetch your assigned complaints.');
+        setError('Failed to load dashboard data. Ensure backend is running.');
         setIsLoading(false);
-      });
-  };
-
-  useEffect(() => { loadComplaints(); }, [username]);
-
-  const handleUpdateStatus = async (id, newStatus) => {
-    const remarks = prompt('Add remarks for this status change (press Cancel to abort):');
-    if (remarks === null) return;
-
-    try {
-      await api.put(`/grievance-service/api/complaints/${id}/status?status=${newStatus}&remarks=${encodeURIComponent(remarks)}`);
-      loadComplaints();
-    } catch (err) {
-      alert(err.response?.data?.message || 'Failed to update status');
-    }
-  };
-
-  if (isLoading) return <p className="loading-text">Loading your assignments...</p>;
+      }
+    };
+    fetchDashboardData();
+  }, []);
 
   return (
-    <div>
-      <h1>Officer Dashboard — {username}</h1>
-      <p style={{ marginBottom: '12px', color: '#555' }}>
-        These are the complaints currently assigned to you. Use the action column to update status.
-      </p>
-
-      {error && <div className="alert alert-error">{error}</div>}
-
-      <div className="card">
-        <table>
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Title</th>
-              <th>Department</th>
-              <th>Priority</th>
-              <th>SLA</th>
-              <th>Current Status</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {complaints.length === 0 ? (
-              <tr>
-                <td colSpan="7" style={{ textAlign: 'center', padding: '20px' }}>
-                  No complaints assigned to you. Good job!
-                </td>
-              </tr>
-            ) : (
-              complaints.map((c, idx) => (
-                <tr key={c.complaintId}>
-                  <td>{idx + 1}</td>
-                  <td><Link to={`/complaints/${c.complaintId}`}>{c.title}</Link></td>
-                  <td>{c.department}</td>
-                  <td>
-                    {c.priority === 'HIGH' && <span className="priority-high">HIGH</span>}
-                    {c.priority === 'MEDIUM' && <span className="priority-medium">MEDIUM</span>}
-                    {c.priority === 'LOW' && <span className="priority-low">LOW</span>}
-                  </td>
-                  <td><span className={slaCss(c.slaStatus)}>{c.slaStatus || 'N/A'}</span></td>
-                  <td>{c.status}</td>
-                  <td>
-                    {c.status === 'ASSIGNED' && (
-                      <button className="btn btn-small btn-primary" onClick={() => handleUpdateStatus(c.complaintId, 'IN_PROGRESS')}>
-                        Mark In Progress
-                      </button>
-                    )}
-                    {c.status === 'IN_PROGRESS' && (
-                      <button className="btn btn-small btn-primary" onClick={() => handleUpdateStatus(c.complaintId, 'RESOLVED')}>
-                        Mark Resolved
-                      </button>
-                    )}
-                    {(c.status === 'RESOLVED' || c.status === 'CLOSED') && (
-                      <span style={{ color: 'green' }}>Done ✓</span>
-                    )}
-                    &nbsp;
-                    <Link to={`/complaints/${c.complaintId}`} className="btn btn-small">View</Link>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+    <AppShell title="Officer Dashboard">
+      <div className="page-header" style={{ marginBottom: '2rem' }}>
+        <h1 style={{ color: 'var(--primary)' }}>📊 Officer Dashboard</h1>
+        <p className="text-muted">Manage applications, verify documents, and issue certificates for your department.</p>
       </div>
-    </div>
+
+      {error && (
+        <div className="alert alert-error" style={{ marginBottom: '1.5rem', background: '#fef2f2', color: '#b91c1c', border: '1px solid #fca5a5', padding: '1rem', borderRadius: '8px' }}>
+          <span>⚠️</span> {error}
+        </div>
+      )}
+
+      {isLoading ? (
+        <div style={{ padding: '48px', textAlign: 'center' }}>
+          <div className="spinner-sm" style={{ width: '32px', height: '32px', margin: '0 auto', borderColor: 'var(--border)', borderTopColor: 'var(--primary)' }} />
+          <p style={{ marginTop: '12px', color: '#6b7280' }}>Loading dashboard...</p>
+        </div>
+      ) : (
+        <>
+          {/* Stats Cards */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
+            <div className="card" style={{ padding: '1.5rem', textAlign: 'center', background: '#fff', borderRadius: '12px', border: '1px solid #eee', borderBottom: '4px solid #f59e0b' }}>
+              <h3 style={{ fontSize: '1rem', color: '#6b7280', margin: '0 0 0.5rem 0' }}>Pending Action</h3>
+              <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#111827' }}>{stats?.pending + stats?.underVerification || 0}</div>
+            </div>
+            <div className="card" style={{ padding: '1.5rem', textAlign: 'center', background: '#fff', borderRadius: '12px', border: '1px solid #eee', borderBottom: '4px solid #10b981' }}>
+              <h3 style={{ fontSize: '1rem', color: '#6b7280', margin: '0 0 0.5rem 0' }}>Approved</h3>
+              <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#111827' }}>{stats?.approved || 0}</div>
+            </div>
+            <div className="card" style={{ padding: '1.5rem', textAlign: 'center', background: '#fff', borderRadius: '12px', border: '1px solid #eee', borderBottom: '4px solid #ef4444' }}>
+              <h3 style={{ fontSize: '1rem', color: '#6b7280', margin: '0 0 0.5rem 0' }}>Rejected</h3>
+              <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#111827' }}>{stats?.rejected || 0}</div>
+            </div>
+          </div>
+
+          {/* Recent Applications Table */}
+          <div className="card">
+            <div className="card-header" style={{ padding: '1.5rem', borderBottom: '1px solid #f3f4f6' }}>
+              <h2 style={{ fontSize: '1.25rem', margin: 0, color: 'var(--text)' }}>Recent Applications</h2>
+            </div>
+            <div className="table-wrapper">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Application No</th>
+                    <th>Service Type</th>
+                    <th>Applicant Name</th>
+                    <th>Date Applied</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {recentApps.length === 0 ? (
+                    <tr>
+                      <td colSpan="6" style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>
+                        No applications found in your department.
+                      </td>
+                    </tr>
+                  ) : (
+                    recentApps.map(app => (
+                      <tr key={app.applicationId}>
+                        <td style={{ fontFamily: 'monospace', fontWeight: 'bold' }}>{app.applicationNumber}</td>
+                        <td>{app.serviceType?.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</td>
+                        <td>{app.applicantName}</td>
+                        <td>{new Date(app.appliedDate).toLocaleDateString()}</td>
+                        <td>
+                          <span className={`badge badge-${
+                            ['SUBMITTED', 'RESUBMITTED'].includes(app.status) ? 'yellow' :
+                            app.status === 'UNDER_VERIFICATION' ? 'blue' :
+                            ['APPROVED', 'CERTIFICATE_GENERATED', 'DOWNLOADED'].includes(app.status) ? 'green' : 'red'
+                          }`}>
+                            {app.status}
+                          </span>
+                        </td>
+                        <td>
+                          <button 
+                            className="btn btn-sm btn-primary" 
+                            onClick={() => navigate(`/services/officer/verify/${app.applicationId}`)}
+                            style={{ padding: '0.4rem 0.8rem' }}
+                          >
+                            {['SUBMITTED', 'RESUBMITTED', 'UNDER_VERIFICATION'].includes(app.status) ? 'Verify / Approve' : 'View Details'}
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
+      )}
+    </AppShell>
   );
 }
 

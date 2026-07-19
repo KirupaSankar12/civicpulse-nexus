@@ -3,6 +3,8 @@ package com.civicpulse.grievance_service.repository;
 import com.civicpulse.grievance_service.entity.Complaint;
 import com.civicpulse.grievance_service.entity.Complaint.ComplaintStatus;
 import com.civicpulse.grievance_service.entity.Complaint.Priority;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -14,6 +16,7 @@ import java.util.UUID;
 public interface ComplaintRepository extends JpaRepository<Complaint, UUID> {
     List<Complaint> findByCitizenId(String citizenId);
     List<Complaint> findByAssignedOfficer(String assignedOfficer);
+    Page<Complaint> findByAssignedOfficer(String assignedOfficer, Pageable pageable);
 
 
     List<Complaint> findByStatus(ComplaintStatus status);

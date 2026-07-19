@@ -4,6 +4,8 @@ import App from './App.jsx';
 import keycloak from './keycloak.js';
 import './index.css';
 
+let initPromise = null;
+
 function Root() {
   const [kcReady, setKcReady] = useState(false);
   const [authenticated, setAuthenticated] = useState(false);
@@ -15,7 +17,6 @@ function Root() {
 
     const initOptions = {
       onLoad: 'check-sso',
-      silentCheckSsoRedirectUri: window.location.origin + '/silent-check-sso.html',
       checkLoginIframe: false,
     };
 
@@ -25,7 +26,11 @@ function Root() {
       initOptions.idToken = idToken;
     }
 
-    keycloak.init(initOptions)
+    if (!initPromise) {
+      initPromise = keycloak.init(initOptions);
+    }
+
+    initPromise
       .then((auth) => {
         if (auth) {
           localStorage.setItem('kc_token', keycloak.token);

@@ -8,10 +8,17 @@ import com.civicpulse.grievance_service.repository.ComplaintRepository;
 import com.civicpulse.grievance_service.service.ComplaintService;
 import com.civicpulse.grievance_service.service.EscalationService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -36,10 +43,33 @@ public class ComplaintController {
         return ResponseEntity.ok(complaintService.createComplaint(complaint));
     }
 
-    // READ — all complaints
+    // READ — all complaints (supports sorting and pagination)
+    // Note: "priority,desc" (High→Low) is remapped to "priorityOrder,asc" internally
+    //       because priorityOrder stores 1=HIGH, 2=MEDIUM, 3=LOW.
     @GetMapping
-    public ResponseEntity<List<Complaint>> getAllComplaints() {
-        return ResponseEntity.ok(complaintRepository.findAll());
+    public ResponseEntity<?> getAllComplaints(
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size,
+            @RequestParam(defaultValue = "createdAt,desc") String sort) {
+
+        String[] sortParams = sort.split(",");
+        String sortField = sortParams[0];
+        Sort.Direction direction = Sort.Direction.fromString(sortParams[1]);
+
+        // Priority sort: "priority,desc" means HIGH first — map to priorityOrder ASC
+        if ("priority".equalsIgnoreCase(sortField)) {
+            sortField = "priorityOrder";
+            direction = Sort.Direction.ASC;
+        }
+
+        Sort sortObj = Sort.by(direction, sortField);
+
+        if (page == null || size == null) {
+            return ResponseEntity.ok(complaintRepository.findAll(sortObj));
+        }
+
+        Pageable pageable = PageRequest.of(page, size, sortObj);
+        return ResponseEntity.ok(complaintService.getAll(pageable));
     }
 
     // READ — overdue complaints only (must be BEFORE /{id} to avoid UUID parse clash)
@@ -76,6 +106,17 @@ public class ComplaintController {
         return ResponseEntity.ok(complaintRepository.findByAssignedOfficer(username));
     }
 
+    // READ — complaints by authenticated officer (paginated)
+    @GetMapping("/officer")
+    public ResponseEntity<Page<Complaint>> getOfficerComplaints(
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        String officerUsername = jwt.getClaimAsString("preferred_username");
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        return ResponseEntity.ok(complaintService.getByOfficer(officerUsername, pageable));
+    }
+
     // READ — single complaint by UUID (includes slaStatus in JSON automatically via @Transient)
     @GetMapping("/{id}")
     public ResponseEntity<Complaint> getComplaintById(@PathVariable UUID id) {
@@ -90,9 +131,22 @@ public class ComplaintController {
         return ResponseEntity.ok(complaintService.getHistory(id));
     }
 
-    // UPDATE — auto-assign to first available officer in department (NEW → ASSIGNED)
+    // UPDATE — assign officer (auto-assigns if body/params are empty, manually assigns if officerUsername is specified)
     @PutMapping("/{id}/assign")
-    public ResponseEntity<Complaint> assignComplaint(@PathVariable UUID id) {
+    public ResponseEntity<Complaint> assignComplaint(
+            @PathVariable UUID id,
+            @RequestParam(required = false) String officerUsername,
+            @RequestBody(required = false) Map<String, String> payload) {
+
+        String targetOfficer = officerUsername;
+        if (targetOfficer == null && payload != null) {
+            targetOfficer = payload.get("officerUsername");
+        }
+
+        if (targetOfficer != null && !targetOfficer.trim().isEmpty()) {
+            return ResponseEntity.ok(complaintService.assignOfficer(id, targetOfficer));
+        }
+
         return ResponseEntity.ok(complaintService.assignComplaint(id));
     }
 

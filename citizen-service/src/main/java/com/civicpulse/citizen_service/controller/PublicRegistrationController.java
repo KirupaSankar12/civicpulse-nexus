@@ -1,12 +1,18 @@
 package com.civicpulse.citizen_service.controller;
 
+import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import com.civicpulse.citizen_service.dto.PublicRegisterDTO;
 import com.civicpulse.citizen_service.entity.Citizen;
+import com.civicpulse.citizen_service.event.CitizenEvent;
 import com.civicpulse.citizen_service.repository.CitizenRepository;
 import com.civicpulse.citizen_service.service.KeycloakAdminService;
 
@@ -20,13 +26,19 @@ import jakarta.validation.Valid;
 @RequestMapping("/api/citizens/auth")
 public class PublicRegistrationController {
 
+    private static final Logger log = LoggerFactory.getLogger(PublicRegistrationController.class);
+    private static final String TOPIC_CITIZEN_REGISTERED = "citizen-registered";
+
     private final CitizenRepository citizenRepository;
     private final KeycloakAdminService keycloakAdminService;
+    private final KafkaTemplate<String, CitizenEvent> kafkaTemplate;
 
     public PublicRegistrationController(CitizenRepository citizenRepository,
-                                         KeycloakAdminService keycloakAdminService) {
+                                         KeycloakAdminService keycloakAdminService,
+                                         KafkaTemplate<String, CitizenEvent> kafkaTemplate) {
         this.citizenRepository = citizenRepository;
         this.keycloakAdminService = keycloakAdminService;
+        this.kafkaTemplate = kafkaTemplate;
     }
 
     /**
@@ -35,6 +47,7 @@ public class PublicRegistrationController {
      * 1. Validates that email is not already registered
      * 2. Creates Keycloak user with CITIZEN role
      * 3. Saves citizen profile in PostgreSQL (citizenId = Keycloak subject UUID)
+     * 4. Publishes CitizenEvent to Kafka "citizen-registered" topic
      */
     @PostMapping("/register")
     public ResponseEntity<?> registerCitizen(@Valid @RequestBody PublicRegisterDTO dto) {
@@ -61,7 +74,7 @@ public class PublicRegistrationController {
 
             // Step 3: Save citizen profile in DB using Keycloak UUID as citizenId
             Citizen citizen = new Citizen();
-            citizen.citizenId = java.util.UUID.fromString(keycloakUserId);
+            citizen.citizenId = UUID.fromString(keycloakUserId);
             citizen.name = dto.name;
             citizen.email = dto.email;
             citizen.phoneNumber = dto.phoneNumber;
@@ -74,6 +87,17 @@ public class PublicRegistrationController {
 
             citizenRepository.save(citizen);
 
+            // Step 4: Publish Kafka event to citizen-registered topic
+            CitizenEvent event = new CitizenEvent(
+                "REGISTERED",
+                UUID.fromString(keycloakUserId),
+                dto.name,
+                dto.email,
+                LocalDateTime.now()
+            );
+            kafkaTemplate.send(TOPIC_CITIZEN_REGISTERED, keycloakUserId, event);
+            log.info("Published citizen-registered event for citizenId={}", keycloakUserId);
+
             return ResponseEntity.ok(Map.of(
                 "message", "Registration successful! You can now login with your email and password.",
                 "citizenId", keycloakUserId
@@ -85,3 +109,4 @@ public class PublicRegistrationController {
         }
     }
 }
+

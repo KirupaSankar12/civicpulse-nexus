@@ -35,6 +35,9 @@ public class Complaint {
     @Enumerated(EnumType.STRING)
     private Priority priority;
 
+    // Numeric ordering: HIGH=1, MEDIUM=2, LOW=3 — enables DB-level ORDER BY
+    private Integer priorityOrder;
+
     @Enumerated(EnumType.STRING)
     private ComplaintStatus status;
 
@@ -59,6 +62,18 @@ public class Complaint {
         if (this.priority == null)  this.priority = Priority.MEDIUM;
         if (this.escalated == null) this.escalated = false;
         if (this.escalationLevel == null) this.escalationLevel = 0;
+        syncPriorityOrder();
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        syncPriorityOrder();
+    }
+
+    private void syncPriorityOrder() {
+        if (this.priority == Priority.HIGH)   this.priorityOrder = 1;
+        else if (this.priority == Priority.LOW)  this.priorityOrder = 3;
+        else                                      this.priorityOrder = 2; // MEDIUM default
     }
 
     // ----------------------------------------------------------------
@@ -114,6 +129,7 @@ public class Complaint {
     public LocalDateTime getSlaDeadline(){ return slaDeadline; }
     public Boolean isEscalated()        { return escalated; }
     public Integer getEscalationLevel() { return escalationLevel; }
+    public Integer getPriorityOrder()   { return priorityOrder; }
 
     // ----------------------------------------------------------------
     // Setters
@@ -124,7 +140,7 @@ public class Complaint {
     public void setDescription(String description)          { this.description = description; }
     public void setDepartment(String department)            { this.department = department; }
     public void setLocation(String location)                { this.location = location; }
-    public void setPriority(Priority priority)              { this.priority = priority; }
+    public void setPriority(Priority priority)              { this.priority = priority; syncPriorityOrder(); }
     public void setStatus(ComplaintStatus status)           { this.status = status; }
     public void setAssignedOfficer(String assignedOfficer)  { this.assignedOfficer = assignedOfficer; }
     public void setCreatedAt(LocalDateTime createdAt)       { this.createdAt = createdAt; }

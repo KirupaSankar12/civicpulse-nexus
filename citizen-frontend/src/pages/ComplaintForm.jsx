@@ -25,8 +25,8 @@ function ComplaintForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.title || !form.description || !form.department) {
-      setError('Please fill in Title, Description, and Department.');
+    if (!form.title || !form.description || !form.department || !form.location) {
+      setError('Please fill in Title, Description, Department, and Location.');
       return;
     }
     setLoading(true);
@@ -38,7 +38,14 @@ function ComplaintForm() {
       });
       navigate('/complaints');
     } catch (err) {
-      setError(err.response?.data?.message || 'Submission failed. Make sure your citizen profile is registered.');
+      if (err.response?.data?.fieldErrors) {
+        const errors = Object.entries(err.response.data.fieldErrors)
+          .map(([field, msg]) => `${field}: ${msg}`)
+          .join(', ');
+        setError(`Validation failed: ${errors}`);
+      } else {
+        setError(err.response?.data?.message || 'Submission failed. Make sure your citizen profile is registered.');
+      }
       setLoading(false);
     }
   };
@@ -94,8 +101,8 @@ function ComplaintForm() {
                   </select>
                 </div>
                 <div className="form-group">
-                  <label>Location / Landmark</label>
-                  <input className="form-control" value={form.location} onChange={set('location')} placeholder="e.g. Near MG Road bus stop" />
+                  <label>Location / Landmark *</label>
+                  <input className="form-control" value={form.location} onChange={set('location')} placeholder="e.g. Near MG Road bus stop" required />
                 </div>
               </div>
 

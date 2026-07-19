@@ -5,11 +5,16 @@ import com.civicpulse.grievance_service.entity.Complaint.ComplaintStatus;
 import com.civicpulse.grievance_service.entity.ComplaintHistory;
 import com.civicpulse.grievance_service.entity.Officer;
 import com.civicpulse.grievance_service.dto.DashboardStats;
+import com.civicpulse.grievance_service.event.ComplaintEvent;
 import com.civicpulse.grievance_service.repository.ComplaintHistoryRepository;
 import com.civicpulse.grievance_service.repository.ComplaintRepository;
 import com.civicpulse.grievance_service.repository.OfficerRepository;
-import com.civicpulse.grievance_service.service.KafkaProducerService;
 import com.civicpulse.grievance_service.dto.NotificationEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -23,10 +28,13 @@ import java.util.stream.Collectors;
 @Service
 public class ComplaintService {
 
+    private static final Logger log = LoggerFactory.getLogger(ComplaintService.class);
+
     private final ComplaintRepository complaintRepository;
     private final OfficerRepository officerRepository;
     private final ComplaintHistoryRepository historyRepository;
     private final KafkaProducerService kafkaProducerService;
+    private final KafkaTemplate<String, ComplaintEvent> complaintEventKafkaTemplate;
 
     /**
      * Legal status transitions — enforces the lifecycle:
@@ -53,11 +61,13 @@ public class ComplaintService {
     public ComplaintService(ComplaintRepository complaintRepository,
                             OfficerRepository officerRepository,
                             ComplaintHistoryRepository historyRepository,
-                            KafkaProducerService kafkaProducerService) {
+                            KafkaProducerService kafkaProducerService,
+                            KafkaTemplate<String, ComplaintEvent> complaintEventKafkaTemplate) {
         this.complaintRepository = complaintRepository;
         this.officerRepository = officerRepository;
         this.historyRepository = historyRepository;
         this.kafkaProducerService = kafkaProducerService;
+        this.complaintEventKafkaTemplate = complaintEventKafkaTemplate;
     }
 
     // ----------------------------------------------------------------
@@ -86,7 +96,21 @@ public class ComplaintService {
         // Log the initial creation in history
         logHistory(saved.getComplaintId(), null, "NEW", "Complaint filed by citizen");
 
-        // Kafka notification to citizen
+        // Kafka: typed complaint-created event
+        ComplaintEvent createdEvent = new ComplaintEvent(
+                "CREATED",
+                saved.getComplaintId(),
+                saved.getCitizenId(),
+                saved.getDepartment(),
+                null,
+                "NEW",
+                "Complaint filed",
+                now
+        );
+        complaintEventKafkaTemplate.send("complaint-created", saved.getComplaintId().toString(), createdEvent);
+        log.info("Published complaint-created event for complaintId={}", saved.getComplaintId());
+
+        // Kafka notification to citizen (legacy notification channel)
         kafkaProducerService.sendNotification(new NotificationEvent(
                 saved.getComplaintId(),
                 saved.getCitizenId(),
@@ -94,6 +118,69 @@ public class ComplaintService {
                 "CREATED",
                 "Your complaint '" + saved.getTitle() + "' has been successfully filed.",
                 saved.getCitizenId(),
+                now
+        ));
+
+        return saved;
+    }
+
+    public Page<Complaint> getAll(Pageable pageable) {
+        return complaintRepository.findAll(pageable);
+    }
+
+    public Page<Complaint> getByOfficer(String username, Pageable pageable) {
+        return complaintRepository.findByAssignedOfficer(username, pageable);
+    }
+
+    public Complaint assignOfficer(UUID complaintId, String officerUsername) {
+        Complaint complaint = complaintRepository.findById(complaintId)
+                .orElseThrow(() -> new IllegalArgumentException("Complaint not found: " + complaintId));
+
+        String previousStatus = complaint.getStatus().name();
+        validateTransition(complaint.getStatus(), ComplaintStatus.ASSIGNED);
+
+        complaint.setAssignedOfficer(officerUsername);
+        complaint.setStatus(ComplaintStatus.ASSIGNED);
+        complaint.setUpdatedAt(LocalDateTime.now());
+
+        Complaint saved = complaintRepository.save(complaint);
+        logHistory(complaintId, previousStatus, "ASSIGNED", "Manually assigned to officer: " + officerUsername);
+
+        LocalDateTime now = LocalDateTime.now();
+
+        // Publish Kafka event complaint-assigned
+        ComplaintEvent assignedEvent = new ComplaintEvent(
+                "ASSIGNED",
+                saved.getComplaintId(),
+                saved.getCitizenId(),
+                saved.getDepartment(),
+                previousStatus,
+                "ASSIGNED",
+                "Manually assigned to officer: " + officerUsername,
+                now
+        );
+        complaintEventKafkaTemplate.send("complaint-assigned", saved.getComplaintId().toString(), assignedEvent);
+        log.info("Published complaint-assigned event for complaintId={}", saved.getComplaintId());
+
+        // Send Kafka notification to citizen
+        kafkaProducerService.sendNotification(new NotificationEvent(
+                saved.getComplaintId(),
+                saved.getCitizenId(),
+                saved.getAssignedOfficer(),
+                "STATUS_UPDATED",
+                "Your complaint '" + saved.getTitle() + "' has been assigned to officer: " + officerUsername,
+                saved.getCitizenId(),
+                now
+        ));
+
+        // Send Kafka notification to officer
+        kafkaProducerService.sendNotification(new NotificationEvent(
+                saved.getComplaintId(),
+                saved.getCitizenId(),
+                saved.getAssignedOfficer(),
+                "ASSIGNED",
+                "You have been assigned a new complaint: '" + saved.getTitle() + "'",
+                officerUsername,
                 now
         ));
 
@@ -170,7 +257,22 @@ public class ComplaintService {
         logHistory(complaintId, previousStatus, newStatus.name(), finalRemarks);
 
         LocalDateTime now = LocalDateTime.now();
-        // Kafka notification to citizen
+
+        // Kafka: typed complaint-status-changed event
+        ComplaintEvent statusEvent = new ComplaintEvent(
+                "STATUS_CHANGED",
+                saved.getComplaintId(),
+                saved.getCitizenId(),
+                saved.getDepartment(),
+                previousStatus,
+                newStatus.name(),
+                finalRemarks,
+                now
+        );
+        complaintEventKafkaTemplate.send("complaint-status-changed", saved.getComplaintId().toString(), statusEvent);
+        log.info("Published complaint-status-changed: {} → {}", previousStatus, newStatus);
+
+        // Kafka notification to citizen (legacy notification channel)
         kafkaProducerService.sendNotification(new NotificationEvent(
                 saved.getComplaintId(),
                 saved.getCitizenId(),
@@ -181,7 +283,7 @@ public class ComplaintService {
                 now
         ));
 
-        // Kafka notification to officer
+        // Kafka notification to officer (legacy)
         if (saved.getAssignedOfficer() != null) {
             kafkaProducerService.sendNotification(new NotificationEvent(
                     saved.getComplaintId(),

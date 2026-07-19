@@ -47,29 +47,8 @@ function LoginPage() {
         localStorage.setItem('kc_idToken', id_token);
       }
 
-      // Re-initialize Keycloak instance with the new tokens
-      keycloak.init({
-        token: access_token,
-        refreshToken: refresh_token,
-        idToken: id_token,
-        onLoad: 'check-sso',
-        silentCheckSsoRedirectUri: window.location.origin + '/silent-check-sso.html',
-        checkLoginIframe: false,
-      })
-      .then((authenticated) => {
-        if (authenticated) {
-          navigate('/dashboard');
-          // Force a small reload or state reset if needed
-          window.location.reload();
-        } else {
-          setError('Authentication failed. Please verify credentials.');
-        }
-      })
-      .catch((err) => {
-        console.error('Error post-login initialization:', err);
-        // Fallback: force window reload to pick up tokens
-        window.location.href = '/dashboard';
-      });
+      // Redirect directly to dashboard (will trigger clean page load and pick up tokens)
+      window.location.href = '/dashboard';
 
     } catch (err) {
       console.error('Direct grant login failed:', err);
@@ -190,6 +169,61 @@ function LoginPage() {
             >
               🌐 Single Sign-On (SSO Redirect)
             </button>
+
+            {/* USER CREDENTIALS REPORT */}
+            <div style={{ marginTop: '24px', padding: '16px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '12px', maxHeight: '300px', overflowY: 'auto' }}>
+              <div style={{ fontWeight: 'bold', color: 'var(--primary-dark)', marginBottom: '12px', fontSize: '14px' }}>📋 CivicPulse Nexus — User Credentials Report</div>
+              <p style={{ marginBottom: '12px', color: '#475569' }}>All test accounts listed below are initialized with the password <strong>Password123</strong>.</p>
+              
+              <div style={{ fontWeight: '600', color: '#334155', marginBottom: '6px' }}>1. 👤 Citizens (Role: CITIZEN)</div>
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', marginBottom: '16px' }}>
+                <thead>
+                  <tr style={{ borderBottom: '1px solid #cbd5e1' }}>
+                    <th style={{ padding: '4px 0', color: '#64748b' }}>Email (Username)</th>
+                    <th style={{ padding: '4px 0', color: '#64748b' }}>Full Name</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td style={{ padding: '4px 0', fontFamily: 'monospace' }}>citizen1@gmail.com</td><td style={{ padding: '4px 0' }}>Citizen One</td></tr>
+                  <tr><td style={{ padding: '4px 0', fontFamily: 'monospace' }}>citizen2@gmail.com</td><td style={{ padding: '4px 0' }}>Citizen Two</td></tr>
+                  <tr><td style={{ padding: '4px 0', fontFamily: 'monospace' }}>citizen3@gmail.com</td><td style={{ padding: '4px 0' }}>Citizen Three</td></tr>
+                </tbody>
+              </table>
+
+              <div style={{ fontWeight: '600', color: '#334155', marginBottom: '6px' }}>2. 🧑‍💼 Field Officers (Role: OFFICER)</div>
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', marginBottom: '16px' }}>
+                <thead>
+                  <tr style={{ borderBottom: '1px solid #cbd5e1' }}>
+                    <th style={{ padding: '4px 0', color: '#64748b' }}>Username</th>
+                    <th style={{ padding: '4px 0', color: '#64748b' }}>Department</th>
+                    <th style={{ padding: '4px 0', color: '#64748b' }}>Authority</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td style={{ padding: '4px 0', fontFamily: 'monospace' }}>sibi</td><td style={{ padding: '4px 0' }}>Water</td><td style={{ padding: '4px 0' }}>Junior</td></tr>
+                  <tr><td style={{ padding: '4px 0', fontFamily: 'monospace' }}>joyel</td><td style={{ padding: '4px 0' }}>Public Works</td><td style={{ padding: '4px 0' }}>Junior</td></tr>
+                  <tr><td style={{ padding: '4px 0', fontFamily: 'monospace' }}>kirupa</td><td style={{ padding: '4px 0' }}>Sanitation Dept</td><td style={{ padding: '4px 0' }}>Approver</td></tr>
+                  <tr><td style={{ padding: '4px 0', fontFamily: 'monospace' }}>harish</td><td style={{ padding: '4px 0' }}>Water</td><td style={{ padding: '4px 0' }}>Approver</td></tr>
+                  <tr><td style={{ padding: '4px 0', fontFamily: 'monospace' }}>karthick</td><td style={{ padding: '4px 0' }}>Health Department</td><td style={{ padding: '4px 0' }}>Approver</td></tr>
+                  <tr><td style={{ padding: '4px 0', fontFamily: 'monospace' }}>joseph</td><td style={{ padding: '4px 0' }}>Revenue Department</td><td style={{ padding: '4px 0' }}>Approver</td></tr>
+                  <tr><td style={{ padding: '4px 0', fontFamily: 'monospace' }}>vikram</td><td style={{ padding: '4px 0' }}>Municipal Corporation</td><td style={{ padding: '4px 0' }}>Approver</td></tr>
+                </tbody>
+              </table>
+
+              <div style={{ fontWeight: '600', color: '#334155', marginBottom: '6px' }}>3. ⚙️ Portal Administrator (Role: ADMIN)</div>
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                <thead>
+                  <tr style={{ borderBottom: '1px solid #cbd5e1' }}>
+                    <th style={{ padding: '4px 0', color: '#64748b' }}>Username</th>
+                    <th style={{ padding: '4px 0', color: '#64748b' }}>Authority</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td style={{ padding: '4px 0', fontFamily: 'monospace' }}>admin_user</td><td style={{ padding: '4px 0' }}>System Administrator</td></tr>
+                </tbody>
+              </table>
+              <div style={{ marginTop: '12px', color: '#64748b', fontStyle: 'italic' }}>* Note: Keycloak admin interface is available at http://localhost:8180 (Credentials: admin/admin)</div>
+            </div>
           </div>
 
           <div className="auth-footer" style={{ marginTop: '20px' }}>

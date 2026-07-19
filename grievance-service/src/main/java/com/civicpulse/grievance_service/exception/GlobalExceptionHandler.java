@@ -18,9 +18,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> handleValidationErrors(MethodArgumentNotValidException ex) {
         Map<String, String> fieldErrors = new HashMap<>();
-        ex.getBindingResult().getFieldErrors().forEach(error ->
-                fieldErrors.put(error.getField(), error.getDefaultMessage())
-        );
+        ex.getBindingResult().getFieldErrors()
+                .forEach(error -> fieldErrors.put(error.getField(), error.getDefaultMessage()));
 
         Map<String, Object> body = new HashMap<>();
         body.put("timestamp", Instant.now().toString());
@@ -48,11 +47,11 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, Object>> handleInvalidTransition(IllegalStateException ex) {
         Map<String, Object> body = new HashMap<>();
         body.put("timestamp", Instant.now().toString());
-        body.put("status", HttpStatus.CONFLICT.value());
-        body.put("error", "Invalid Operation");
+        body.put("status", HttpStatus.BAD_REQUEST.value());
+        body.put("error", "Invalid Status Transition");
         body.put("message", ex.getMessage());
 
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
     }
 
     // Triggers when a complaint/officer/department is not found by ID

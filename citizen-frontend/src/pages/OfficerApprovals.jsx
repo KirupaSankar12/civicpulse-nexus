@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import api from '../api.js';
-import keycloak from '../keycloak.js';
 import AppShell from '../components/AppShell.jsx';
 
 function OfficerApprovals() {
@@ -9,13 +8,11 @@ function OfficerApprovals() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const officerName = keycloak.tokenParsed?.preferred_username || 'officer';
-
   const fetchAllData = async () => {
     try {
       const [submittedRes, verifiedRes] = await Promise.all([
         api.get('/service-management-service/api/services/pending'),
-        api.get('/service-management-service/api/services/verified-pending')
+        api.get('/service-management-service/api/services/status/verified')
       ]);
       setSubmittedApps(submittedRes.data);
       setVerifiedApps(verifiedRes.data);
@@ -27,49 +24,66 @@ function OfficerApprovals() {
     }
   };
 
-  useEffect(() => { fetchAllData(); }, []);
+  useEffect(() => { 
+    fetchAllData(); 
+  }, []);
 
-  const handleVerify = async (id) => {
-    const remarks = prompt("Verification remarks (press Cancel to abort):");
+  const handleVerify = async (id, isApprove) => {
+    const remarks = prompt(isApprove ? "Verification remarks (pass to Step 2):" : "Rejection reason:");
     if (remarks === null) return;
+    
     try {
-      await api.put(`/service-management-service/api/services/${id}/verify?officer=${officerName}&remarks=${encodeURIComponent(remarks)}`);
+      await api.put(`/service-management-service/api/services/verify/${id}`, {
+        verified: isApprove,
+        remarks: remarks
+      });
       fetchAllData();
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to verify application');
+      console.error(err);
+      alert(err.response?.data?.error || err.response?.data?.message || 'Failed to verify application');
     }
   };
 
   const handleApprove = async (id) => {
-    const remarks = prompt("Final approval remarks (press Cancel to abort):");
-    if (remarks === null) return;
+    if (!confirm("Are you sure you want to approve this application and issue the certificate?")) return;
     try {
-      await api.put(`/service-management-service/api/services/${id}/approve?officer=${officerName}&remarks=${encodeURIComponent(remarks)}`);
+      await api.put(`/service-management-service/api/services/approve/${id}`);
       fetchAllData();
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to approve application');
+      console.error(err);
+      alert(err.response?.data?.error || err.response?.data?.message || 'Failed to approve application');
     }
   };
 
-  const parseDetails = (json) => {
-    try { return JSON.parse(json); } catch (e) { return {}; }
+  const handleReject = async (id) => {
+    const reason = prompt("Enter rejection reason:");
+    if (reason === null) return;
+    try {
+      await api.put(`/service-management-service/api/services/reject/${id}`, {
+        reason: reason
+      });
+      fetchAllData();
+    } catch (err) {
+      console.error(err);
+      alert(err.response?.data?.error || err.response?.data?.message || 'Failed to reject application');
+    }
   };
 
   return (
     <AppShell title="Service Approvals">
-      <div className="page-header">
+      <div className="page-header" style={{ marginBottom: '2rem' }}>
         <h1 style={{ color: 'var(--primary)' }}>✅ Service Approvals Panel</h1>
         <p className="text-muted">
           Review, verify, and approve birth/death registrations, income certificates, and trade licenses.
         </p>
       </div>
 
-      {error && <div className="alert alert-error"><span>⚠️</span>{error}</div>}
+      {error && <div className="alert alert-error" style={{ marginBottom: '1.5rem', background: '#fef2f2', color: '#b91c1c', border: '1px solid #fca5a5', padding: '1rem', borderRadius: '8px' }}><span>⚠️</span> {error}</div>}
 
       {isLoading ? (
         <div style={{ padding: '48px', textAlign: 'center' }}>
           <div className="spinner-sm" style={{ width: '32px', height: '32px', margin: '0 auto', borderColor: 'var(--border)', borderTopColor: 'var(--primary)' }} />
-          <p style={{ marginTop: '12px', color: 'var(--text-secondary)' }}>Loading approvals...</p>
+          <p style={{ marginTop: '12px', color: '#6b7280' }}>Loading approvals...</p>
         </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
@@ -77,91 +91,86 @@ function OfficerApprovals() {
           {/* Step 1 — Pending Verification */}
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h2 style={{ fontSize: '1.2rem', color: 'var(--primary)' }}>
+              <h2 style={{ fontSize: '1.2rem', color: 'var(--primary)', fontWeight: 'bold' }}>
                 Step 1: Pending Verification ({submittedApps.length})
               </h2>
             </div>
 
             {submittedApps.length === 0 ? (
-              <div className="card" style={{ padding: '24px', textAlign: 'center' }}>
+              <div className="card" style={{ padding: '24px', textAlign: 'center', background: '#fff', borderRadius: '12px', border: '1px solid #eee' }}>
                 <span style={{ fontSize: '2rem' }}>🎉</span>
-                <p style={{ color: 'var(--text-secondary)', marginTop: '8px' }}>No applications awaiting verification.</p>
+                <p style={{ color: '#6b7280', marginTop: '8px' }}>No applications awaiting verification.</p>
               </div>
             ) : (
-              submittedApps.map(app => {
-                const details = parseDetails(app.detailsJson);
-                return (
-                  <div key={app.appId} className="card" style={{ marginBottom: '16px' }}>
-                    <div className="card-header" style={{ borderBottom: '1px solid var(--border-light)', paddingBottom: '8px' }}>
-                      <h3 style={{ fontSize: '1rem', color: 'var(--primary)' }}>{app.type.replace(/_/g, ' ')}</h3>
-                      <span className="badge badge-blue">SUBMITTED</span>
+              submittedApps.map(app => (
+                <div key={app.id} className="card" style={{ marginBottom: '16px', padding: '1.5rem', background: '#fff', borderRadius: '12px', border: '1px solid #eee', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+                  <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #f3f4f6', paddingBottom: '0.75rem', marginBottom: '1rem' }}>
+                    <h3 style={{ fontSize: '1rem', margin: 0, fontWeight: 'bold' }}>
+                      {app.serviceType?.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
+                    </h3>
+                    <span className="badge badge-blue" style={{ padding: '0.25rem 0.5rem', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 'bold' }}>SUBMITTED</span>
+                  </div>
+                  <div className="card-body">
+                    <div style={{ fontSize: '13.5px', lineHeight: '1.8', marginBottom: '1rem' }}>
+                      <div><strong>Applicant:</strong> {app.applicantName}</div>
+                      <div><strong>Aadhaar Number:</strong> XXXX-XXXX-{app.aadhaarNumber?.slice(-4)}</div>
+                      <div><strong>App ID:</strong> <code style={{ fontSize: '11px' }}>{app.applicationNumber}</code></div>
                     </div>
-                    <div className="card-body" style={{ marginTop: '12px' }}>
-                      <table style={{ width: '100%', fontSize: '13.5px', marginBottom: '14px' }}>
-                        <tbody>
-                          <tr><td style={{ color: 'var(--text-secondary)', width: '110px' }}>Applicant</td><td><strong>{app.applicantName}</strong></td></tr>
-                          <tr><td style={{ color: 'var(--text-secondary)' }}>App ID</td><td style={{ fontFamily: 'monospace', fontSize: '11px' }}>{app.appId}</td></tr>
-                          {Object.entries(details).map(([k, v]) => (
-                            <tr key={k}>
-                              <td style={{ color: 'var(--text-secondary)' }}>{k.replace(/([A-Z])/g, ' $1').trim()}</td>
-                              <td>{v}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                      {app.documentUrl && (
-                        <div style={{ marginBottom: '14px' }}>
-                          <a href={app.documentUrl} target="_blank" rel="noreferrer" style={{ fontSize: '13px', color: 'var(--accent)', fontWeight: '600' }}>
-                            📄 View Uploaded Document
-                          </a>
-                        </div>
-                      )}
-                      <button className="btn btn-primary btn-sm btn-full" onClick={() => handleVerify(app.appId)}>
-                        ✓ Verify &amp; Pass to Step 2
+                    
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button className="btn btn-primary btn-sm" onClick={() => handleVerify(app.id, true)} style={{ flex: 1, padding: '0.5rem', background: 'var(--primary-color)', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}>
+                        ✓ Verify App
+                      </button>
+                      <button className="btn btn-secondary btn-sm" onClick={() => handleVerify(app.id, false)} style={{ padding: '0.5rem 1rem', background: '#ef4444', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}>
+                        Reject
                       </button>
                     </div>
                   </div>
-                );
-              })
+                </div>
+              ))
             )}
           </div>
 
           {/* Step 2 — Pending Final Approval */}
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h2 style={{ fontSize: '1.2rem', color: 'var(--primary)' }}>
+              <h2 style={{ fontSize: '1.2rem', color: 'var(--primary)', fontWeight: 'bold' }}>
                 Step 2: Pending Final Approval ({verifiedApps.length})
               </h2>
             </div>
 
             {verifiedApps.length === 0 ? (
-              <div className="card" style={{ padding: '24px', textAlign: 'center' }}>
+              <div className="card" style={{ padding: '24px', textAlign: 'center', background: '#fff', borderRadius: '12px', border: '1px solid #eee' }}>
                 <span style={{ fontSize: '2rem' }}>🎉</span>
-                <p style={{ color: 'var(--text-secondary)', marginTop: '8px' }}>No applications awaiting final approval.</p>
+                <p style={{ color: '#6b7280', marginTop: '8px' }}>No applications awaiting final approval.</p>
               </div>
             ) : (
-              verifiedApps.map(app => {
-                return (
-                  <div key={app.appId} className="card" style={{ marginBottom: '16px', borderLeft: '4px solid var(--accent)' }}>
-                    <div className="card-header" style={{ borderBottom: '1px solid var(--border-light)', paddingBottom: '8px' }}>
-                      <h3 style={{ fontSize: '1rem', color: 'var(--primary)' }}>{app.type.replace(/_/g, ' ')}</h3>
-                      <span className="badge badge-purple">VERIFIED</span>
+              verifiedApps.map(app => (
+                <div key={app.id} className="card" style={{ marginBottom: '16px', padding: '1.5rem', background: '#fff', borderRadius: '12px', border: '1px solid #eee', borderLeft: '4px solid #10b981', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+                  <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #f3f4f6', paddingBottom: '0.75rem', marginBottom: '1rem' }}>
+                    <h3 style={{ fontSize: '1rem', margin: 0, fontWeight: 'bold' }}>
+                      {app.serviceType?.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
+                    </h3>
+                    <span className="badge badge-purple" style={{ padding: '0.25rem 0.5rem', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 'bold' }}>VERIFIED</span>
+                  </div>
+                  <div className="card-body">
+                    <div style={{ fontSize: '13.5px', lineHeight: '1.8', marginBottom: '1rem' }}>
+                      <div><strong>Applicant:</strong> {app.applicantName}</div>
+                      <div><strong>Aadhaar Number:</strong> XXXX-XXXX-{app.aadhaarNumber?.slice(-4)}</div>
+                      <div><strong>Verified By:</strong> {app.verifiedBy || 'Officer'}</div>
                     </div>
-                    <div className="card-body" style={{ marginTop: '12px' }}>
-                      <table style={{ width: '100%', fontSize: '13.5px', marginBottom: '14px' }}>
-                        <tbody>
-                          <tr><td style={{ color: 'var(--text-secondary)', width: '110px' }}>Applicant</td><td><strong>{app.applicantName}</strong></td></tr>
-                          <tr><td style={{ color: 'var(--text-secondary)' }}>Verified By</td><td>{app.assignedOfficer || 'System'}</td></tr>
-                          <tr><td style={{ color: 'var(--text-secondary)' }}>Remarks</td><td><em>{app.remarks || 'None'}</em></td></tr>
-                        </tbody>
-                      </table>
-                      <button className="btn btn-accent btn-sm btn-full" onClick={() => handleApprove(app.appId)}>
-                        🏆 Approve &amp; Issue Certificate
+                    
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button className="btn btn-accent btn-sm" onClick={() => handleApprove(app.id)} style={{ flex: 1, padding: '0.5rem', background: '#10b981', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}>
+                        🏆 Approve & Issue
+                      </button>
+                      <button className="btn btn-secondary btn-sm" onClick={() => handleReject(app.id)} style={{ padding: '0.5rem 1rem', background: '#ef4444', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}>
+                        Reject
                       </button>
                     </div>
                   </div>
-                );
-              })
+                </div>
+              ))
             )}
           </div>
 
