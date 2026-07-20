@@ -16,6 +16,8 @@ import ServiceTracker from './pages/ServiceTracker.jsx';
 import OfficerDashboard from './pages/OfficerDashboard.jsx';
 import OfficerApplicationView from './pages/OfficerApplicationView.jsx';
 import CitizenRegister from './pages/CitizenRegister.jsx';
+import MyCertificates from './pages/MyCertificates.jsx';
+import AdminDashboard from './pages/AdminDashboard.jsx';
 
 // Guard: redirects to /login if not authenticated
 function Protected({ children }) {
@@ -74,6 +76,9 @@ function App({ authenticated }) {
         <Route path="/services/tracker" element={
           <Protected><ServiceTracker /></Protected>
         } />
+        <Route path="/services/my-certificates" element={
+          <Protected><MyCertificates /></Protected>
+        } />
         <Route path="/services/officer/dashboard" element={
           <Protected><OfficerDashboard /></Protected>
         } />
@@ -87,6 +92,9 @@ function App({ authenticated }) {
         } />
 
         {/* Admin routes */}
+        <Route path="/admin/applications" element={
+          <Protected><AdminDashboard /></Protected>
+        } />
         <Route path="/admin/assign" element={
           <Protected><ComplaintList /></Protected>
         } />

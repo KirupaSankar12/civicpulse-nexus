@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../api.js';
 import keycloak from '../keycloak.js';
 
@@ -18,6 +19,7 @@ function NotificationCenter() {
   const [notifications, setNotifications] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
   const ref = useRef(null);
+  const navigate = useNavigate();
 
   const roles = keycloak.tokenParsed?.realm_access?.roles || [];
   const isOfficer = roles.includes('OFFICER') || roles.includes('officer');
@@ -34,7 +36,14 @@ function NotificationCenter() {
     };
     fetch();
     const t = setInterval(fetch, 10000);
-    return () => clearInterval(t);
+    
+    const handleForceRefresh = () => setTimeout(fetch, 500); // 500ms delay to allow DB/Kafka to process
+    window.addEventListener('refresh-notifications', handleForceRefresh);
+    
+    return () => {
+      clearInterval(t);
+      window.removeEventListener('refresh-notifications', handleForceRefresh);
+    };
   }, [recipient]);
 
   useEffect(() => {
@@ -97,17 +106,34 @@ function NotificationCenter() {
               <div
                 key={n.notificationId}
                 className={`notif-item${!n.readStatus ? ' unread' : ''}`}
-                onClick={() => !n.readStatus && markRead(n.notificationId)}
+                onClick={() => {
+                  if (!n.readStatus) markRead(n.notificationId);
+                  setIsOpen(false);
+                  if (n.relatedEntityType === 'COMPLAINT') {
+                    navigate(isOfficer ? '/officer' : '/complaints');
+                  } else if (n.relatedEntityType === 'CERTIFICATE') {
+                    navigate(isOfficer ? '/services/officer/dashboard' : '/services/tracker');
+                  }
+                }}
                 role="button"
                 tabIndex={0}
-                onKeyDown={(e) => e.key === 'Enter' && !n.readStatus && markRead(n.notificationId)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    if (!n.readStatus) markRead(n.notificationId);
+                    setIsOpen(false);
+                  }
+                }}
               >
                 <div className="notif-item-inner">
                   <div className="notif-icon" aria-hidden="true">{getNotifIcon(n.eventType)}</div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div className="notif-type">{n.eventType}</div>
-                    <div className="notif-msg">{n.message}</div>
-                    <div className="notif-time">{new Date(n.createdAt).toLocaleString('en-IN')}</div>
+                    <div className="notif-type" style={{ fontWeight: '600', color: 'var(--text-main)', marginBottom: '2px' }}>{n.title || n.eventType}</div>
+                    <div className="notif-msg" style={{ fontSize: '13px', lineHeight: '1.4' }}>{n.message}</div>
+                    <div className="notif-time" style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
+                      {new Date(n.createdAt).toLocaleString('en-IN', {
+                        month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                      })}
+                    </div>
                   </div>
                   {!n.readStatus && (
                     <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--info)', flexShrink: 0, marginTop: '6px' }} aria-hidden="true" />

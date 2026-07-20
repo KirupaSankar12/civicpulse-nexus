@@ -1,20 +1,10 @@
-package com.civicpulse.grievance_service.event;
+package com.civicpulse.notification_service.dto;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
-/**
- * Kafka event published to complaint-related topics:
- *   - "complaint-created"        (eventType = CREATED)
- *   - "complaint-status-changed" (eventType = STATUS_CHANGED)
- *   - "complaint-escalated"      (eventType = ESCALATED)
- *
- * Note: Written as a plain POJO (no Lombok) for Java 25 compatibility.
- */
 public class ComplaintEvent {
-    /** CREATED | STATUS_CHANGED | ESCALATED */
     private String eventType;
-    private UUID complaintId;
+    private String complaintId;
     private String citizenId;
     private String department;
     private String oldStatus;
@@ -23,28 +13,13 @@ public class ComplaintEvent {
     private String remarks;
     private LocalDateTime timestamp;
 
-    /** Required by Jackson for deserialization */
     public ComplaintEvent() {}
-
-    public ComplaintEvent(String eventType, UUID complaintId, String citizenId,
-                          String department, String oldStatus, String newStatus,
-                          String assignedOfficer, String remarks, LocalDateTime timestamp) {
-        this.eventType = eventType;
-        this.complaintId = complaintId;
-        this.citizenId = citizenId;
-        this.department = department;
-        this.oldStatus = oldStatus;
-        this.newStatus = newStatus;
-        this.assignedOfficer = assignedOfficer;
-        this.remarks = remarks;
-        this.timestamp = timestamp;
-    }
 
     public String getEventType() { return eventType; }
     public void setEventType(String eventType) { this.eventType = eventType; }
 
-    public UUID getComplaintId() { return complaintId; }
-    public void setComplaintId(UUID complaintId) { this.complaintId = complaintId; }
+    public String getComplaintId() { return complaintId; }
+    public void setComplaintId(String complaintId) { this.complaintId = complaintId; }
 
     public String getCitizenId() { return citizenId; }
     public void setCitizenId(String citizenId) { this.citizenId = citizenId; }

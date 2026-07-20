@@ -36,6 +36,7 @@ function ComplaintForm() {
         ...form,
         citizenId: keycloak.tokenParsed?.sub,
       });
+      window.dispatchEvent(new Event('refresh-notifications'));
       navigate('/complaints');
     } catch (err) {
       if (err.response?.data?.fieldErrors) {
@@ -53,7 +54,7 @@ function ComplaintForm() {
   return (
     <AppShell title="Raise Complaint">
       <div className="page-header">
-        <h1 style={{ color: 'var(--primary)' }}>📝 Raise a Complaint</h1>
+        <h1 style={{ color: 'var(--primary)' }}><i className="bi bi-pencil-square"></i> Raise a Complaint</h1>
         <p className="text-muted">Describe your issue below. We'll assign it to the correct department automatically.</p>
       </div>
 
@@ -106,9 +107,9 @@ function ComplaintForm() {
                 </div>
               </div>
 
-              <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
+              <div style={{ display: 'flex', gap: '10px', marginTop: '12px' }}>
                 <button type="submit" className="btn btn-primary btn-lg" disabled={loading}>
-                  {loading ? <><span className="spinner-sm" /> Submitting...</> : '🚀 Submit Complaint'}
+                  {loading ? <><span className="spinner-border spinner-border-sm" /> Submitting...</> : <><i className="bi bi-send"></i> Submit Complaint</>}
                 </button>
                 <button type="button" className="btn btn-outline btn-lg" onClick={() => navigate('/complaints')}>
                   Cancel
@@ -121,15 +122,15 @@ function ComplaintForm() {
         {/* Info sidebar */}
         <div>
           <div className="card" style={{ marginBottom: '16px' }}>
-            <div className="card-header"><h3>📌 SLA Timelines</h3></div>
+            <div className="card-header"><h3><i className="bi bi-pin-angle"></i> SLA Timelines</h3></div>
             <div className="card-body" style={{ fontSize: '13.5px' }}>
               {[
-                { p: '🔴 HIGH', t: '24 hours' },
-                { p: '🟡 MEDIUM', t: '48 hours' },
-                { p: '🟢 LOW', t: '72 hours' },
+                { p: 'High', c: 'danger', t: '24 hours' },
+                { p: 'Medium', c: 'warning', t: '48 hours' },
+                { p: 'Low', c: 'success', t: '72 hours' },
               ].map(i => (
-                <div key={i.p} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--border-light)' }}>
-                  <span>{i.p}</span>
+                <div key={i.p} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid var(--border-light)' }}>
+                  <span className={`text-${i.c} fw-bold`}><i className="bi bi-circle-fill" style={{ fontSize: '10px', marginRight: '6px' }}></i>{i.p}</span>
                   <span style={{ fontWeight: '700', color: 'var(--primary)' }}>{i.t}</span>
                 </div>
               ))}
@@ -137,7 +138,7 @@ function ComplaintForm() {
           </div>
 
           <div className="card">
-            <div className="card-header"><h3>ℹ️ Complaint Flow</h3></div>
+            <div className="card-header"><h3><i className="bi bi-info-circle"></i> Complaint Flow</h3></div>
             <div className="card-body">
               <div className="timeline">
                 {[

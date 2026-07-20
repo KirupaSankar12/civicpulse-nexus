@@ -73,33 +73,7 @@ public class ComplaintService {
     // ----------------------------------------------------------------
     // DEPARTMENT MAPPING UTILITIES
     // ----------------------------------------------------------------
-    private String getOfficerForDepartment(String department) {
-        if (department == null) return null;
-        return switch (department.toLowerCase()) {
-            case "health" -> "john";
-            case "water" -> "chris";
-            case "roads" -> "ethan";
-            case "electricity" -> "jack";
-            case "sanitation" -> "david";
-            case "revenue" -> "mark";
-            case "municipal corporation" -> "ryan";
-            default -> null;
-        };
-    }
 
-    private String getDepartmentForOfficer(String officerUsername) {
-        if (officerUsername == null) return null;
-        return switch (officerUsername.toLowerCase()) {
-            case "john" -> "Health";
-            case "chris" -> "Water";
-            case "ethan" -> "Roads";
-            case "jack" -> "Electricity";
-            case "david" -> "Sanitation";
-            case "mark" -> "Revenue";
-            case "ryan" -> "Municipal Corporation";
-            default -> null;
-        };
-    }
 
     // ----------------------------------------------------------------
     // CREATE
@@ -111,10 +85,11 @@ public class ComplaintService {
         if (complaint.getStatus() == null)   complaint.setStatus(ComplaintStatus.NEW);
         if (complaint.getPriority() == null) complaint.setPriority(Complaint.Priority.MEDIUM);
 
-        // Auto-assign officer based on department
+        // Auto-assign officer based on department using database mapping
         if (complaint.getDepartment() != null) {
-            String assignedOfficer = getOfficerForDepartment(complaint.getDepartment());
-            if (assignedOfficer != null) {
+            List<Officer> officers = officerRepository.findByDepartmentIgnoreCase(complaint.getDepartment());
+            if (!officers.isEmpty()) {
+                String assignedOfficer = officers.get(0).getName();
                 complaint.setAssignedOfficer(assignedOfficer);
                 complaint.setStatus(ComplaintStatus.ASSIGNED); // Automatically transition to ASSIGNED
             }
@@ -138,17 +113,18 @@ public class ComplaintService {
 
         // Kafka: typed complaint-created event
         ComplaintEvent createdEvent = new ComplaintEvent(
-                "CREATED",
+                "complaint-submitted",
                 saved.getComplaintId(),
                 saved.getCitizenId(),
                 saved.getDepartment(),
                 null,
                 saved.getStatus().name(),
-                "Complaint filed",
+                saved.getAssignedOfficer(),
+                "Complaint successfully submitted",
                 now
         );
-        complaintEventKafkaTemplate.send("complaint-created", saved.getComplaintId().toString(), createdEvent);
-        log.info("Published complaint-created event for complaintId={}", saved.getComplaintId());
+        complaintEventKafkaTemplate.send("complaint-submitted", saved.getComplaintId().toString(), createdEvent);
+        log.info("Published complaint-submitted event for complaintId={}", saved.getComplaintId());
 
         // Kafka notification to citizen (legacy notification channel)
         kafkaProducerService.sendNotification(new NotificationEvent(
@@ -169,9 +145,9 @@ public class ComplaintService {
     }
 
     public Page<Complaint> getByOfficer(String username, Pageable pageable) {
-        String department = getDepartmentForOfficer(username);
-        if (department != null) {
-            return complaintRepository.findByDepartmentIgnoreCase(department, pageable);
+        java.util.Optional<Officer> officerOpt = officerRepository.findByNameIgnoreCase(username);
+        if (officerOpt.isPresent()) {
+            return complaintRepository.findByDepartmentIgnoreCase(officerOpt.get().getDepartment(), pageable);
         }
         // Fallback for unknown users (e.g. admin or missing mapping)
         return complaintRepository.findByAssignedOfficer(username, pageable);
@@ -195,13 +171,14 @@ public class ComplaintService {
 
         // Publish Kafka event complaint-assigned
         ComplaintEvent assignedEvent = new ComplaintEvent(
-                "ASSIGNED",
+                "complaint-assigned",
                 saved.getComplaintId(),
                 saved.getCitizenId(),
                 saved.getDepartment(),
                 previousStatus,
-                "ASSIGNED",
-                "Manually assigned to officer: " + officerUsername,
+                saved.getStatus().name(),
+                saved.getAssignedOfficer(),
+                "Assigned to " + officerUsername,
                 now
         );
         complaintEventKafkaTemplate.send("complaint-assigned", saved.getComplaintId().toString(), assignedEvent);
@@ -304,18 +281,26 @@ public class ComplaintService {
         LocalDateTime now = LocalDateTime.now();
 
         // Kafka: typed complaint-status-changed event
+        String eventTopic = "complaint-status-changed";
+        if (newStatus == ComplaintStatus.IN_PROGRESS) {
+            eventTopic = "complaint-in-progress";
+        } else if (newStatus == ComplaintStatus.RESOLVED) {
+            eventTopic = "complaint-resolved";
+        }
+
         ComplaintEvent statusEvent = new ComplaintEvent(
-                "STATUS_CHANGED",
+                eventTopic,
                 saved.getComplaintId(),
                 saved.getCitizenId(),
                 saved.getDepartment(),
                 previousStatus,
                 newStatus.name(),
+                saved.getAssignedOfficer(),
                 finalRemarks,
                 now
         );
-        complaintEventKafkaTemplate.send("complaint-status-changed", saved.getComplaintId().toString(), statusEvent);
-        log.info("Published complaint-status-changed: {} → {}", previousStatus, newStatus);
+        complaintEventKafkaTemplate.send(eventTopic, saved.getComplaintId().toString(), statusEvent);
+        log.info("Published {}: {}   {}", eventTopic, previousStatus, newStatus);
 
         // Kafka notification to citizen (legacy notification channel)
         kafkaProducerService.sendNotification(new NotificationEvent(

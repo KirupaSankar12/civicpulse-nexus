@@ -1,44 +1,50 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { 
+  Landmark, AlertTriangle, Info, ShieldAlert, BadgeCheck,
+  Droplets, Route, Zap, Trash2, HeartPulse, FileText, FileSignature, Building2,
+  PenSquare, Search, LogIn, Activity, ShieldCheck, Smartphone, CheckCircle, Bell,
+  PhoneCall, BookOpen, HelpCircle
+} from 'lucide-react';
 
 const notices = [
-  { text: 'Water Supply Maintenance scheduled in Ward 7–12 on 10th July. Expect disruption 6AM–2PM.', date: 'July 8, 2026', type: 'alert' },
-  { text: 'Road Repair Notice: NH-48 flyover under construction. Use alternate route via Ring Road.', date: 'July 6, 2026', type: 'info' },
-  { text: 'Emergency Helpline: 1800-XXX-XXXX available 24×7 for disaster-related complaints.', date: 'July 4, 2026', type: 'emergency' },
-  { text: 'New e-Service: Residence Certificates can now be applied online — No office visit needed!', date: 'July 1, 2026', type: 'new' },
+  { text: 'Water Supply Maintenance scheduled in Ward 7–12 on 10th July. Expect disruption 6AM–2PM.', date: 'July 8, 2026', type: 'alert', icon: AlertTriangle },
+  { text: 'Road Repair Notice: NH-48 flyover under construction. Use alternate route via Ring Road.', date: 'July 6, 2026', type: 'info', icon: Info },
+  { text: 'Emergency Helpline: 1800-XXX-XXXX available 24×7 for disaster-related complaints.', date: 'July 4, 2026', type: 'emergency', icon: ShieldAlert },
+  { text: 'New e-Service: Residence Certificates can now be applied online — No office visit needed!', date: 'July 1, 2026', type: 'new', icon: BadgeCheck },
 ];
 
 const services = [
-  { icon: '💧', name: 'Water Supply', desc: 'Leakage, shortage, tanker requests', dept: 'Water Dept' },
-  { icon: '🛣️', name: 'Roads & Traffic', desc: 'Potholes, signals, encroachments', dept: 'Public Works' },
-  { icon: '⚡', name: 'Electricity', desc: 'Outages, street lights, billing', dept: 'Electricity Board' },
-  { icon: '🗑️', name: 'Sanitation', desc: 'Garbage, drains, public hygiene', dept: 'Sanitation Dept' },
-  { icon: '🏥', name: 'Health', desc: 'Public health, mosquitoes, stray animals', dept: 'Health Dept' },
-  { icon: '📜', name: 'Birth Certificate', desc: 'Apply for official birth record', dept: 'Health Dept' },
-  { icon: '📋', name: 'Death Certificate', desc: 'Register and obtain death record', dept: 'Health Dept' },
-  { icon: '💼', name: 'Trade License', desc: 'Commercial shop/trade registration', dept: 'Municipal Corp' },
+  { icon: Droplets, name: 'Water Supply', desc: 'Leakage, shortage, tanker requests', dept: 'Water Dept' },
+  { icon: Route, name: 'Roads & Traffic', desc: 'Potholes, signals, encroachments', dept: 'Public Works' },
+  { icon: Zap, name: 'Electricity', desc: 'Outages, street lights, billing', dept: 'Electricity Board' },
+  { icon: Trash2, name: 'Sanitation', desc: 'Garbage, drains, public hygiene', dept: 'Sanitation Dept' },
+  { icon: HeartPulse, name: 'Health', desc: 'Public health, mosquitoes, stray animals', dept: 'Health Dept' },
+  { icon: FileText, name: 'Birth Certificate', desc: 'Apply for official birth record', dept: 'Health Dept' },
+  { icon: FileSignature, name: 'Death Certificate', desc: 'Register and obtain death record', dept: 'Health Dept' },
+  { icon: Building2, name: 'Trade License', desc: 'Commercial shop/trade registration', dept: 'Municipal Corp' },
 ];
 
 const quickAccess = [
-  { icon: '📝', title: 'File Complaint', to: '/login', desc: 'Report civic issues' },
-  { icon: '📜', title: 'Apply Certificate', to: '/login', desc: 'Birth, income & more' },
-  { icon: '🔍', title: 'Track Status', to: '/login', desc: 'Check application progress' },
-  { icon: '👤', title: 'Citizen Login', to: '/login', desc: 'Access your account' },
+  { icon: PenSquare, title: 'File Complaint', to: '/login', desc: 'Report civic issues' },
+  { icon: FileText, title: 'Apply Certificate', to: '/login', desc: 'Birth, income & more' },
+  { icon: Search, title: 'Track Status', to: '/login', desc: 'Check application progress' },
+  { icon: LogIn, title: 'Citizen Login', to: '/login', desc: 'Access your account' },
 ];
 
 const features = [
-  { icon: '⚡', title: 'Real-Time Tracking', desc: 'Track your complaint status live with automatic updates and timeline history.' },
-  { icon: '🔒', title: 'Secured & Private', desc: 'End-to-end encrypted with Keycloak SSO. Your data is 100% safe.' },
-  { icon: '📱', title: 'Multi-Channel', desc: 'Access via web, mobile browser, or API. Responsive on all devices.' },
-  { icon: '🏛️', title: 'Government Standard', desc: 'Built to comply with Government of India digital services standards.' },
-  { icon: '📊', title: 'SLA Monitoring', desc: 'Strict Service Level Agreements with escalation when deadlines are missed.' },
-  { icon: '🔔', title: 'Smart Notifications', desc: 'Instant alerts via in-app notifications on every status change.' },
+  { icon: Activity, title: 'Real-Time Tracking', desc: 'Track your complaint status live with automatic updates and timeline history.' },
+  { icon: ShieldCheck, title: 'Secured & Private', desc: 'End-to-end encrypted with Keycloak SSO. Your data is 100% safe.' },
+  { icon: Smartphone, title: 'Multi-Channel', desc: 'Access via web, mobile browser, or API. Responsive on all devices.' },
+  { icon: Landmark, title: 'Government Standard', desc: 'Built to comply with Government of India digital services standards.' },
+  { icon: CheckCircle, title: 'SLA Monitoring', desc: 'Strict Service Level Agreements with escalation when deadlines are missed.' },
+  { icon: Bell, title: 'Smart Notifications', desc: 'Instant alerts via in-app notifications on every status change.' },
 ];
 
 const helpItems = [
-  { icon: '📞', title: 'Helpline Support', desc: 'Call 1800-XXX-XXXX (Mon–Sat, 9AM–6PM) for assistance with services and applications.' },
-  { icon: '📖', title: 'User Guide', desc: 'Step-by-step guides for filing complaints, applying for certificates, and tracking status.' },
-  { icon: '❓', title: 'FAQs', desc: 'Find answers to common questions about registration, documents, and processing times.' },
+  { icon: PhoneCall, title: 'Helpline Support', desc: 'Call 1800-XXX-XXXX (Mon–Sat, 9AM–6PM) for assistance with services and applications.' },
+  { icon: BookOpen, title: 'User Guide', desc: 'Step-by-step guides for filing complaints, applying for certificates, and tracking status.' },
+  { icon: HelpCircle, title: 'FAQs', desc: 'Find answers to common questions about registration, documents, and processing times.' },
 ];
 
 function LandingPage() {
@@ -62,7 +68,9 @@ function LandingPage() {
     <div className="public-layout">
       <nav className="public-nav">
         <Link to="/" className="nav-brand">
-          <div className="brand-icon">🏛️</div>
+          <div className="brand-icon">
+            <Landmark size={22} />
+          </div>
           <div>
             <div className="brand-name">CivicPulse Nexus</div>
             <span className="brand-sub">Smart Governance Platform</span>
@@ -130,15 +138,20 @@ function LandingPage() {
 
           <div className="hero-panel">
             <h3>📢 Latest Announcements</h3>
-            {notices.map((n, i) => (
-              <div className="notice-item" key={i}>
-                <div className="notice-dot" />
-                <div>
-                  <div className="notice-text">{n.text}</div>
-                  <div className="notice-date">{n.date}</div>
+            {notices.map((n, i) => {
+              const Icon = n.icon;
+              return (
+                <div className="notice-item" key={i}>
+                  <div className="notice-icon" style={{ marginTop: '2px', color: 'var(--accent-light)' }}>
+                    <Icon size={16} />
+                  </div>
+                  <div>
+                    <div className="notice-text">{n.text}</div>
+                    <div className="notice-date">{n.date}</div>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
             <div style={{ marginTop: '14px', textAlign: 'center' }}>
               <Link to="/login" className="btn btn-accent btn-sm">
                 View All Notices
@@ -156,13 +169,16 @@ function LandingPage() {
             Jump directly to the most used citizen services. Login required for authenticated services.
           </p>
           <div className="quick-access-grid">
-            {quickAccess.map((item, i) => (
-              <Link to={item.to} className="quick-access-card" key={i}>
-                <span className="qa-icon-lg">{item.icon}</span>
-                <div className="qa-title">{item.title}</div>
-                <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px' }}>{item.desc}</div>
-              </Link>
-            ))}
+            {quickAccess.map((item, i) => {
+              const Icon = item.icon;
+              return (
+                <Link to={item.to} className="quick-access-card" key={i}>
+                  <span className="qa-icon-lg" style={{ color: 'var(--primary)' }}><Icon size={32} strokeWidth={1.5} /></span>
+                  <div className="qa-title" style={{ marginTop: '12px' }}>{item.title}</div>
+                  <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px' }}>{item.desc}</div>
+                </Link>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -177,14 +193,19 @@ function LandingPage() {
           </p>
 
           <div className="services-grid">
-            {services.map((s, i) => (
-              <div className="service-card" key={i} onClick={() => { window.location.href = '/login'; }} role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && (window.location.href = '/login')}>
-                <span className="svc-icon">{s.icon}</span>
-                <div className="svc-name">{s.name}</div>
-                <div className="svc-desc">{s.desc}</div>
-                <div style={{ fontSize: '11px', color: 'var(--accent)', fontWeight: '600', marginTop: '8px' }}>{s.dept}</div>
-              </div>
-            ))}
+            {services.map((s, i) => {
+              const Icon = s.icon;
+              return (
+                <div className="service-card" key={i} onClick={() => { window.location.href = '/login'; }} role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && (window.location.href = '/login')}>
+                  <span className="svc-icon" style={{ color: 'var(--primary)', marginBottom: '16px', display: 'flex', justifyContent: 'center' }}>
+                    <Icon size={40} strokeWidth={1.5} />
+                  </span>
+                  <div className="svc-name">{s.name}</div>
+                  <div className="svc-desc">{s.desc}</div>
+                  <div style={{ fontSize: '11px', color: 'var(--accent)', fontWeight: '600', marginTop: '8px' }}>{s.dept}</div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -239,13 +260,18 @@ function LandingPage() {
           </p>
 
           <div className="features-grid">
-            {features.map((f, i) => (
-              <div className="feature-card animate-fade-in" key={i} style={{ animationDelay: `${i * 0.05}s` }}>
-                <div className="fc-icon" style={{ color: 'white' }}>{f.icon}</div>
-                <h4>{f.title}</h4>
-                <p>{f.desc}</p>
-              </div>
-            ))}
+            {features.map((f, i) => {
+              const Icon = f.icon;
+              return (
+                <div className="feature-card animate-fade-in" key={i} style={{ animationDelay: `${i * 0.05}s` }}>
+                  <div className="fc-icon" style={{ color: 'white' }}>
+                    <Icon size={24} strokeWidth={2} />
+                  </div>
+                  <h4>{f.title}</h4>
+                  <p>{f.desc}</p>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -258,13 +284,18 @@ function LandingPage() {
             Get support for registration, complaints, certificate applications, and more.
           </p>
           <div className="help-grid">
-            {helpItems.map((h, i) => (
-              <div className="help-card" key={i}>
-                <span className="help-icon">{h.icon}</span>
-                <h4>{h.title}</h4>
-                <p>{h.desc}</p>
-              </div>
-            ))}
+            {helpItems.map((h, i) => {
+              const Icon = h.icon;
+              return (
+                <div className="help-card" key={i}>
+                  <span className="help-icon" style={{ color: 'var(--primary)', marginBottom: '16px', display: 'block' }}>
+                    <Icon size={32} strokeWidth={1.5} />
+                  </span>
+                  <h4>{h.title}</h4>
+                  <p>{h.desc}</p>
+                </div>
+              );
+            })}
           </div>
           <div style={{ textAlign: 'center', marginTop: '32px' }}>
             <Link to="/register" className="btn btn-primary btn-lg">Create Your Citizen Account</Link>
@@ -276,7 +307,9 @@ function LandingPage() {
         <div className="footer-grid">
           <div className="footer-brand">
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <div style={{ fontSize: '24px' }}>🏛️</div>
+              <div style={{ color: 'white', padding: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '8px', display: 'flex' }}>
+                <Landmark size={24} strokeWidth={2} />
+              </div>
               <div>
                 <div style={{ color: 'white', fontWeight: '800', fontSize: '1rem' }}>CivicPulse Nexus</div>
                 <div style={{ fontSize: '11px', opacity: '0.6' }}>Smart Governance Platform</div>

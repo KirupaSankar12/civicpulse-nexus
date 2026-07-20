@@ -4,24 +4,28 @@ import api from '../api.js';
 import keycloak from '../keycloak.js';
 import AppShell from '../components/AppShell.jsx';
 
-function slaBadge(s) {
-  if (s === 'ON_TIME') return 'badge-green';
-  if (s === 'NEAR_DEADLINE') return 'badge-yellow';
-  if (s === 'OVERDUE') return 'badge-red';
-  return 'badge-gray';
+import { SectionCard } from '../components/SectionCard.jsx';
+import { Badge } from '../components/Badge.jsx';
+import { AlertCircle, Plus, ClipboardList, Inbox, ArrowRight } from 'lucide-react';
+
+function slaBadgeVariant(s) {
+  if (s === 'ON_TIME') return 'success';
+  if (s === 'NEAR_DEADLINE') return 'warning';
+  if (s === 'OVERDUE') return 'danger';
+  return 'neutral';
 }
-function statusBadge(s) {
-  if (s === 'NEW') return 'badge-blue';
-  if (s === 'ASSIGNED') return 'badge-purple';
-  if (s === 'IN_PROGRESS') return 'badge-yellow';
-  if (s === 'RESOLVED') return 'badge-green';
-  if (s === 'CLOSED') return 'badge-gray';
-  return 'badge-gray';
+function statusBadgeVariant(s) {
+  if (s === 'NEW') return 'info';
+  if (s === 'ASSIGNED') return 'info';
+  if (s === 'IN_PROGRESS') return 'warning';
+  if (s === 'RESOLVED') return 'success';
+  if (s === 'CLOSED') return 'neutral';
+  return 'neutral';
 }
-function priorityBadge(p) {
-  if (p === 'HIGH') return 'badge-red';
-  if (p === 'MEDIUM') return 'badge-yellow';
-  return 'badge-blue';
+function priorityBadgeVariant(p) {
+  if (p === 'HIGH') return 'danger';
+  if (p === 'MEDIUM') return 'warning';
+  return 'info';
 }
 
 function ComplaintList() {
@@ -50,32 +54,37 @@ function ComplaintList() {
 
   return (
     <AppShell title={isCitizen ? 'My Complaints' : 'All Complaints'}>
-      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
         <div>
-          <h1 style={{ color: 'var(--primary)' }}>
-            {isCitizen ? '📋 My Complaints' : '📋 All Complaints'}
+          <h1 style={{ color: 'var(--color-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <ClipboardList size={28} />
+            {isCitizen ? 'My Complaints' : 'All Complaints'}
           </h1>
-          <p className="text-muted">
+          <p className="text-muted" style={{ marginTop: '4px' }}>
             {isCitizen ? 'All grievances you have filed. Click any row to see details.' : 'All complaints in the system.'}
           </p>
         </div>
         {isCitizen && (
-          <Link to="/complaints/new" className="btn btn-primary">
-            ➕ Raise New Complaint
+          <Link to="/complaints/new" className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <Plus size={18} /> Raise New Complaint
           </Link>
         )}
       </div>
 
-      {error && <div className="alert alert-error"><span>⚠️</span>{error}</div>}
+      {error && (
+        <div className="alert alert-error" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
+          <AlertCircle size={20} /> {error}
+        </div>
+      )}
 
-      <div className="card">
+      <SectionCard style={{ padding: 0, overflow: 'hidden' }}>
         {loading ? (
           <div style={{ padding: '48px', textAlign: 'center' }}>
             <div className="spinner-sm" style={{ width: '32px', height: '32px', borderColor: 'var(--border)', borderTopColor: 'var(--primary)', margin: '0 auto' }} />
             <p style={{ marginTop: '12px', color: 'var(--text-secondary)' }}>Loading complaints...</p>
           </div>
         ) : (
-          <div className="table-wrapper">
+          <div className="table-wrapper" style={{ overflowX: 'auto' }}>
             <table className="data-table">
               <thead>
                 <tr>
@@ -94,32 +103,35 @@ function ComplaintList() {
                 {complaints.length === 0 ? (
                   <tr>
                     <td colSpan="9">
-                      <div className="empty-state">
-                        <span className="empty-icon">📭</span>
-                        <p>No complaints found. {isCitizen && <Link to="/complaints/new">File your first complaint</Link>}</p>
+                      <div className="empty-state" style={{ padding: '40px 20px', textAlign: 'center' }}>
+                        <Inbox size={48} color="var(--color-text-secondary)" style={{ margin: '0 auto 16px', opacity: 0.5 }} />
+                        <h3 style={{ margin: '0 0 8px', color: 'var(--color-text-primary)' }}>No complaints found</h3>
+                        <p style={{ margin: 0, color: 'var(--color-text-secondary)' }}>
+                          {isCitizen && <Link to="/complaints/new" style={{ color: 'var(--color-primary)', textDecoration: 'none', fontWeight: '500' }}>File your first complaint</Link>}
+                        </p>
                       </div>
                     </td>
                   </tr>
                 ) : (
                   complaints.map((c, i) => (
-                    <tr key={c.complaintId}>
-                      <td style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>{i + 1}</td>
+                    <tr key={c.complaintId} style={{ borderBottom: '1px solid var(--color-border)' }}>
+                      <td style={{ color: 'var(--color-text-secondary)', fontSize: '13px' }}>{i + 1}</td>
                       <td>
-                        <Link to={`/complaints/${c.complaintId}`} style={{ fontWeight: '600' }}>
+                        <Link to={`/complaints/${c.complaintId}`} style={{ fontWeight: '600', color: 'var(--color-primary)', textDecoration: 'none' }}>
                           {c.title}
                         </Link>
                       </td>
                       <td>{c.department}</td>
-                      <td><span className={`badge ${priorityBadge(c.priority)}`}>{c.priority}</span></td>
-                      <td><span className={`badge ${statusBadge(c.status)}`}>{c.status}</span></td>
-                      <td><span className={`badge ${slaBadge(c.slaStatus)}`}>{c.slaStatus || 'N/A'}</span></td>
-                      <td style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>{c.assignedOfficer || '—'}</td>
-                      <td style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>
+                      <td><Badge variant={priorityBadgeVariant(c.priority)} label={c.priority} /></td>
+                      <td><Badge variant={statusBadgeVariant(c.status)} label={c.status} /></td>
+                      <td><Badge variant={slaBadgeVariant(c.slaStatus)} label={c.slaStatus || 'N/A'} /></td>
+                      <td style={{ color: 'var(--color-text-secondary)', fontSize: '13px' }}>{c.assignedOfficer || '—'}</td>
+                      <td style={{ color: 'var(--color-text-secondary)', fontSize: '13px' }}>
                         {c.createdAt ? new Date(c.createdAt).toLocaleDateString('en-IN') : '—'}
                       </td>
                       <td>
-                        <Link to={`/complaints/${c.complaintId}`} className="btn btn-ghost btn-sm">
-                          View →
+                        <Link to={`/complaints/${c.complaintId}`} className="btn btn-ghost btn-sm" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          View <ArrowRight size={14} />
                         </Link>
                       </td>
                     </tr>
@@ -129,7 +141,7 @@ function ComplaintList() {
             </table>
           </div>
         )}
-      </div>
+      </SectionCard>
     </AppShell>
   );
 }

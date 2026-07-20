@@ -101,6 +101,7 @@ public class EscalationService {
                 complaint.getDepartment(),
                 "ASSIGNED",
                 "ESCALATED",
+                complaint.getAssignedOfficer(),
                 "Auto-escalated: SLA breached at " + LocalDateTime.now() + " — reassigned to: " + assignedTo,
                 LocalDateTime.now()
         );

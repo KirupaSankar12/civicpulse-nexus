@@ -14,19 +14,28 @@ public class Notification {
 
     private String recipient; // citizenId or officer username
     private String eventType;
+    private String title;
     private String message;
-    private UUID complaintId;
+    private String relatedEntityId;
+    private String relatedEntityType; // COMPLAINT or CERTIFICATE
     private boolean readStatus;
+    private String recipientRole;
     private LocalDateTime createdAt;
 
+    // JPA requires a no-arg constructor
     public Notification() {}
 
-    public Notification(String recipient, String eventType, String message, UUID complaintId, boolean readStatus, LocalDateTime createdAt) {
+    public Notification(String recipient, String eventType, String title, String message, 
+                        String relatedEntityId, String relatedEntityType, boolean readStatus, 
+                        String recipientRole, LocalDateTime createdAt) {
         this.recipient = recipient;
         this.eventType = eventType;
+        this.title = title;
         this.message = message;
-        this.complaintId = complaintId;
+        this.relatedEntityId = relatedEntityId;
+        this.relatedEntityType = relatedEntityType;
         this.readStatus = readStatus;
+        this.recipientRole = recipientRole;
         this.createdAt = createdAt;
     }
 
@@ -42,11 +51,20 @@ public class Notification {
     public String getMessage() { return message; }
     public void setMessage(String message) { this.message = message; }
 
-    public UUID getComplaintId() { return complaintId; }
-    public void setComplaintId(UUID complaintId) { this.complaintId = complaintId; }
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
+
+    public String getRelatedEntityId() { return relatedEntityId; }
+    public void setRelatedEntityId(String relatedEntityId) { this.relatedEntityId = relatedEntityId; }
+
+    public String getRelatedEntityType() { return relatedEntityType; }
+    public void setRelatedEntityType(String relatedEntityType) { this.relatedEntityType = relatedEntityType; }
 
     public boolean isReadStatus() { return readStatus; }
     public void setReadStatus(boolean readStatus) { this.readStatus = readStatus; }
+
+    public String getRecipientRole() { return recipientRole; }
+    public void setRecipientRole(String recipientRole) { this.recipientRole = recipientRole; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

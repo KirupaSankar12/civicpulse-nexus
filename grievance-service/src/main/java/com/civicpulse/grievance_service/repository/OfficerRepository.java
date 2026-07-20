@@ -8,4 +8,5 @@ import java.util.UUID;
 public interface OfficerRepository extends JpaRepository<Officer, UUID> {
     List<Officer> findByDepartmentIgnoreCase(String department);
     List<Officer> findByDepartmentIgnoreCaseAndSeniorOfficerTrue(String department);
+    java.util.Optional<Officer> findByNameIgnoreCase(String name);
 }

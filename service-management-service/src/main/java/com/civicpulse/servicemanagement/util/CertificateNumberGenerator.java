@@ -16,6 +16,7 @@ public class CertificateNumberGenerator {
             case INCOME_CERTIFICATE    -> "IC";
             case RESIDENCE_CERTIFICATE -> "RC";
             case TRADE_LICENSE         -> "TL";
+            case PERMIT_APPROVAL       -> "PA";
         };
         int year = Year.now().getValue();
         long seq = counter.getAndIncrement();

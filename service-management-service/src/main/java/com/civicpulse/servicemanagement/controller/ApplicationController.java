@@ -75,6 +75,16 @@ public class ApplicationController {
         return ResponseEntity.ok(applicationService.getPendingForVerification(officerUsername));
     }
 
+    @GetMapping("/officer/preview/{id}")
+    public ResponseEntity<byte[]> previewCertificate(@PathVariable UUID id) {
+        ServiceApplication app = applicationService.getById(id);
+        byte[] pdf = certificateService.generateCertificatePdf(app, true);
+        return ResponseEntity.ok()
+            .contentType(MediaType.APPLICATION_PDF)
+            .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"preview.pdf\"")
+            .body(pdf);
+    }
+
     @GetMapping("/officer/status/{status}")
     public ResponseEntity<List<ServiceApplication>> getOfficerAppsByStatus(
             @PathVariable ApplicationStatus status,
@@ -107,9 +117,11 @@ public class ApplicationController {
     @PutMapping("/approve/{id}")
     public ResponseEntity<ServiceApplication> approve(
             @PathVariable UUID id,
+            @RequestBody(required = false) java.util.Map<String, String> request,
             @AuthenticationPrincipal Jwt jwt) {
         String officerName = jwt.getClaimAsString("preferred_username");
-        return ResponseEntity.ok(applicationService.approveApplication(id, officerName));
+        String remarks = (request != null) ? request.get("officerRemarks") : null;
+        return ResponseEntity.ok(applicationService.approveApplication(id, officerName, remarks));
     }
 
     @PutMapping("/reject/{id}")

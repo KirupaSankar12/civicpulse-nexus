@@ -5,26 +5,36 @@ import keycloak from '../keycloak.js';
 import AppShell from '../components/AppShell.jsx';
 import PageLoader from '../components/PageLoader.jsx';
 
-function slaBadge(s) {
-  if (s === 'ON_TIME') return 'badge-green';
-  if (s === 'NEAR_DEADLINE') return 'badge-yellow';
-  if (s === 'OVERDUE') return 'badge-red';
-  return 'badge-gray';
+import { StatCard } from '../components/StatCard.jsx';
+import { SectionCard } from '../components/SectionCard.jsx';
+import { Badge } from '../components/Badge.jsx';
+import { 
+  LayoutDashboard, MessageSquareWarning, CheckCircle2, 
+  Clock, AlertTriangle, Inbox, CheckCircle, 
+  Settings, PenSquare, List, FilePlus, Search, User, Phone,
+  FileText, Activity, Users, FileSignature
+} from 'lucide-react';
+
+function slaBadgeVariant(s) {
+  if (s === 'ON_TIME') return 'success';
+  if (s === 'NEAR_DEADLINE') return 'warning';
+  if (s === 'OVERDUE') return 'danger';
+  return 'neutral';
 }
 
-function statusBadge(s) {
-  if (s === 'NEW') return 'badge-blue';
-  if (s === 'ASSIGNED') return 'badge-purple';
-  if (s === 'IN_PROGRESS') return 'badge-yellow';
-  if (s === 'RESOLVED') return 'badge-green';
-  if (s === 'CLOSED') return 'badge-gray';
-  return 'badge-gray';
+function statusBadgeVariant(s) {
+  if (s === 'NEW') return 'info';
+  if (s === 'ASSIGNED') return 'info';
+  if (s === 'IN_PROGRESS') return 'warning';
+  if (s === 'RESOLVED') return 'success';
+  if (s === 'CLOSED') return 'neutral';
+  return 'neutral';
 }
 
-function priorityBadge(p) {
-  if (p === 'HIGH') return 'badge-red';
-  if (p === 'MEDIUM') return 'badge-yellow';
-  return 'badge-blue';
+function priorityBadgeVariant(p) {
+  if (p === 'HIGH') return 'danger';
+  if (p === 'MEDIUM') return 'warning';
+  return 'info';
 }
 
 function Dashboard() {
@@ -85,66 +95,56 @@ function CitizenDashboard() {
 
       {/* Citizen stats */}
       <div className="stats-grid">
-        <div className="stat-card" style={{ '--stat-color': 'var(--primary)', '--stat-bg': 'rgba(30,58,95,0.08)' }}>
-          <div className="stat-icon">📋</div>
-          <div className="stat-value">{myComplaints.length}</div>
-          <div className="stat-label">Total My Complaints</div>
-        </div>
-        <div className="stat-card" style={{ '--stat-color': 'var(--warning)', '--stat-bg': 'rgba(243,156,18,0.08)' }}>
-          <div className="stat-icon">⏳</div>
-          <div className="stat-value">{pending}</div>
-          <div className="stat-label">Pending Resolution</div>
-        </div>
-        <div className="stat-card" style={{ '--stat-color': 'var(--accent)', '--stat-bg': 'rgba(39,174,96,0.08)' }}>
-          <div className="stat-icon">✅</div>
-          <div className="stat-value">{resolved}</div>
-          <div className="stat-label">Resolved</div>
-        </div>
+        <StatCard icon={FileText} title="Total My Complaints" value={myComplaints.length} />
+        <StatCard icon={Clock} title="Pending Resolution" value={pending} trendType="down" />
+        <StatCard icon={CheckCircle2} title="Resolved" value={resolved} trendType="up" />
       </div>
 
       {/* Quick actions */}
-      <div className="card" style={{ marginBottom: '24px' }}>
-        <div className="card-header"><h3>⚡ Quick Actions</h3></div>
-        <div className="card-body">
-          <div className="quick-actions">
-            <Link to="/complaints/new" className="qa-card">
-              <span className="qa-icon">📝</span>
-              <span className="qa-label">Raise Complaint</span>
-            </Link>
-            <Link to="/complaints" className="qa-card">
-              <span className="qa-icon">📋</span>
-              <span className="qa-label">My Complaints</span>
-            </Link>
-            <Link to="/services/apply" className="qa-card">
-              <span className="qa-icon">📜</span>
-              <span className="qa-label">Apply for Certificate</span>
-            </Link>
-            <Link to="/services/tracker" className="qa-card">
-              <span className="qa-icon">🔍</span>
-              <span className="qa-label">Track Application</span>
-            </Link>
-            <Link to="/profile" className="qa-card">
-              <span className="qa-icon">👤</span>
-              <span className="qa-label">Update Profile</span>
-            </Link>
-            <div className="qa-card" onClick={() => window.open('tel:112')}>
-              <span className="qa-icon">🆘</span>
-              <span className="qa-label">Emergency: 112</span>
-            </div>
+      <SectionCard className="mb-4">
+        <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', color: 'var(--color-text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Activity size={20} color="var(--color-primary)" /> Quick Actions
+        </h3>
+        <div className="quick-actions">
+          <Link to="/complaints/new" className="qa-card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '16px', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', textDecoration: 'none', color: 'var(--color-text-primary)' }}>
+            <span className="qa-icon" style={{ padding: '12px', backgroundColor: 'var(--color-primary-light)', color: 'var(--color-primary)', borderRadius: '50%', marginBottom: '12px' }}><PenSquare size={24} /></span>
+            <span className="qa-label" style={{ fontSize: '14px', fontWeight: '500' }}>Raise Complaint</span>
+          </Link>
+          <Link to="/complaints" className="qa-card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '16px', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', textDecoration: 'none', color: 'var(--color-text-primary)' }}>
+            <span className="qa-icon" style={{ padding: '12px', backgroundColor: 'var(--color-primary-light)', color: 'var(--color-primary)', borderRadius: '50%', marginBottom: '12px' }}><List size={24} /></span>
+            <span className="qa-label" style={{ fontSize: '14px', fontWeight: '500' }}>My Complaints</span>
+          </Link>
+          <Link to="/services/apply" className="qa-card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '16px', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', textDecoration: 'none', color: 'var(--color-text-primary)' }}>
+            <span className="qa-icon" style={{ padding: '12px', backgroundColor: 'var(--color-primary-light)', color: 'var(--color-primary)', borderRadius: '50%', marginBottom: '12px' }}><FilePlus size={24} /></span>
+            <span className="qa-label" style={{ fontSize: '14px', fontWeight: '500' }}>Apply for Certificate</span>
+          </Link>
+          <Link to="/services/tracker" className="qa-card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '16px', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', textDecoration: 'none', color: 'var(--color-text-primary)' }}>
+            <span className="qa-icon" style={{ padding: '12px', backgroundColor: 'var(--color-primary-light)', color: 'var(--color-primary)', borderRadius: '50%', marginBottom: '12px' }}><Search size={24} /></span>
+            <span className="qa-label" style={{ fontSize: '14px', fontWeight: '500' }}>Track Application</span>
+          </Link>
+          <Link to="/profile" className="qa-card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '16px', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', textDecoration: 'none', color: 'var(--color-text-primary)' }}>
+            <span className="qa-icon" style={{ padding: '12px', backgroundColor: 'var(--color-primary-light)', color: 'var(--color-primary)', borderRadius: '50%', marginBottom: '12px' }}><User size={24} /></span>
+            <span className="qa-label" style={{ fontSize: '14px', fontWeight: '500' }}>Update Profile</span>
+          </Link>
+          <div className="qa-card" onClick={() => window.open('tel:112')} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '16px', border: '1px solid var(--color-danger-light)', backgroundColor: 'var(--color-danger-light)', borderRadius: 'var(--radius-md)', cursor: 'pointer', color: 'var(--color-danger)' }}>
+            <span className="qa-icon" style={{ padding: '12px', backgroundColor: 'var(--color-white)', color: 'var(--color-danger)', borderRadius: '50%', marginBottom: '12px' }}><Phone size={24} /></span>
+            <span className="qa-label" style={{ fontSize: '14px', fontWeight: '500' }}>Emergency: 112</span>
           </div>
         </div>
-      </div>
+      </SectionCard>
 
       {/* Recent complaints */}
-      <div className="card">
-        <div className="card-header">
-          <h3>📋 Recent Complaints</h3>
+      <SectionCard>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+          <h3 style={{ margin: 0, fontSize: '16px', color: 'var(--color-text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <List size={20} /> Recent Complaints
+          </h3>
           <Link to="/complaints" className="btn btn-outline btn-sm">View All</Link>
         </div>
-        <div className="table-wrapper">
+        <div className="table-wrapper" style={{ overflowX: 'auto' }}>
           {myComplaints.length === 0 ? (
             <div className="empty-state">
-              <span className="empty-icon">📭</span>
+              <span className="empty-icon text-muted"><Inbox size={48} /></span>
               <p>No complaints filed yet. <Link to="/complaints/new">Raise your first complaint</Link></p>
             </div>
           ) : (
@@ -156,15 +156,15 @@ function CitizenDashboard() {
               </thead>
               <tbody>
                 {myComplaints.slice(0, 5).map(c => (
-                  <tr key={c.complaintId}>
-                    <td style={{ fontFamily: 'monospace', fontSize: '11px', color: 'var(--text-secondary)' }}>
+                  <tr key={c.complaintId} style={{ borderBottom: '1px solid var(--color-border)' }}>
+                    <td style={{ fontFamily: 'monospace', fontSize: '11px', color: 'var(--color-text-secondary)' }}>
                       {c.complaintId?.slice(0, 8)}...
                     </td>
                     <td style={{ fontWeight: '500', maxWidth: '200px' }}>{c.title}</td>
                     <td>{c.department}</td>
-                    <td><span className={`badge ${priorityBadge(c.priority)}`}>{c.priority}</span></td>
-                    <td><span className={`badge ${statusBadge(c.status)}`}>{c.status}</span></td>
-                    <td><span className={`badge ${slaBadge(c.slaStatus)}`}>{c.slaStatus || 'N/A'}</span></td>
+                    <td><Badge variant={priorityBadgeVariant(c.priority)} label={c.priority} /></td>
+                    <td><Badge variant={statusBadgeVariant(c.status)} label={c.status} /></td>
+                    <td><Badge variant={slaBadgeVariant(c.slaStatus)} label={c.slaStatus || 'N/A'} /></td>
                     <td>
                       <Link to={`/complaints/${c.complaintId}`} className="btn btn-ghost btn-sm">View →</Link>
                     </td>
@@ -174,7 +174,7 @@ function CitizenDashboard() {
             </table>
           )}
         </div>
-      </div>
+      </SectionCard>
     </AppShell>
   );
 }
@@ -237,40 +237,22 @@ function OfficerDashboardView() {
 
       {/* Stats */}
       <div className="stats-grid">
-        <div className="stat-card" style={{ '--stat-color': 'var(--primary)' }}>
-          <div className="stat-icon">📋</div>
-          <div className="stat-value">{complaints.length}</div>
-          <div className="stat-label">Total Assigned</div>
-        </div>
-        <div className="stat-card" style={{ '--stat-color': 'var(--warning)' }}>
-          <div className="stat-icon">⏳</div>
-          <div className="stat-value">{pending}</div>
-          <div className="stat-label">Pending Action</div>
-        </div>
-        <div className="stat-card" style={{ '--stat-color': '#2980b9' }}>
-          <div className="stat-icon">🔧</div>
-          <div className="stat-value">{inProgress}</div>
-          <div className="stat-label">In Progress</div>
-        </div>
-        <div className="stat-card" style={{ '--stat-color': 'var(--accent)' }}>
-          <div className="stat-icon">✅</div>
-          <div className="stat-value">{resolved}</div>
-          <div className="stat-label">Resolved</div>
-        </div>
-        <div className="stat-card" style={{ '--stat-color': 'var(--danger)' }}>
-          <div className="stat-icon">🚨</div>
-          <div className="stat-value">{highPriority}</div>
-          <div className="stat-label">High Priority</div>
-        </div>
+        <StatCard icon={Inbox} title="Total Assigned" value={complaints.length} />
+        <StatCard icon={Clock} title="Pending Action" value={pending} trendType="down" />
+        <StatCard icon={Settings} title="In Progress" value={inProgress} />
+        <StatCard icon={CheckCircle2} title="Resolved" value={resolved} trendType="up" />
+        <StatCard icon={AlertTriangle} title="High Priority" value={highPriority} trendType="down" />
       </div>
 
       {/* Complaints table */}
-      <div className="card">
-        <div className="card-header"><h3>📋 My Assigned Complaints</h3></div>
-        <div className="table-wrapper">
+      <SectionCard>
+        <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <List size={20} /> My Assigned Complaints
+        </h3>
+        <div className="table-wrapper" style={{ overflowX: 'auto' }}>
           {complaints.length === 0 ? (
             <div className="empty-state">
-              <span className="empty-icon">🎉</span>
+              <span className="empty-icon text-muted"><Inbox size={48} /></span>
               <p>No complaints assigned. Great job staying on top of things!</p>
             </div>
           ) : (
@@ -280,15 +262,15 @@ function OfficerDashboardView() {
               </thead>
               <tbody>
                 {complaints.map((c, i) => (
-                  <tr key={c.complaintId}>
-                    <td style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>{page * pageSize + i + 1}</td>
+                  <tr key={c.complaintId} style={{ borderBottom: '1px solid var(--color-border)' }}>
+                    <td style={{ color: 'var(--color-text-secondary)', fontSize: '13px' }}>{page * pageSize + i + 1}</td>
                     <td style={{ fontWeight: '500' }}>
                       <Link to={`/complaints/${c.complaintId}`}>{c.title}</Link>
                     </td>
                     <td>{c.department}</td>
-                    <td><span className={`badge ${priorityBadge(c.priority)}`}>{c.priority}</span></td>
-                    <td><span className={`badge ${slaBadge(c.slaStatus)}`}>{c.slaStatus || 'N/A'}</span></td>
-                    <td><span className={`badge ${statusBadge(c.status)}`}>{c.status}</span></td>
+                    <td><Badge variant={priorityBadgeVariant(c.priority)} label={c.priority} /></td>
+                    <td><Badge variant={slaBadgeVariant(c.slaStatus)} label={c.slaStatus || 'N/A'} /></td>
+                    <td><Badge variant={statusBadgeVariant(c.status)} label={c.status} /></td>
                     <td style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                       {c.status === 'ASSIGNED' && (
                         <button className="btn btn-primary btn-sm" onClick={() => handleStatusChange(c.complaintId, 'IN_PROGRESS')}>
@@ -330,7 +312,7 @@ function OfficerDashboardView() {
             </button>
           </div>
         </div>
-      </div>
+      </SectionCard>
     </AppShell>
   );
 }
@@ -442,82 +424,64 @@ function AdminDashboard() {
 
       {/* Stats */}
       {stats && (
-        <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))' }}>
-          <div className="stat-card" style={{ '--stat-color': 'var(--primary)' }}>
-            <div className="stat-icon">📊</div>
-            <div className="stat-value">{stats.totalComplaints}</div>
-            <div className="stat-label">Total Complaints</div>
-          </div>
-          <div className="stat-card" style={{ '--stat-color': 'var(--accent)' }}>
-            <div className="stat-icon">✅</div>
-            <div className="stat-value">{stats.resolvedComplaints}</div>
-            <div className="stat-label">Resolved</div>
-          </div>
-          <div className="stat-card" style={{ '--stat-color': 'var(--warning)' }}>
-            <div className="stat-icon">⏳</div>
-            <div className="stat-value">{stats.pendingComplaints}</div>
-            <div className="stat-label">Pending</div>
-          </div>
-          <div className="stat-card" style={{ '--stat-color': 'var(--danger)' }}>
-            <div className="stat-icon">🚨</div>
-            <div className="stat-value">{overdue}</div>
-            <div className="stat-label">SLA Overdue</div>
-          </div>
-          <div className="stat-card" style={{ '--stat-color': '#2980b9' }}>
-            <div className="stat-icon">📈</div>
-            <div className="stat-value">{stats.resolutionRate}%</div>
-            <div className="stat-label">Resolution Rate</div>
-          </div>
+        <div className="stats-grid">
+          <StatCard icon={FileText} title="Total Complaints" value={stats.totalComplaints} />
+          <StatCard icon={CheckCircle2} title="Resolved" value={stats.resolvedComplaints} trendType="up" />
+          <StatCard icon={Clock} title="Pending" value={stats.pendingComplaints} />
+          <StatCard icon={AlertTriangle} title="SLA Overdue" value={overdue} trendType="down" />
+          <StatCard icon={Activity} title="Resolution Rate" value={`${stats.resolutionRate}%`} />
         </div>
       )}
 
       {/* Breakdown cards */}
       {stats && (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', marginBottom: '24px' }}>
-          <div className="card">
-            <div className="card-header"><h3>By Department</h3></div>
-            <div className="card-body">
+          <SectionCard>
+            <h3 style={{ margin: '0 0 16px 0', fontSize: '15px' }}>By Department</h3>
+            <div>
               {Object.entries(stats.byDepartment).map(([d, c]) => (
-                <div key={d} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid var(--border-light)', fontSize: '13.5px' }}>
+                <div key={d} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--color-border)', fontSize: '13.5px' }}>
                   <span>{d}</span>
-                  <span className="badge badge-blue">{c}</span>
+                  <Badge variant="info" label={c} />
                 </div>
               ))}
-              {Object.keys(stats.byDepartment).length === 0 && <p className="text-muted" style={{ fontSize: '13px' }}>No data yet</p>}
+              {Object.keys(stats.byDepartment).length === 0 && <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>No data yet</p>}
             </div>
-          </div>
-          <div className="card">
-            <div className="card-header"><h3>By Status</h3></div>
-            <div className="card-body">
+          </SectionCard>
+          <SectionCard>
+            <h3 style={{ margin: '0 0 16px 0', fontSize: '15px' }}>By Status</h3>
+            <div>
               {Object.entries(stats.byStatus).map(([s, c]) => (
-                <div key={s} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid var(--border-light)', fontSize: '13.5px' }}>
-                  <span className={`badge ${statusBadge(s)}`}>{s}</span>
+                <div key={s} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--color-border)', fontSize: '13.5px' }}>
+                  <Badge variant={statusBadgeVariant(s)} label={s} />
                   <span style={{ fontWeight: '700' }}>{c}</span>
                 </div>
               ))}
             </div>
-          </div>
-          <div className="card">
-            <div className="card-header"><h3>By Priority</h3></div>
-            <div className="card-body">
+          </SectionCard>
+          <SectionCard>
+            <h3 style={{ margin: '0 0 16px 0', fontSize: '15px' }}>By Priority</h3>
+            <div>
               {Object.entries(stats.byPriority).map(([p, c]) => (
-                <div key={p} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid var(--border-light)', fontSize: '13.5px' }}>
-                  <span className={`badge ${priorityBadge(p)}`}>{p}</span>
+                <div key={p} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--color-border)', fontSize: '13.5px' }}>
+                  <Badge variant={priorityBadgeVariant(p)} label={p} />
                   <span style={{ fontWeight: '700' }}>{c}</span>
                 </div>
               ))}
             </div>
-          </div>
+          </SectionCard>
         </div>
       )}
 
       {/* All complaints table */}
-      <div className="card">
-        <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+      <SectionCard>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
           <div>
-            <h3>📋 All Complaints</h3>
+            <h3 style={{ margin: 0, fontSize: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <List size={20} /> All Complaints
+            </h3>
             {totalElements > 0 && (
-              <span style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px', display: 'block' }}>
+              <span style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginTop: '4px', display: 'block' }}>
                 {totalElements} total record{totalElements !== 1 ? 's' : ''}
               </span>
             )}
@@ -525,7 +489,7 @@ function AdminDashboard() {
           <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
             {/* Sort Control */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <label style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>🔃 Sort:</label>
+              <label style={{ fontSize: '13px', fontWeight: '600', color: 'var(--color-text-secondary)', whiteSpace: 'nowrap' }}>Sort:</label>
               <select
                 value={`${sortBy},${sortDir}`}
                 onChange={(e) => {
@@ -534,7 +498,7 @@ function AdminDashboard() {
                   setSortDir(dir);
                   setPage(0);
                 }}
-                style={{ padding: '5px 10px', borderRadius: '6px', fontSize: '13px', border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text)', cursor: 'pointer' }}
+                style={{ padding: '6px 12px', borderRadius: 'var(--radius-md)', fontSize: '13px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-white)', color: 'var(--color-text-primary)', cursor: 'pointer' }}
               >
                 <option value="createdAt,desc">📅 Date (Newest first)</option>
                 <option value="createdAt,asc">📅 Date (Oldest first)</option>
@@ -543,11 +507,11 @@ function AdminDashboard() {
             </div>
             {/* Page Size */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <label style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>Per page:</label>
+              <label style={{ fontSize: '13px', fontWeight: '600', color: 'var(--color-text-secondary)', whiteSpace: 'nowrap' }}>Per page:</label>
               <select
                 value={pageSize}
                 onChange={(e) => { setPageSize(Number(e.target.value)); setPage(0); }}
-                style={{ padding: '5px 10px', borderRadius: '6px', fontSize: '13px', border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text)', cursor: 'pointer' }}
+                style={{ padding: '6px 12px', borderRadius: 'var(--radius-md)', fontSize: '13px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-white)', color: 'var(--color-text-primary)', cursor: 'pointer' }}
               >
                 <option value={5}>5</option>
                 <option value={10}>10</option>
@@ -560,12 +524,12 @@ function AdminDashboard() {
 
         {/* Loading indicator */}
         {loading && (
-          <div style={{ textAlign: 'center', padding: '8px', color: 'var(--text-secondary)', fontSize: '13px', background: 'rgba(30,58,95,0.04)' }}>
+          <div style={{ textAlign: 'center', padding: '8px', color: 'var(--color-text-secondary)', fontSize: '13px', background: 'var(--color-bg)' }}>
             ⟳ Refreshing data...
           </div>
         )}
 
-        <div className="table-wrapper">
+        <div className="table-wrapper" style={{ overflowX: 'auto' }}>
           <table className="data-table">
             <thead>
               <tr>
@@ -582,16 +546,16 @@ function AdminDashboard() {
             </thead>
             <tbody>
               {allComplaints.map((c, i) => (
-                <tr key={c.complaintId}>
-                  <td style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>{page * pageSize + i + 1}</td>
+                <tr key={c.complaintId} style={{ borderBottom: '1px solid var(--color-border)' }}>
+                  <td style={{ color: 'var(--color-text-secondary)', fontSize: '13px' }}>{page * pageSize + i + 1}</td>
                   <td style={{ fontWeight: '500', maxWidth: '180px' }}>
                     <Link to={`/complaints/${c.complaintId}`}>{c.title}</Link>
                   </td>
                   <td style={{ fontSize: '13px' }}>{c.department}</td>
-                  <td><span className={`badge ${priorityBadge(c.priority)}`}>{c.priority}</span></td>
-                  <td><span className={`badge ${statusBadge(c.status)}`}>{c.status}</span></td>
-                  <td><span className={`badge ${slaBadge(c.slaStatus)}`}>{c.slaStatus || 'N/A'}</span></td>
-                  <td style={{ fontSize: '12px', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
+                  <td><Badge variant={priorityBadgeVariant(c.priority)} label={c.priority} /></td>
+                  <td><Badge variant={statusBadgeVariant(c.status)} label={c.status} /></td>
+                  <td><Badge variant={slaBadgeVariant(c.slaStatus)} label={c.slaStatus || 'N/A'} /></td>
+                  <td style={{ fontSize: '12px', color: 'var(--color-text-secondary)', whiteSpace: 'nowrap' }}>
                     {c.createdAt
                       ? new Date(c.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
                       : '—'}
@@ -604,9 +568,9 @@ function AdminDashboard() {
                           onChange={(e) => setSelectedOfficers(prev => ({ ...prev, [c.complaintId]: e.target.value }))}
                           value={selectedOfficers[c.complaintId] || ''}
                           style={{
-                            padding: '4px 8px', borderRadius: '6px', fontSize: '12.5px',
-                            border: '1px solid var(--border)', flexGrow: 1,
-                            background: 'var(--bg-card)', color: 'var(--text)'
+                            padding: '6px 12px', borderRadius: 'var(--radius-md)', fontSize: '12.5px',
+                            border: '1px solid var(--color-border)', flexGrow: 1,
+                            backgroundColor: 'var(--color-white)', color: 'var(--color-text-primary)'
                           }}
                         >
                           <option value="" disabled>
@@ -624,8 +588,8 @@ function AdminDashboard() {
                           onClick={() => handleAssign(c.complaintId)}
                           disabled={assigning[c.complaintId]}
                           style={{
-                            padding: '4px 12px', fontSize: '12.5px', borderRadius: '6px',
-                            background: assigning[c.complaintId] ? '#aaa' : 'var(--primary)',
+                            padding: '6px 12px', fontSize: '12.5px', borderRadius: 'var(--radius-md)',
+                            backgroundColor: assigning[c.complaintId] ? 'var(--color-text-secondary)' : 'var(--color-primary)',
                             color: 'white', border: 'none',
                             cursor: assigning[c.complaintId] ? 'not-allowed' : 'pointer',
                             fontWeight: '600', whiteSpace: 'nowrap'
@@ -635,7 +599,7 @@ function AdminDashboard() {
                         </button>
                       </div>
                     ) : (
-                      <span style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: '500' }}>
+                      <span style={{ fontSize: '13px', color: 'var(--color-text-secondary)', fontWeight: '500' }}>
                         👤 {OFFICERS.find(o => o.username === c.assignedOfficer)?.name || c.assignedOfficer || 'Unassigned'}
                       </span>
                     )}
@@ -646,15 +610,15 @@ function AdminDashboard() {
                 </tr>
               ))}
               {allComplaints.length === 0 && !loading && (
-                <tr><td colSpan="9" style={{ textAlign: 'center', padding: '40px', color: 'var(--text-secondary)' }}>No complaints yet</td></tr>
+                <tr><td colSpan="9" style={{ textAlign: 'center', padding: '40px', color: 'var(--color-text-secondary)' }}>No complaints yet</td></tr>
               )}
             </tbody>
           </table>
         </div>
 
         {/* Pagination Controls */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px', borderTop: '1px solid var(--border-light)', flexWrap: 'wrap', gap: '8px' }}>
-          <div style={{ fontSize: '13.5px', color: 'var(--text-secondary)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', borderTop: '1px solid var(--color-border)', flexWrap: 'wrap', gap: '8px' }}>
+          <div style={{ fontSize: '13.5px', color: 'var(--color-text-secondary)' }}>
             Page <strong>{page + 1}</strong> of <strong>{totalPages || 1}</strong>
             {totalElements > 0 && <span style={{ marginLeft: '8px' }}>· {totalElements} total records</span>}
           </div>
@@ -683,11 +647,11 @@ function AdminDashboard() {
                   key={p}
                   onClick={() => setPage(p)}
                   style={{
-                    padding: '4px 10px', fontSize: '13px', borderRadius: '6px',
-                    background: p === page ? 'var(--primary)' : 'transparent',
-                    color: p === page ? 'white' : 'var(--text)',
-                    border: `1px solid ${p === page ? 'var(--primary)' : 'var(--border)'}`,
-                    cursor: 'pointer', fontWeight: p === page ? '700' : '400',
+                    padding: '6px 12px', fontSize: '13px', borderRadius: 'var(--radius-md)',
+                    backgroundColor: p === page ? 'var(--color-primary)' : 'var(--color-white)',
+                    color: p === page ? 'white' : 'var(--color-text-primary)',
+                    border: `1px solid ${p === page ? 'var(--color-primary)' : 'var(--color-border)'}`,
+                    cursor: 'pointer', fontWeight: p === page ? '700' : '500',
                     minWidth: '32px'
                   }}
                 >
@@ -712,7 +676,7 @@ function AdminDashboard() {
             </button>
           </div>
         </div>
-      </div>
+      </SectionCard>
     </AppShell>
   );
 }

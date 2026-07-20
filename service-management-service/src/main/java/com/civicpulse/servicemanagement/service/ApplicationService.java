@@ -68,6 +68,7 @@ public class ApplicationService {
         REQUIRED_DOCS.put(ServiceType.INCOME_CERTIFICATE, Arrays.asList("Aadhaar Card", "Salary Slip OR Income Proof", "Bank Statement", "Ration Card"));
         REQUIRED_DOCS.put(ServiceType.RESIDENCE_CERTIFICATE, Arrays.asList("Aadhaar Card", "Electricity Bill", "Rental Agreement OR Property Tax Receipt"));
         REQUIRED_DOCS.put(ServiceType.TRADE_LICENSE, Arrays.asList("GST Certificate", "Shop Photograph", "Owner Aadhaar", "Address Proof"));
+        REQUIRED_DOCS.put(ServiceType.PERMIT_APPROVAL, Arrays.asList("Aadhaar Card", "Property/Location Proof"));
     }
 
     public ApplicationService(ApplicationRepository repo,
@@ -89,6 +90,7 @@ public class ApplicationService {
             case BIRTH_CERTIFICATE, DEATH_CERTIFICATE -> "Health";
             case INCOME_CERTIFICATE, RESIDENCE_CERTIFICATE -> "Revenue";
             case TRADE_LICENSE -> "Municipal Corporation";
+            case PERMIT_APPROVAL -> "Urban Planning Department";
         };
     }
 
@@ -144,7 +146,7 @@ public class ApplicationService {
 
         ServiceApplication saved = repo.save(app);
         logHistory(saved.getApplicationId(), null, ApplicationStatus.SUBMITTED.name(), "Application submitted successfully");
-        publishEvent("ApplicationSubmitted", saved, "Application submitted successfully");
+        publishEvent("certificate-submitted", saved, "Application submitted");
         log.info("Application submitted: {}", saved.getApplicationNumber());
         return saved;
     }
@@ -172,7 +174,7 @@ public class ApplicationService {
         ServiceApplication saved = repo.save(app);
         
         logHistory(saved.getApplicationId(), prevStatus, ApplicationStatus.RESUBMITTED.name(), "Application resubmitted with corrected documents");
-        publishEvent("ApplicationSubmitted", saved, "Application resubmitted");
+        publishEvent("application-resubmitted", saved, "Application resubmitted");
         
         return saved;
     }
@@ -201,13 +203,13 @@ public class ApplicationService {
         if (request.isVerified()) {
             ServiceApplication saved = repo.save(app);
             logHistory(saved.getApplicationId(), previousStatus, targetStatus.name(), "Documents verified by " + officerName + ". Remarks: " + request.getRemarks());
-            publishEvent("DocumentVerified", saved, "Documents verified successfully");
+            publishEvent("application-under-verification", saved, "Documents verified successfully");
             return saved;
         } else {
             app.setRejectionReason(request.getRemarks() != null && !request.getRemarks().isBlank() ? request.getRemarks() : "Document verification failed");
             ServiceApplication saved = repo.save(app);
             logHistory(saved.getApplicationId(), previousStatus, targetStatus.name(), "Documents rejected by " + officerName + ". Reason: " + app.getRejectionReason());
-            publishEvent("DocumentVerificationRejected", saved, app.getRejectionReason());
+            publishEvent("additional-information-requested", saved, app.getRejectionReason());
             return saved;
         }
     }
@@ -216,22 +218,43 @@ public class ApplicationService {
     // OFFICER: Approve Application & Auto-Generate Certificate
     // ─────────────────────────────────────────────────────────────────────────
     @Transactional
-    public ServiceApplication approveApplication(UUID id, String officerName) {
+    public ServiceApplication approveApplication(UUID id, String officerUsername, String remarks) {
         ServiceApplication app = getOrThrow(id);
 
         if (app.getStatus() == ApplicationStatus.SUBMITTED || app.getStatus() == ApplicationStatus.RESUBMITTED) {
             validateTransition(app.getStatus(), ApplicationStatus.UNDER_VERIFICATION);
             String oldStatus = app.getStatus().name();
             app.setStatus(ApplicationStatus.UNDER_VERIFICATION);
-            logHistory(app.getApplicationId(), oldStatus, ApplicationStatus.UNDER_VERIFICATION.name(), "Verification process started by " + officerName);
+            logHistory(app.getApplicationId(), oldStatus, ApplicationStatus.UNDER_VERIFICATION.name(), "Verification process started by " + officerUsername);
         }
 
         validateTransition(app.getStatus(), ApplicationStatus.APPROVED);
         String status1 = app.getStatus().name();
+        
+        // Fetch officer details
+        String fullName = officerUsername;
+        String dept = app.getDepartment();
+        java.util.Optional<com.civicpulse.servicemanagement.entity.DepartmentOfficer> officerOpt = departmentOfficerRepo.findByUsername(officerUsername);
+        if (officerOpt.isPresent()) {
+            fullName = officerOpt.get().getOfficerName();
+            dept = officerOpt.get().getDepartment();
+        }
+        
         app.setStatus(ApplicationStatus.APPROVED);
         app.setApprovedDate(LocalDateTime.now());
-        logHistory(app.getApplicationId(), status1, ApplicationStatus.APPROVED.name(), "Approved by " + officerName);
-        publishEvent("CertificateApproved", app, "Application approved by " + officerName);
+        app.setApprovedBy(fullName);
+        app.setDigitallySignedBy(fullName);
+        app.setDepartment(dept);
+        
+        String verificationId = "CVP-DS-" + java.time.Year.now().getValue() + "-" + app.getApplicationId().toString().substring(0, 8).toUpperCase();
+        app.setDigitalSignature(verificationId);
+        
+        if (remarks != null && !remarks.trim().isEmpty()) {
+            app.setOfficerRemarks(remarks);
+        }
+        
+        logHistory(app.getApplicationId(), status1, ApplicationStatus.APPROVED.name(), "Approved and digitally signed by " + fullName);
+        publishEvent("certificate-approved", app, "Application approved by " + fullName);
 
         validateTransition(app.getStatus(), ApplicationStatus.CERTIFICATE_GENERATED);
         String status2 = app.getStatus().name();
@@ -239,17 +262,17 @@ public class ApplicationService {
         String certNumber = certNumberGen.generate(app.getServiceType());
         app.setCertificateNumber(certNumber);
         app.setStatus(ApplicationStatus.CERTIFICATE_GENERATED);
-        app.setDigitallySignedBy("Officer: " + officerName + ", Municipal Authority");
+        app.setDigitallySignedBy("Officer: " + officerUsername + ", Municipal Authority");
 
         app.setDigitalSignature(
-            "Digitally Signed by Municipal Officer — " + officerName +
+            "Digitally Signed by Municipal Officer — " + officerUsername +
             " | Date: " + LocalDateTime.now() +
             " | Cert No: " + certNumber
         );
 
         ServiceApplication saved = repo.save(app);
         logHistory(saved.getApplicationId(), status2, ApplicationStatus.CERTIFICATE_GENERATED.name(), "Certificate " + certNumber + " generated");
-        publishEvent("CertificateGenerated", saved, "Certificate " + certNumber + " generated");
+        publishEvent("certificate-generated", saved, "Certificate " + certNumber + " generated");
         log.info("Certificate generated: {}", certNumber);
         return saved;
     }
@@ -274,7 +297,7 @@ public class ApplicationService {
 
         ServiceApplication saved = repo.save(app);
         logHistory(saved.getApplicationId(), previousStatus, ApplicationStatus.REJECTED.name(), "Rejected by " + officerName + ". Reason: " + app.getRejectionReason());
-        publishEvent("ApplicationRejected", saved, app.getRejectionReason());
+        publishEvent("certificate-rejected", saved, app.getRejectionReason());
         return saved;
     }
 
@@ -433,6 +456,7 @@ public class ApplicationService {
                 app.getServiceType().name(),
                 app.getApplicantName(),
                 app.getStatus().name(),
+                app.getDepartment(),
                 remarks,
                 LocalDateTime.now()
             );
@@ -444,14 +468,6 @@ public class ApplicationService {
     }
 
     private String toTopicName(String eventType) {
-        return switch (eventType) {
-            case "ApplicationSubmitted"           -> "application-submitted";
-            case "DocumentVerified"               -> "document-verified";
-            case "DocumentVerificationRejected"   -> "document-verified";
-            case "CertificateApproved"            -> "certificate-approved";
-            case "CertificateGenerated"           -> "certificate-generated";
-            case "ApplicationRejected"            -> "application-submitted";
-            default                               -> "application-events";
-        };
+        return eventType;
     }
 }

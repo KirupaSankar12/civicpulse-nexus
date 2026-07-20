@@ -4,13 +4,17 @@ import api from '../api.js';
 import keycloak from '../keycloak.js';
 import AppShell from '../components/AppShell.jsx';
 
-function statusBadge(s) {
-  if (s === 'NEW') return 'badge-blue';
-  if (s === 'ASSIGNED') return 'badge-purple';
-  if (s === 'IN_PROGRESS') return 'badge-yellow';
-  if (s === 'RESOLVED') return 'badge-green';
-  if (s === 'CLOSED') return 'badge-gray';
-  return 'badge-gray';
+import { SectionCard } from '../components/SectionCard.jsx';
+import { Badge } from '../components/Badge.jsx';
+import { AlertCircle, ClipboardList, UserCheck, RefreshCw, Calendar, ArrowLeft } from 'lucide-react';
+
+function statusBadgeVariant(s) {
+  if (s === 'NEW') return 'info';
+  if (s === 'ASSIGNED') return 'info';
+  if (s === 'IN_PROGRESS') return 'warning';
+  if (s === 'RESOLVED') return 'success';
+  if (s === 'CLOSED') return 'neutral';
+  return 'neutral';
 }
 
 function dotColor(s) {
@@ -90,51 +94,57 @@ function ComplaintTimeline() {
   return (
     <AppShell title="Complaint Detail">
       <div className="page-header">
-        <Link to="/complaints" style={{ fontSize: '13.5px', color: 'var(--text-secondary)' }}>
-          ← Back to Complaints
+        <Link to="/complaints" style={{ fontSize: '13.5px', color: 'var(--color-text-secondary)', display: 'flex', alignItems: 'center', gap: '4px', textDecoration: 'none' }}>
+          <ArrowLeft size={16} /> Back to Complaints
         </Link>
-        <h1 style={{ color: 'var(--primary)', marginTop: '8px' }}>📋 {complaint.title}</h1>
+        <h1 style={{ color: 'var(--color-primary)', marginTop: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <ClipboardList size={28} /> {complaint.title}
+        </h1>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
         {/* Complaint details */}
         <div>
-          <div className="card" style={{ marginBottom: '16px' }}>
-            <div className="card-header">
-              <h3>Complaint Details</h3>
-              <span className={`badge ${statusBadge(complaint.status)}`}>{complaint.status}</span>
+          <SectionCard className="mb-4" style={{ padding: 0, overflow: 'hidden' }}>
+            <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--color-border)', backgroundColor: 'var(--color-bg)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '600', color: 'var(--color-text-primary)' }}>Complaint Details</h3>
+              <Badge variant={statusBadgeVariant(complaint.status)} label={complaint.status} />
             </div>
-            <div className="card-body">
+            <div style={{ padding: '20px' }}>
               <table style={{ width: '100%', fontSize: '13.5px' }}>
                 <tbody>
                   {[
-                    ['Complaint ID', <code style={{ fontSize: '11px', background: 'var(--bg)', padding: '2px 6px', borderRadius: '4px' }}>{complaint.complaintId}</code>],
+                    ['Complaint ID', <code key="id" style={{ fontSize: '11px', backgroundColor: 'var(--color-bg)', padding: '2px 6px', borderRadius: '4px' }}>{complaint.complaintId}</code>],
                     ['Department', complaint.department],
-                    ['Priority', <span className={`badge ${complaint.priority === 'HIGH' ? 'badge-red' : complaint.priority === 'MEDIUM' ? 'badge-yellow' : 'badge-blue'}`}>{complaint.priority}</span>],
-                    ['SLA Status', <span className={`badge ${complaint.slaStatus === 'ON_TIME' ? 'badge-green' : complaint.slaStatus === 'NEAR_DEADLINE' ? 'badge-yellow' : complaint.slaStatus === 'OVERDUE' ? 'badge-red' : 'badge-gray'}`}>{complaint.slaStatus || 'N/A'}</span>],
-                    ['Assigned Officer', complaint.assignedOfficer || <span style={{ color: 'var(--text-muted)' }}>Not yet assigned</span>],
+                    ['Priority', <Badge key="pri" variant={complaint.priority === 'HIGH' ? 'danger' : complaint.priority === 'MEDIUM' ? 'warning' : 'info'} label={complaint.priority} />],
+                    ['SLA Status', <Badge key="sla" variant={complaint.slaStatus === 'ON_TIME' ? 'success' : complaint.slaStatus === 'NEAR_DEADLINE' ? 'warning' : complaint.slaStatus === 'OVERDUE' ? 'danger' : 'neutral'} label={complaint.slaStatus || 'N/A'} />],
+                    ['Assigned Officer', complaint.assignedOfficer || <span key="off" style={{ color: 'var(--color-text-muted)' }}>Not yet assigned</span>],
                     ['Filed On', complaint.createdAt ? new Date(complaint.createdAt).toLocaleString('en-IN') : '—'],
                     ['SLA Deadline', complaint.slaDeadline ? new Date(complaint.slaDeadline).toLocaleString('en-IN') : '—'],
                   ].map(([label, value]) => (
-                    <tr key={label}>
-                      <td style={{ padding: '8px 0', color: 'var(--text-secondary)', fontWeight: '500', width: '140px', verticalAlign: 'top' }}>{label}</td>
-                      <td style={{ padding: '8px 0', fontWeight: '500' }}>{value}</td>
+                    <tr key={label} style={{ borderBottom: '1px solid var(--color-border)' }}>
+                      <td style={{ padding: '12px 0', color: 'var(--color-text-secondary)', fontWeight: '500', width: '140px', verticalAlign: 'top' }}>{label}</td>
+                      <td style={{ padding: '12px 0', fontWeight: '500' }}>{value}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-              <div style={{ marginTop: '12px', padding: '12px', background: 'var(--bg)', borderRadius: 'var(--radius-sm)', borderLeft: '3px solid var(--primary)' }}>
-                <div style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: '600', marginBottom: '6px' }}>Description</div>
-                <div style={{ fontSize: '14px', lineHeight: '1.6', color: 'var(--text)' }}>{complaint.description}</div>
+              <div style={{ marginTop: '16px', padding: '16px', backgroundColor: 'var(--color-bg)', borderRadius: 'var(--radius-md)', borderLeft: '4px solid var(--color-primary)' }}>
+                <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', fontWeight: '600', marginBottom: '8px' }}>Description</div>
+                <div style={{ fontSize: '14px', lineHeight: '1.6', color: 'var(--color-text-primary)' }}>{complaint.description}</div>
               </div>
             </div>
-          </div>
+          </SectionCard>
 
           {/* Admin: Assign Officer */}
           {isAdmin && complaint.status === 'NEW' && (
-            <div className="card" style={{ marginBottom: '16px' }}>
-              <div className="card-header"><h3>👮 Assign to Officer</h3></div>
-              <div className="card-body">
+            <SectionCard className="mb-4" style={{ padding: 0, overflow: 'hidden' }}>
+              <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--color-border)', backgroundColor: 'var(--color-bg)' }}>
+                <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '600', color: 'var(--color-text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <UserCheck size={20} /> Assign to Officer
+                </h3>
+              </div>
+              <div style={{ padding: '20px' }}>
                 {assignMsg && (
                   <div className={`alert ${assignMsg.startsWith('success') ? 'alert-success' : 'alert-error'}`}>
                     {assignMsg.replace(/^(success|error):/, '')}
@@ -152,14 +162,18 @@ function ComplaintTimeline() {
                   <button type="submit" className="btn btn-primary">Assign</button>
                 </form>
               </div>
-            </div>
+            </SectionCard>
           )}
 
           {/* Officer/Admin: Update Status */}
           {(isAdmin || isOfficer) && !['CLOSED', 'RESOLVED'].includes(complaint.status) && (
-            <div className="card">
-              <div className="card-header"><h3>🔄 Update Status</h3></div>
-              <div className="card-body">
+            <SectionCard style={{ padding: 0, overflow: 'hidden' }}>
+              <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--color-border)', backgroundColor: 'var(--color-bg)' }}>
+                <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '600', color: 'var(--color-text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <RefreshCw size={20} /> Update Status
+                </h3>
+              </div>
+              <div style={{ padding: '20px' }}>
                 {updateMsg && (
                   <div className={`alert ${updateMsg.startsWith('success') ? 'alert-success' : 'alert-error'}`}>
                     {updateMsg.replace(/^(success|error):/, '')}
@@ -183,18 +197,22 @@ function ComplaintTimeline() {
                   <button type="submit" className="btn btn-primary">Update Status</button>
                 </form>
               </div>
-            </div>
+            </SectionCard>
           )}
         </div>
 
         {/* Timeline */}
-        <div className="card">
-          <div className="card-header"><h3>📅 Status Timeline</h3></div>
-          <div className="card-body">
+        <SectionCard style={{ padding: 0, overflow: 'hidden' }}>
+          <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--color-border)', backgroundColor: 'var(--color-bg)' }}>
+            <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '600', color: 'var(--color-text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Calendar size={20} /> Status Timeline
+            </h3>
+          </div>
+          <div style={{ padding: '20px' }}>
             {history.length === 0 ? (
-              <div className="empty-state" style={{ padding: '32px 0' }}>
-                <span className="empty-icon">📝</span>
-                <p>No history recorded yet.</p>
+              <div className="empty-state" style={{ padding: '32px 0', textAlign: 'center' }}>
+                <Calendar size={32} color="var(--color-text-secondary)" style={{ opacity: 0.5, margin: '0 auto 12px' }} />
+                <p style={{ margin: 0, color: 'var(--color-text-secondary)' }}>No history recorded yet.</p>
               </div>
             ) : (
               <div className="timeline">
@@ -204,7 +222,7 @@ function ComplaintTimeline() {
                     <div className="timeline-content">
                       <div className="tl-status">
                         {h.previousStatus ? `${h.previousStatus} → ` : ''}{h.newStatus}
-                        {h.changedBy && <span style={{ fontWeight: '400', color: 'var(--text-secondary)' }}> by {h.changedBy}</span>}
+                        {h.changedBy && <span style={{ fontWeight: '400', color: 'var(--color-text-secondary)' }}> by {h.changedBy}</span>}
                       </div>
                       <div className="tl-meta">
                         {h.changedAt ? new Date(h.changedAt).toLocaleString('en-IN') : ''}
@@ -216,7 +234,7 @@ function ComplaintTimeline() {
               </div>
             )}
           </div>
-        </div>
+        </SectionCard>
       </div>
     </AppShell>
   );

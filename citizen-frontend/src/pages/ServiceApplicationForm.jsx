@@ -118,6 +118,25 @@ const CERTIFICATE_CONFIG = {
       { id: 'Owner Aadhaar', label: 'Owner Aadhaar', required: true },
       { id: 'Address Proof', label: 'Address Proof', required: true }
     ]
+  },
+  PERMIT_APPROVAL: {
+    label: 'Permit Approval',
+    icon: '🏗️',
+    description: 'Official permit for construction, event organization, or temporary commercial activities.',
+    department: 'Urban Planning Department',
+    approvalTime: '10 Working Days',
+    fee: '₹1000',
+    fields: [
+      { name: 'permitType', label: 'Permit Type', type: 'select', options: ['Construction', 'Event', 'Commercial', 'Other'], required: true },
+      { name: 'location', label: 'Location/Address', type: 'text', required: true },
+      { name: 'duration', label: 'Duration (in days)', type: 'number', required: true },
+      { name: 'purpose', label: 'Purpose', type: 'text', required: true }
+    ],
+    documents: [
+      { id: 'Aadhaar Card', label: 'Aadhaar Card', required: true },
+      { id: 'Property/Location Proof', label: 'Property/Location Proof', required: true },
+      { id: 'Site Plan or Layout', label: 'Site Plan or Layout', required: false }
+    ]
   }
 };
 
@@ -143,12 +162,12 @@ function UploadCard({ doc, isUploaded, isUploading, uploadErr, fileInfo, onUploa
 
           {isUploaded ? (
             <div className="upload-file-info">
-              <span>📄</span>
+              <span><i className="bi bi-file-earmark-check text-success"></i></span>
               <span>{fileInfo.name} · {fileInfo.size}</span>
             </div>
           ) : (
             <div className="upload-drop-area">
-              <span className="upload-icon">📤</span>
+              <span className="upload-icon"><i className="bi bi-cloud-arrow-up"></i></span>
               <p>Drag & drop your file here</p>
               <div className="upload-hint">PDF, JPG, PNG — max 5MB</div>
             </div>
@@ -348,9 +367,9 @@ function ServiceApplicationForm() {
                   <div className="cert-name">{svc.label}</div>
                   <div className="cert-desc">{svc.description}</div>
                   <div className="cert-meta-row">
-                    <span className="cert-meta-tag">🏢 {svc.department}</span>
-                    <span className="cert-meta-tag">⏱ {svc.approvalTime}</span>
-                    <span className="cert-meta-tag">💳 {svc.fee}</span>
+                    <span className="cert-meta-tag"><i className="bi bi-building"></i> {svc.department}</span>
+                    <span className="cert-meta-tag"><i className="bi bi-clock"></i> {svc.approvalTime}</span>
+                    <span className="cert-meta-tag"><i className="bi bi-credit-card"></i> {svc.fee}</span>
                   </div>
                   <div className="cert-continue">Click to Continue →</div>
                 </div>
@@ -372,15 +391,15 @@ function ServiceApplicationForm() {
               <div className="req-grid">
                 <div className="req-info-list">
                   <div className="req-info-item">
-                    <div className="req-icon">🏢</div>
+                    <div className="req-icon"><i className="bi bi-building"></i></div>
                     <div><strong>Department:</strong> {config.department}</div>
                   </div>
                   <div className="req-info-item">
-                    <div className="req-icon">⏱</div>
+                    <div className="req-icon"><i className="bi bi-clock"></i></div>
                     <div><strong>Processing Time:</strong> {config.approvalTime}</div>
                   </div>
                   <div className="req-info-item">
-                    <div className="req-icon">💳</div>
+                    <div className="req-icon"><i className="bi bi-credit-card"></i></div>
                     <div><strong>Application Fee:</strong> {config.fee}</div>
                   </div>
                 </div>
@@ -418,9 +437,9 @@ function ServiceApplicationForm() {
             <StepIndicator steps={FORM_STEPS} currentStep={formStep} />
 
             <div className="card">
-              <div className="card-header" style={{ background: 'var(--primary)' }}>
-                <h3 style={{ margin: 0, color: 'white' }}>
-                  {config.icon} {config.label} — {FORM_STEPS[formStep - 1]}
+              <div className="card-header" style={{ background: 'var(--surface2)', borderBottom: '1px solid var(--border)' }}>
+                <h3 style={{ margin: 0, color: 'var(--text)' }}>
+                  {config.icon} {config.label} — <span style={{ color: 'var(--primary)', fontWeight: '600' }}>{FORM_STEPS[formStep - 1]}</span>
                 </h3>
               </div>
 
