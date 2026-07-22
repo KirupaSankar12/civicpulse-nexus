@@ -4,10 +4,8 @@ import api from '../api.js';
 import keycloak from '../keycloak.js';
 import AppShell from '../components/AppShell.jsx';
 import PageLoader from '../components/PageLoader.jsx';
-import EmptyState from '../components/EmptyState.jsx';
-import { SectionCard } from '../components/SectionCard.jsx';
 import { Badge } from '../components/Badge.jsx';
-import { AlertCircle, FileBadge, Download, Printer, Eye, X, Search, GraduationCap } from 'lucide-react';
+import { AlertCircle, FileBadge, Download, Printer, Eye, X, Search, GraduationCap, Building2, User, FileSignature } from 'lucide-react';
 
 function formatServiceType(type) {
   return type?.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
@@ -23,7 +21,7 @@ function MyCertificates() {
   const [filterType, setFilterType] = useState('all');
   const [filterDept, setFilterDept] = useState('all');
   const [filterYear, setFilterYear] = useState('all');
-  const [filterStatus, setFilterStatus] = useState('all'); // CERTIFICATE_GENERATED vs DOWNLOADED
+  const [filterStatus, setFilterStatus] = useState('all');
   const [sortOrder, setSortOrder] = useState('newest');
 
   const [previewUrl, setPreviewUrl] = useState(null);
@@ -110,7 +108,6 @@ function MyCertificates() {
 
   // Apply filters and search
   let processedCerts = certificates.filter(c => {
-    // Search matching
     const query = searchQuery.toLowerCase();
     const matchSearch = !query || 
       (c.applicantName && c.applicantName.toLowerCase().includes(query)) ||
@@ -118,7 +115,6 @@ function MyCertificates() {
       (c.applicationNumber && c.applicationNumber.toLowerCase().includes(query)) ||
       (c.serviceType && formatServiceType(c.serviceType).toLowerCase().includes(query));
 
-    // Filters matching
     const matchType = filterType === 'all' || c.serviceType === filterType;
     const matchDept = filterDept === 'all' || (c.department || 'Municipal Corporation') === filterDept;
     const matchYear = filterYear === 'all' || new Date(c.approvedDate || c.appliedDate).getFullYear().toString() === filterYear;
@@ -143,101 +139,127 @@ function MyCertificates() {
   });
 
   return (
-    <AppShell title="My Certificates Repository">
-      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
-        <div>
-          <h1 style={{ color: 'var(--color-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <FileBadge size={28} /> My Certificates
-          </h1>
-          <p className="text-muted" style={{ marginTop: '4px' }}>Your permanent digital repository for all officially issued municipal certificates.</p>
+    <AppShell title="My Certificates">
+      <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+        
+        {/* Header Section */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
+          <div>
+            <h1 style={{ color: 'var(--color-primary)', margin: '0 0 4px 0', fontSize: '24px', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <FileBadge size={28} /> My Certificates
+            </h1>
+            <p className="text-muted" style={{ margin: 0, fontSize: '14px' }}>Your permanent digital repository for all officially issued municipal certificates.</p>
+          </div>
         </div>
-      </div>
 
-      {error && (
-        <div className="alert alert-error" role="alert" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
-          <AlertCircle size={20} /> {error}
+        {error && (
+          <div className="alert alert-error" role="alert" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px', borderRadius: 'var(--radius-md)' }}>
+            <AlertCircle size={20} /> {error}
+          </div>
+        )}
+
+        {/* Search & Filters */}
+        <div style={{ backgroundColor: 'var(--color-bg)', padding: '16px', borderRadius: 'var(--radius-lg)', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', marginBottom: '32px' }}>
+          <div style={{ position: 'relative', marginBottom: '16px' }}>
+            <Search size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-secondary)' }} />
+            <input
+              type="text"
+              placeholder="Search by Applicant, Cert No, App No..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{ width: '100%', padding: '12px 16px 12px 42px', borderRadius: 'var(--radius-full)', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-bg-secondary)', fontSize: '14px', outline: 'none', transition: 'border-color 0.2s' }}
+              onFocus={(e) => e.target.style.borderColor = 'var(--color-primary)'}
+              onBlur={(e) => e.target.style.borderColor = 'var(--color-border)'}
+            />
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '12px' }}>
+            <select style={{ padding: '8px 12px', borderRadius: 'var(--radius-md)', fontSize: '13px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-bg)', outline: 'none', cursor: 'pointer' }} value={sortOrder} onChange={(e) => setSortOrder(e.target.value)}>
+              <option value="newest">Sort: Newest First</option>
+              <option value="oldest">Sort: Oldest First</option>
+              <option value="downloads">Sort: Most Downloaded</option>
+              <option value="certNum">Sort: Certificate Number</option>
+              <option value="appNum">Sort: Application Number</option>
+            </select>
+            <select style={{ padding: '8px 12px', borderRadius: 'var(--radius-md)', fontSize: '13px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-bg)', outline: 'none', cursor: 'pointer' }} value={filterType} onChange={(e) => setFilterType(e.target.value)}>
+              <option value="all">All Types</option>
+              {uniqueTypes.map(t => <option key={t} value={t}>{formatServiceType(t)}</option>)}
+            </select>
+            <select style={{ padding: '8px 12px', borderRadius: 'var(--radius-md)', fontSize: '13px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-bg)', outline: 'none', cursor: 'pointer' }} value={filterDept} onChange={(e) => setFilterDept(e.target.value)}>
+              <option value="all">All Departments</option>
+              {uniqueDepts.map(d => <option key={d} value={d}>{d}</option>)}
+            </select>
+            <select style={{ padding: '8px 12px', borderRadius: 'var(--radius-md)', fontSize: '13px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-bg)', outline: 'none', cursor: 'pointer' }} value={filterYear} onChange={(e) => setFilterYear(e.target.value)}>
+              <option value="all">All Years</option>
+              {uniqueYears.map(y => <option key={y} value={y}>{y}</option>)}
+            </select>
+            <select style={{ padding: '8px 12px', borderRadius: 'var(--radius-md)', fontSize: '13px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-bg)', outline: 'none', cursor: 'pointer' }} value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
+              <option value="all">All Statuses</option>
+              <option value="CERTIFICATE_GENERATED">New / Ready</option>
+              <option value="DOWNLOADED">Downloaded</option>
+            </select>
+          </div>
         </div>
-      )}
 
-      {isLoading && <PageLoader message="Loading your certificates..." />}
+        {/* Loader */}
+        {isLoading && <PageLoader message="Loading your certificates..." />}
 
-      {!isLoading && certificates.length === 0 && (
-        <SectionCard>
-          <EmptyState
-            icon="graduation-cap" // Will show fallback or map in EmptyState
-            title="No Certificates Found"
-            message="No certificates have been issued yet. Track your ongoing applications to see when they are ready."
-            actionLabel="Track Applications"
-            actionTo="/services/tracker"
-          />
-        </SectionCard>
-      )}
+        {/* Empty State (No Certificates Ever) */}
+        {!isLoading && certificates.length === 0 && (
+          <div style={{ backgroundColor: 'var(--color-bg)', borderRadius: 'var(--radius-lg)', padding: '48px 24px', textAlign: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
+             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
+               <div style={{ width: '64px', height: '64px', borderRadius: '50%', backgroundColor: 'var(--color-primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                 <GraduationCap size={32} color="var(--color-primary)" />
+               </div>
+             </div>
+             <h3 style={{ fontSize: '18px', fontWeight: '600', color: 'var(--color-text-primary)', marginBottom: '8px' }}>No Certificates Found</h3>
+             <p style={{ color: 'var(--color-text-secondary)', fontSize: '14px', marginBottom: '24px', maxWidth: '300px', margin: '0 auto 24px' }}>
+               No certificates have been issued yet. Track your ongoing applications to see when they are ready.
+             </p>
+             <Link to="/services/tracker" className="btn btn-primary" style={{ borderRadius: 'var(--radius-full)' }}>Track Applications</Link>
+          </div>
+        )}
 
-      {!isLoading && certificates.length > 0 && (
-        <>
-          <SectionCard className="mb-4">
-            <div style={{ padding: '20px' }}>
-              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '16px' }}>
-                <div style={{ flex: '1 1 250px' }}>
-                  <input
-                    type="text"
-                    className="form-control"
-                    placeholder="Search by Applicant, Cert No, App No..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
-                </div>
-                <div style={{ flex: '1 1 150px' }}>
-                  <select className="form-control" value={sortOrder} onChange={(e) => setSortOrder(e.target.value)}>
-                    <option value="newest">Sort: Newest First</option>
-                    <option value="oldest">Sort: Oldest First</option>
-                    <option value="downloads">Sort: Most Downloaded</option>
-                    <option value="certNum">Sort: Certificate Number</option>
-                    <option value="appNum">Sort: Application Number</option>
-                  </select>
-                </div>
-              </div>
-              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                <select className="form-control" style={{ flex: '1 1 120px' }} value={filterType} onChange={(e) => setFilterType(e.target.value)}>
-                  <option value="all">All Types</option>
-                  {uniqueTypes.map(t => <option key={t} value={t}>{formatServiceType(t)}</option>)}
-                </select>
-                <select className="form-control" style={{ flex: '1 1 120px' }} value={filterDept} onChange={(e) => setFilterDept(e.target.value)}>
-                  <option value="all">All Departments</option>
-                  {uniqueDepts.map(d => <option key={d} value={d}>{d}</option>)}
-                </select>
-                <select className="form-control" style={{ flex: '1 1 120px' }} value={filterYear} onChange={(e) => setFilterYear(e.target.value)}>
-                  <option value="all">All Years</option>
-                  {uniqueYears.map(y => <option key={y} value={y}>{y}</option>)}
-                </select>
-                <select className="form-control" style={{ flex: '1 1 120px' }} value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
-                  <option value="all">All Statuses</option>
-                  <option value="CERTIFICATE_GENERATED">Ready for Download</option>
-                  <option value="DOWNLOADED">Downloaded</option>
-                </select>
-              </div>
-            </div>
-          </SectionCard>
+        {/* Empty State (Search / Filter Mismatch) */}
+        {!isLoading && certificates.length > 0 && processedCerts.length === 0 && (
+          <div style={{ backgroundColor: 'var(--color-bg)', borderRadius: 'var(--radius-lg)', padding: '48px 24px', textAlign: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
+             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
+               <div style={{ width: '64px', height: '64px', borderRadius: '50%', backgroundColor: 'var(--color-bg-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                 <Search size={32} color="var(--color-text-tertiary)" />
+               </div>
+             </div>
+             <h3 style={{ fontSize: '18px', fontWeight: '600', color: 'var(--color-text-primary)', marginBottom: '8px' }}>No Matches Found</h3>
+             <p style={{ color: 'var(--color-text-secondary)', fontSize: '14px', maxWidth: '300px', margin: '0 auto' }}>
+               No certificates match your current search or filter criteria. Try adjusting your selections.
+             </p>
+          </div>
+        )}
 
-          {processedCerts.length === 0 ? (
-            <SectionCard>
-              <EmptyState
-                icon="search"
-                title="No Matches Found"
-                message="No certificates match your current search or filter criteria."
-              />
-            </SectionCard>
-          ) : (
-            <div className="grid-list">
-              {processedCerts.map(app => (
-                <SectionCard key={app.id} className="animate-fade-in" style={{ padding: 0, overflow: 'hidden' }}>
-                  <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--color-border)', backgroundColor: 'var(--color-bg)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div>
-                      <h3 style={{ fontSize: '1.05rem', margin: 0, color: 'var(--color-text-primary)', fontWeight: '600' }}>
-                        {formatServiceType(app.serviceType)}
-                      </h3>
-                      <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginTop: '4px' }}>
-                        Cert No: <code style={{ fontWeight: 'bold', backgroundColor: 'var(--color-white)', padding: '2px 6px', borderRadius: '4px', border: '1px solid var(--color-border)' }}>{app.certificateNumber}</code>
+        {/* Certificate Feed */}
+        {!isLoading && processedCerts.length > 0 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {processedCerts.map(app => (
+              <div key={app.id} style={{ 
+                backgroundColor: 'var(--color-bg)', 
+                borderRadius: 'var(--radius-lg)', 
+                boxShadow: '0 2px 12px rgba(0,0,0,0.04)', 
+                border: '1px solid var(--color-border)',
+                overflow: 'hidden',
+                transition: 'transform 0.2s, box-shadow 0.2s',
+                ':hover': { transform: 'translateY(-2px)', boxShadow: '0 4px 16px rgba(0,0,0,0.08)' }
+              }}>
+                {/* Card Header */}
+                <div style={{ padding: '20px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+                    <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+                      <div style={{ width: '40px', height: '40px', borderRadius: '10px', backgroundColor: 'var(--color-primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <FileBadge size={20} color="var(--color-primary)" />
+                      </div>
+                      <div>
+                        <h3 style={{ margin: '0 0 4px 0', fontSize: '16px', fontWeight: '600', color: 'var(--color-text-primary)' }}>{formatServiceType(app.serviceType)}</h3>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--color-text-secondary)' }}>
+                          <span style={{ fontWeight: '500' }}>Cert No:</span>
+                          <span style={{ fontFamily: 'monospace', backgroundColor: 'var(--color-bg-secondary)', padding: '2px 6px', borderRadius: '4px', border: '1px solid var(--color-border)' }}>{app.certificateNumber}</span>
+                        </div>
                       </div>
                     </div>
                     {app.status === 'DOWNLOADED' ? (
@@ -246,54 +268,56 @@ function MyCertificates() {
                       <Badge variant="info" label="New" />
                     )}
                   </div>
-                  
-                  <div style={{ padding: '20px', fontSize: '13px' }}>
-                    <div className="detail-grid-2">
-                      <div className="detail-field">
-                        <label>Applicant Name</label>
-                        <div className="detail-value">{app.applicantName}</div>
-                      </div>
-                      <div className="detail-field">
-                        <label>Application No</label>
-                        <div className="detail-value"><code style={{ backgroundColor: 'var(--color-bg)', padding: '2px 6px', borderRadius: '4px' }}>{app.applicationNumber}</code></div>
-                      </div>
-                      <div className="detail-field">
-                        <label>Approved Date</label>
-                        <div className="detail-value">{app.approvedDate ? new Date(app.approvedDate).toLocaleDateString('en-IN') : 'N/A'}</div>
-                      </div>
-                      <div className="detail-field">
-                        <label>Approved By</label>
-                        <div className="detail-value">{app.approvedBy || 'Municipal Officer'}</div>
-                      </div>
-                      <div className="detail-field">
-                        <label>Department</label>
-                        <div className="detail-value">{app.department || 'Municipal Corporation'}</div>
-                      </div>
-                      <div className="detail-field">
-                        <label>Total Downloads</label>
-                        <div className="detail-value">{app.downloadCount || 0}</div>
-                      </div>
+
+                  {/* Details Grid */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '16px', padding: '16px 0', borderTop: '1px dashed var(--color-border)', borderBottom: '1px dashed var(--color-border)' }}>
+                    <div>
+                      <div style={{ fontSize: '12px', color: 'var(--color-text-tertiary)', marginBottom: '4px' }}>Applicant Name</div>
+                      <div style={{ fontSize: '14px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '6px' }}><User size={14} color="var(--color-text-secondary)" /> {app.applicantName}</div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '12px', color: 'var(--color-text-tertiary)', marginBottom: '4px' }}>Application No</div>
+                      <div style={{ fontSize: '14px', fontFamily: 'monospace' }}>{app.applicationNumber}</div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '12px', color: 'var(--color-text-tertiary)', marginBottom: '4px' }}>Approved Date</div>
+                      <div style={{ fontSize: '14px', fontWeight: '500' }}>{app.approvedDate ? new Date(app.approvedDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) : 'N/A'}</div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '12px', color: 'var(--color-text-tertiary)', marginBottom: '4px' }}>Approved By</div>
+                      <div style={{ fontSize: '14px', fontWeight: '500' }}>{app.approvedBy || 'Municipal Officer'}</div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '12px', color: 'var(--color-text-tertiary)', marginBottom: '4px' }}>Department</div>
+                      <div style={{ fontSize: '14px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '6px' }}><Building2 size={14} color="var(--color-text-secondary)" /> {app.department || 'Municipal Corporation'}</div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '12px', color: 'var(--color-text-tertiary)', marginBottom: '4px' }}>Total Downloads</div>
+                      <div style={{ fontSize: '14px', fontWeight: '500' }}>{app.downloadCount || 0}</div>
                     </div>
                   </div>
-                  
-                  <div style={{ display: 'flex', gap: '12px', borderTop: '1px solid var(--color-border)', padding: '16px 20px', backgroundColor: 'var(--color-bg)' }}>
-                    <button type="button" className="btn btn-outline btn-sm" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }} onClick={() => handlePreview(app.id)}>
-                      <Eye size={16} /> Preview
-                    </button>
-                    <button type="button" className="btn btn-primary btn-sm" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }} onClick={() => handleDownload(app.id, app.certificateNumber, false)}>
-                      <Download size={16} /> Download
-                    </button>
-                    <button type="button" className="btn btn-outline btn-sm" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }} onClick={() => handleDownload(app.id, app.certificateNumber, true)}>
-                      <Printer size={16} /> Print
-                    </button>
-                  </div>
-                </SectionCard>
-              ))}
-            </div>
-          )}
-        </>
-      )}
+                </div>
+                
+                {/* Action Bar */}
+                <div style={{ display: 'flex', padding: '0', backgroundColor: 'var(--color-bg-secondary)' }}>
+                  <button type="button" style={{ flex: 1, padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', border: 'none', borderRight: '1px solid var(--color-border)', backgroundColor: 'transparent', cursor: 'pointer', fontSize: '13px', fontWeight: '600', color: 'var(--color-primary)', transition: 'background-color 0.2s' }} onClick={() => handlePreview(app.id)} onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'var(--color-primary-light)'} onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
+                    <Eye size={16} /> Preview
+                  </button>
+                  <button type="button" style={{ flex: 1, padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', border: 'none', borderRight: '1px solid var(--color-border)', backgroundColor: 'transparent', cursor: 'pointer', fontSize: '13px', fontWeight: '600', color: 'var(--color-success)', transition: 'background-color 0.2s' }} onClick={() => handleDownload(app.id, app.certificateNumber, false)} onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#dcfce7'} onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
+                    <Download size={16} /> Download
+                  </button>
+                  <button type="button" style={{ flex: 1, padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', border: 'none', backgroundColor: 'transparent', cursor: 'pointer', fontSize: '13px', fontWeight: '600', color: 'var(--color-text-secondary)', transition: 'background-color 0.2s' }} onClick={() => handleDownload(app.id, app.certificateNumber, true)} onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'var(--color-border)'} onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
+                    <Printer size={16} /> Print
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
 
+      </div>
+      
+      {/* Preview Modal */}
       {showPreviewModal && (
         <div className="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="preview-modal-title">
           <div className="modal animate-slide-up" style={{ maxWidth: '800px', width: '90%', height: '80vh', display: 'flex', flexDirection: 'column' }}>

@@ -4,7 +4,7 @@ import api from '../api.js';
 import keycloak from '../keycloak.js';
 import AppShell from '../components/AppShell.jsx';
 
-const DEPARTMENTS = ['Health', 'Water', 'Roads', 'Electricity', 'Sanitation', 'Revenue', 'Municipal Corporation'];
+const DEPARTMENTS = ['Health Department', 'Water Department', 'Roads Department', 'Electricity Department', 'Sanitation Department', 'Revenue Department', 'Municipal Corporation', 'Urban Planning Department'];
 const CATEGORIES = [
   'Water Leakage', 'Water Shortage', 'No Water Supply', 'Water Tanker Request',
   'Pothole', 'Road Damage', 'Traffic Signal Issue', 'Encroachment',

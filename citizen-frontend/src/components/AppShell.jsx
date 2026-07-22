@@ -5,7 +5,7 @@ import NotificationCenter from './NotificationCenter.jsx';
 import { 
   Landmark, LayoutDashboard, MessageSquarePlus, List, 
   FilePlus, Search, Award, User, Inbox, CheckCircle2, 
-  FileText, AlertTriangle, UserPlus, Users, Building, 
+  FileText, ShieldCheck, AlertTriangle, UserPlus, Users, Building, 
   LogOut, Menu 
 } from 'lucide-react';
 
@@ -46,8 +46,9 @@ function AppShell({ children, title }) {
   ];
 
   const adminLinks = [
-    { to: '/dashboard', icon: LayoutDashboard, label: 'Admin Dashboard' },
-    { to: '/admin/applications', icon: FileText, label: 'Certificates Admin' },
+    { to: '/admin/dashboard', icon: LayoutDashboard, label: 'Admin Dashboard' },
+    { to: '/admin/certificates', icon: FileText, label: 'Certificates' },
+    { to: '/admin/permits', icon: ShieldCheck, label: 'Permits' },
     { to: '/complaints', icon: AlertTriangle, label: 'All Complaints' },
     { to: '/admin/assign', icon: UserPlus, label: 'Assign Officers' },
     { to: '/admin/officers', icon: Users, label: 'Manage Officers' },

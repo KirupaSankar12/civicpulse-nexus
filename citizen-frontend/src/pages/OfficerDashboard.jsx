@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import api from '../api.js';
 import AppShell from '../components/AppShell.jsx';
 import PageLoader from '../components/PageLoader.jsx';
@@ -48,6 +48,10 @@ function OfficerDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  const showComplaints = !location.pathname.includes('/services');
+  const showCertificates = location.pathname.includes('/services');
 
   const fetchDashboardData = async () => {
     setIsLoading(true);
@@ -134,8 +138,9 @@ function OfficerDashboard() {
         <PageLoader message="Loading dashboard..." />
       ) : (
         <>
-          <SectionCard className="mb-4" style={{ padding: 0, overflow: 'hidden' }}>
-            <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--color-border)', backgroundColor: 'var(--color-bg)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {showComplaints && (
+            <SectionCard className="mb-4" style={{ padding: 0, overflow: 'hidden' }}>
+              <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--color-border)', backgroundColor: 'var(--color-bg)', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <List size={20} color="var(--color-text-primary)" />
               <h3 style={{ margin: 0, color: 'var(--color-text-primary)', fontSize: '16px', fontWeight: '600' }}>My Assigned Complaints</h3>
             </div>
@@ -218,7 +223,9 @@ function OfficerDashboard() {
                   </div>
             </div>
           </SectionCard>
+          )}
 
+          {showCertificates && (
           <SectionCard style={{ padding: 0, overflow: 'hidden' }}>
             <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--color-border)', backgroundColor: 'var(--color-bg)', display: 'flex', flexWrap: 'wrap', gap: '16px', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -301,6 +308,7 @@ function OfficerDashboard() {
                   </div>
             </div>
           </SectionCard>
+          )}
         </>
       )}
     </AppShell>

@@ -119,6 +119,10 @@ public class KafkaConsumerService {
                     event.getApplicationId(), 
                     "CERTIFICATE",
                     "application-resubmitted");
+                    
+            saveNotification(event.getCitizenId(), "Application Resubmitted",
+                    "Documents uploaded successfully. Your application " + event.getApplicationNumber() + " has been resubmitted for verification.",
+                    event.getApplicationId(), "CERTIFICATE", "application-resubmitted", "CITIZEN");
         } catch (Exception e) {
             System.err.println("Failed to process application-resubmitted: " + e.getMessage());
         }

@@ -25,13 +25,14 @@ public class DataInitializer implements CommandLineRunner {
         log.info("Checking and initializing default grievance officers...");
 
         List<Officer> defaultOfficers = Arrays.asList(
-            createOfficer("john", "Health"),
-            createOfficer("mark", "Revenue"),
+            createOfficer("john", "Health Department"),
+            createOfficer("mark", "Revenue Department"),
             createOfficer("ryan", "Municipal Corporation"),
-            createOfficer("chris", "Water"),
-            createOfficer("ethan", "Roads"),
-            createOfficer("jack", "Electricity"),
-            createOfficer("david", "Sanitation")
+            createOfficer("chris", "Water Department"),
+            createOfficer("ethan", "Roads Department"),
+            createOfficer("jack", "Electricity Department"),
+            createOfficer("david", "Sanitation Department"),
+            createOfficer("will", "Urban Planning Department")
         );
 
         for (Officer officer : defaultOfficers) {

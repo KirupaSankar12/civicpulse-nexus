@@ -18,6 +18,11 @@ import OfficerApplicationView from './pages/OfficerApplicationView.jsx';
 import CitizenRegister from './pages/CitizenRegister.jsx';
 import MyCertificates from './pages/MyCertificates.jsx';
 import AdminDashboard from './pages/AdminDashboard.jsx';
+import AdminOfficers from './pages/AdminOfficers.jsx';
+import AdminDepartments from './pages/AdminDepartments.jsx';
+import AdminCertificates from './pages/AdminCertificates.jsx';
+import AdminPermits from './pages/AdminPermits.jsx';
+import NotificationsPage from './pages/NotificationsPage.jsx';
 
 // Guard: redirects to /login if not authenticated
 function Protected({ children }) {
@@ -51,6 +56,11 @@ function App({ authenticated }) {
         {/* ===== AUTHENTICATED ROUTES ===== */}
         <Route path="/dashboard" element={
           <Protected><Dashboard /></Protected>
+        } />
+
+        {/* Notifications */}
+        <Route path="/notifications" element={
+          <Protected><NotificationsPage /></Protected>
         } />
 
         {/* Complaint routes */}
@@ -92,17 +102,23 @@ function App({ authenticated }) {
         } />
 
         {/* Admin routes */}
-        <Route path="/admin/applications" element={
+        <Route path="/admin/dashboard" element={
           <Protected><AdminDashboard /></Protected>
+        } />
+        <Route path="/admin/certificates" element={
+          <Protected><AdminCertificates /></Protected>
+        } />
+        <Route path="/admin/permits" element={
+          <Protected><AdminPermits /></Protected>
         } />
         <Route path="/admin/assign" element={
           <Protected><ComplaintList /></Protected>
         } />
         <Route path="/admin/officers" element={
-          <Protected><ManageOfficersPage /></Protected>
+          <Protected><AdminOfficers /></Protected>
         } />
         <Route path="/admin/departments" element={
-          <Protected><ManageDepartmentsPage /></Protected>
+          <Protected><AdminDepartments /></Protected>
         } />
 
         {/* Fallback: root redirects based on auth */}
@@ -113,113 +129,6 @@ function App({ authenticated }) {
         } />
       </Routes>
     </BrowserRouter>
-  );
-}
-
-/* ==================== MANAGE OFFICERS PAGE ==================== */
-import AppShell from './components/AppShell.jsx';
-
-function ManageOfficersPage() {
-  const officers = [
-    { username: 'sibi',   name: 'Sibi Officer',   dept: 'Water',           email: 'sibi@muni.gov',   phone: '9100000001', role: 'Field Officer (Junior)',    status: 'Active' },
-    { username: 'joyel',  name: 'Joyel Officer',  dept: 'Public Works',    email: 'joyel@muni.gov',  phone: '9100000002', role: 'Field Officer (Junior)',    status: 'Active' },
-    { username: 'kirupa', name: 'Kirupa Officer', dept: 'Sanitation Dept', email: 'kirupa@muni.gov', phone: '9100000003', role: 'Senior Officer (Approver)', status: 'Active' },
-    { username: 'harish', name: 'Harish Officer', dept: 'Water',           email: 'harish@muni.gov', phone: '9100000004', role: 'Senior Officer (Approver)', status: 'Active' },
-  ];
-
-  return (
-    <AppShell title="Manage Officers">
-      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between' }}>
-        <div>
-          <h1 style={{ color: 'var(--primary)' }}>🧑‍💼 Manage Officers</h1>
-          <p className="text-muted">View and manage field officers assigned to municipal departments.</p>
-        </div>
-        <button className="btn btn-primary" onClick={() => alert('Add Officer — use Keycloak Admin Console to create officer accounts.')}>
-          ➕ Add Officer
-        </button>
-      </div>
-
-      <div className="card">
-        <div className="table-wrapper">
-          <table className="data-table">
-            <thead>
-              <tr><th>#</th><th>Officer Name</th><th>Username</th><th>Department</th><th>Role</th><th>Email</th><th>Phone</th><th>Status</th></tr>
-            </thead>
-            <tbody>
-              {officers.map((o, i) => (
-                <tr key={i}>
-                  <td>{i + 1}</td>
-                  <td style={{ fontWeight: '600' }}>{o.name}</td>
-                  <td style={{ fontFamily: 'monospace', fontSize: '13px', color: 'var(--text-secondary)' }}>{o.username}</td>
-                  <td>{o.dept}</td>
-                  <td>
-                    <span className={`badge ${o.role.includes('Senior') ? 'badge-purple' : 'badge-blue'}`}>{o.role}</span>
-                  </td>
-                  <td style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>{o.email}</td>
-                  <td style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>{o.phone}</td>
-                  <td>
-                    <span className={`badge ${o.status === 'Active' ? 'badge-green' : 'badge-gray'}`}>{o.status}</span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </AppShell>
-  );
-}
-
-/* ==================== MANAGE DEPARTMENTS PAGE ==================== */
-function ManageDepartmentsPage() {
-  const departments = [
-    { name: 'Water Supply', head: 'Director Suresh Mehta', officers: 3, pending: 8, resolved: 45 },
-    { name: 'Roads & Traffic', head: 'Director Anita Verma', officers: 4, pending: 12, resolved: 67 },
-    { name: 'Electricity', head: 'Director Rahul Gupta', officers: 2, pending: 5, resolved: 38 },
-    { name: 'Sanitation', head: 'Director Kavita Nair', officers: 3, pending: 6, resolved: 52 },
-  ];
-
-  return (
-    <AppShell title="Manage Departments">
-      <div className="page-header">
-        <h1 style={{ color: 'var(--primary)' }}>🏢 Manage Departments</h1>
-        <p className="text-muted">Overview of all civic service departments and their performance.</p>
-      </div>
-
-      <div className="card">
-        <div className="table-wrapper">
-          <table className="data-table">
-            <thead>
-              <tr><th>#</th><th>Department</th><th>Head of Department</th><th>Total Officers</th><th>Pending</th><th>Resolved</th><th>Resolution Rate</th></tr>
-            </thead>
-            <tbody>
-              {departments.map((d, i) => {
-                const total = d.pending + d.resolved;
-                const rate = total > 0 ? Math.round((d.resolved / total) * 100) : 0;
-                return (
-                  <tr key={i}>
-                    <td>{i + 1}</td>
-                    <td style={{ fontWeight: '700' }}>{d.name}</td>
-                    <td>{d.head}</td>
-                    <td style={{ textAlign: 'center' }}>{d.officers}</td>
-                    <td><span className="badge badge-yellow">{d.pending}</span></td>
-                    <td><span className="badge badge-green">{d.resolved}</span></td>
-                    <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <div style={{ flex: 1, height: '6px', background: 'var(--bg)', borderRadius: '3px', overflow: 'hidden' }}>
-                          <div style={{ width: `${rate}%`, height: '100%', background: rate > 80 ? 'var(--accent)' : rate > 60 ? 'var(--warning)' : 'var(--danger)', borderRadius: '3px' }} />
-                        </div>
-                        <span style={{ fontSize: '12px', fontWeight: '700' }}>{rate}%</span>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </AppShell>
   );
 }
 

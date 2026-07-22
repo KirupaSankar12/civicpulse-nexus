@@ -35,9 +35,199 @@ function OfficerApplicationView() {
   const [docZoom, setDocZoom] = useState(1);
   const [docRotation, setDocRotation] = useState(0);
 
-  const handleDocumentPreview = (docName) => {
-    // In a real implementation, we would fetch the document from an object store.
-    const dummyBlob = new Blob([`Preview of document: ${docName}\n\n(In a full implementation, this would render the actual uploaded image or PDF from the secure storage bucket.)`], { type: 'text/plain' });
+  const handleDocumentPreview = (docObj) => {
+    console.log("handleDocumentPreview called with:", docObj);
+    const isObject = typeof docObj === 'object' && docObj !== null;
+    const docName = isObject ? docObj.id : docObj;
+    
+    let fallbackReason = "Unknown";
+    if (!isObject) {
+      fallbackReason = "Document is stored as a legacy string instead of an object with file data.";
+    } else if (!docObj.data) {
+      fallbackReason = "Document object is missing the 'data' field (base64 string).";
+    } else {
+      try {
+        // Convert data URL to Blob for better iframe support
+        const arr = docObj.data.split(',');
+        const mime = arr[0].match(/:(.*?);/)[1];
+        const bstr = atob(arr[1]);
+        let n = bstr.length;
+        const u8arr = new Uint8Array(n);
+        while(n--) {
+            u8arr[n] = bstr.charCodeAt(n);
+        }
+        const blob = new Blob([u8arr], {type: mime});
+        const url = URL.createObjectURL(blob);
+        setDocViewerUrl(url);
+        setDocViewerName(docObj.name || docName);
+        setDocZoom(1);
+        setDocRotation(0);
+        setShowDocViewer(true);
+        return;
+      } catch (e) {
+        console.error("Error creating blob from data URL", e);
+        fallbackReason = "Error creating blob from base64 data: " + e.message;
+      }
+    }
+    
+    // Fallback for legacy text documents or simulated preview
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <title>${docName}</title>
+          <style>
+            body { 
+              font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+              padding: 40px; 
+              background: #f3f4f6; 
+              display: flex; 
+              justify-content: center; 
+              align-items: flex-start;
+              min-height: 100vh;
+              margin: 0;
+            }
+            .doc { 
+              background: white; 
+              padding: 60px 40px; 
+              box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
+              max-width: 800px; 
+              width: 100%; 
+              border-radius: 8px;
+              border-top: 8px solid #2563eb;
+              position: relative;
+            }
+            .header {
+              text-align: center;
+              margin-bottom: 40px;
+              padding-bottom: 20px;
+              border-bottom: 2px solid #e5e7eb;
+            }
+            h1 { color: #1e3a8a; margin: 0 0 10px 0; font-size: 28px; }
+            h2 { color: #374151; margin: 0; font-size: 20px; font-weight: 500; }
+            .info-grid {
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 20px;
+              margin-bottom: 40px;
+            }
+            .info-item {
+              background: #f9fafb;
+              padding: 15px;
+              border-radius: 6px;
+              border: 1px solid #e5e7eb;
+            }
+            .label { font-size: 12px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+            .value { font-size: 16px; color: #111827; font-weight: 600; }
+            .watermark {
+              position: absolute;
+              top: 50%;
+              left: 50%;
+              transform: translate(-50%, -50%) rotate(-45deg);
+              font-size: 120px;
+              color: rgba(0,0,0,0.03);
+              white-space: nowrap;
+              pointer-events: none;
+              z-index: 0;
+            }
+            .content {
+              position: relative;
+              z-index: 1;
+              line-height: 1.8;
+              color: #4b5563;
+              font-size: 16px;
+            }
+            .footer {
+              margin-top: 60px;
+              padding-top: 20px;
+              border-top: 1px solid #e5e7eb;
+              display: flex;
+              justify-content: space-between;
+              align-items: flex-end;
+            }
+            .seal { 
+              width: 120px; 
+              height: 120px; 
+              border-radius: 50%; 
+              border: 4px dashed #3b82f6; 
+              display: flex; 
+              flex-direction: column;
+              align-items: center; 
+              justify-content: center; 
+              color: #3b82f6; 
+              font-weight: bold; 
+              transform: rotate(-15deg);
+              opacity: 0.8;
+            }
+            .seal-text { font-size: 18px; }
+            .seal-date { font-size: 12px; margin-top: 4px; font-weight: normal; }
+            .signature {
+              text-align: center;
+            }
+            .sig-line {
+              width: 200px;
+              border-bottom: 2px solid #000;
+              margin-bottom: 8px;
+            }
+            .sig-text {
+              font-size: 14px;
+              color: #6b7280;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="doc">
+            <div class="watermark">SAMPLE DOCUMENT</div>
+            
+            <div class="header">
+              <h1>GOVERNMENT OF INDIA</h1>
+              <h2>${docName.toUpperCase()}</h2>
+            </div>
+            
+            <div class="info-grid content">
+              <div class="info-item">
+                <div class="label">Applicant Name</div>
+                <div class="value">${app?.applicantName || 'Applicant Name'}</div>
+              </div>
+              <div class="info-item">
+                <div class="label">Application Number</div>
+                <div class="value">${app?.applicationNumber || 'APP-XXXX-XXXX'}</div>
+              </div>
+              <div class="info-item">
+                <div class="label">Document Type</div>
+                <div class="value">${docName}</div>
+              </div>
+              <div class="info-item">
+                <div class="label">Verification Status</div>
+                <div class="value" style="color: #059669;">Verified (Simulated)</div>
+              </div>
+            </div>
+            
+            <div class="content">
+            <div style="text-align: center; padding: 40px; background-color: #f9fafb;">
+            <div style="font-size: 48px; margin-bottom: 16px; color: #9ca3af;">📄</div>
+            <h3 style="color: #111827;">Document Content Not Found</h3>
+            <p style="color: #4b5563; max-width: 400px; margin: 16px auto;">
+              The file payload for <strong>${docName}</strong> is not available.
+              This usually means the application was submitted before file uploads were enabled or the file was truncated.
+            </p>
+          </div>
+            <div class="footer">
+              <div class="seal">
+                <div class="seal-text">VERIFIED</div>
+                <div class="seal-date">${new Date().toLocaleDateString()}</div>
+              </div>
+              <div class="signature">
+                <div class="sig-line"></div>
+                <div class="sig-text">Authorized Signatory</div>
+              </div>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+    const dummyBlob = new Blob([htmlContent], { type: 'text/html' });
     const url = URL.createObjectURL(dummyBlob);
     setDocViewerUrl(url);
     setDocViewerName(docName);
@@ -222,20 +412,26 @@ function OfficerApplicationView() {
                     <p style={{ color: 'var(--color-text-secondary)', fontSize: '14px' }}>No documents uploaded.</p>
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                      {documents.map((doc, idx) => (
-                        <div key={idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px', backgroundColor: 'var(--color-bg)', borderRadius: '8px', border: '1px solid var(--color-border)' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                            <div style={{ fontSize: '24px', color: 'var(--color-text-secondary)' }}><FileText size={24} /></div>
-                            <div>
-                              <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--color-text-primary)' }}>{doc}</div>
-                              <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>{doc.toLowerCase().replace(/\s+/g, '_')}.pdf</div>
+                      {documents.map((doc, idx) => {
+                        const isObject = typeof doc === 'object' && doc !== null;
+                        const docId = isObject ? doc.id : doc;
+                        const docName = isObject ? doc.name : `${doc.toLowerCase().replace(/\s+/g, '_')}.pdf`;
+                        
+                        return (
+                          <div key={idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px', backgroundColor: 'var(--color-bg)', borderRadius: '8px', border: '1px solid var(--color-border)' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                              <div style={{ fontSize: '24px', color: 'var(--color-text-secondary)' }}><FileText size={24} /></div>
+                              <div>
+                                <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--color-text-primary)' }}>{docId}</div>
+                                <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>{docName}</div>
+                              </div>
                             </div>
+                            <button type="button" className="btn btn-outline btn-sm" onClick={() => handleDocumentPreview(doc)} style={{ padding: '6px 12px', fontSize: '13px' }}>
+                              👁 Preview
+                            </button>
                           </div>
-                          <button type="button" className="btn btn-outline btn-sm" onClick={() => handleDocumentPreview(doc)} style={{ padding: '6px 12px', fontSize: '13px' }}>
-                            👁 Preview
-                          </button>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   )}
                 </div>

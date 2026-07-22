@@ -263,13 +263,21 @@ function ServiceApplicationForm() {
     setUploadErrors({ ...uploadErrors, [docId]: null });
     setUploadingDocs({ ...uploadingDocs, [docId]: true });
 
-    setTimeout(() => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
       setUploadingDocs(prev => ({ ...prev, [docId]: false }));
       setUploadedDocs(prev => ({
         ...prev,
-        [docId]: { name: file.name, size: (file.size / (1024 * 1024)).toFixed(2) + ' MB' }
+        [docId]: { 
+          id: docId, 
+          name: file.name, 
+          type: file.type, 
+          size: (file.size / (1024 * 1024)).toFixed(2) + ' MB',
+          data: reader.result 
+        }
       }));
-    }, 1500);
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleSubmit = async (e) => {
@@ -288,7 +296,7 @@ function ServiceApplicationForm() {
       applicantName,
       aadhaarNumber,
       dynamicData,
-      documentsSubmitted: JSON.stringify(Object.keys(uploadedDocs))
+      documentsSubmitted: JSON.stringify(Object.values(uploadedDocs))
     };
 
     try {

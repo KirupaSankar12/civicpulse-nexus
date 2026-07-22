@@ -12,6 +12,7 @@ import java.util.List;
 
 import com.civicpulse.servicemanagement.entity.ServiceApplication;
 import com.civicpulse.servicemanagement.repository.ApplicationRepository;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 @Component
 public class DataInitializer implements CommandLineRunner {
@@ -19,32 +20,49 @@ public class DataInitializer implements CommandLineRunner {
     private static final Logger log = LoggerFactory.getLogger(DataInitializer.class);
     private final DepartmentOfficerRepository departmentOfficerRepository;
     private final ApplicationRepository applicationRepository;
+    private final JdbcTemplate jdbcTemplate;
 
-    public DataInitializer(DepartmentOfficerRepository departmentOfficerRepository, ApplicationRepository applicationRepository) {
+    public DataInitializer(DepartmentOfficerRepository departmentOfficerRepository, ApplicationRepository applicationRepository, JdbcTemplate jdbcTemplate) {
         this.departmentOfficerRepository = departmentOfficerRepository;
         this.applicationRepository = applicationRepository;
+        this.jdbcTemplate = jdbcTemplate;
     }
 
     @Override
     public void run(String... args) throws Exception {
+        log.info("Altering documents_submitted column type to TEXT if necessary...");
+        try {
+            jdbcTemplate.execute("ALTER TABLE service_applications ALTER COLUMN documents_submitted TYPE TEXT");
+        } catch (Exception e) {
+            log.warn("Could not alter documents_submitted column: {}", e.getMessage());
+        }
+
         log.info("Checking and initializing default officers...");
 
         List<DepartmentOfficer> defaultOfficers = Arrays.asList(
-            new DepartmentOfficer("john", "John Officer", "Health", "OFFICER"),
-            new DepartmentOfficer("mark", "Mark Officer", "Revenue", "OFFICER"),
+            new DepartmentOfficer("john", "John Officer", "Health Department", "OFFICER"),
+            new DepartmentOfficer("mark", "Mark Officer", "Revenue Department", "OFFICER"),
             new DepartmentOfficer("ryan", "Ryan Officer", "Municipal Corporation", "OFFICER"),
-            new DepartmentOfficer("chris", "Chris Officer", "Water", "OFFICER"),
-            new DepartmentOfficer("ethan", "Ethan Officer", "Roads", "OFFICER"),
-            new DepartmentOfficer("jack", "Jack Officer", "Electricity", "OFFICER"),
-            new DepartmentOfficer("david", "David Officer", "Sanitation", "OFFICER")
+            new DepartmentOfficer("chris", "Chris Officer", "Water Department", "OFFICER"),
+            new DepartmentOfficer("ethan", "Ethan Officer", "Roads Department", "OFFICER"),
+            new DepartmentOfficer("jack", "Jack Officer", "Electricity Department", "OFFICER"),
+            new DepartmentOfficer("david", "David Officer", "Sanitation Department", "OFFICER"),
+            new DepartmentOfficer("will", "Will Officer", "Urban Planning Department", "OFFICER")
         );
 
         for (DepartmentOfficer officer : defaultOfficers) {
+            officer.setEmail(officer.getUsername() + "@muni.gov");
+            officer.setPhoneNumber("9100000000");
+            officer.setStatus("Active");
+            
             departmentOfficerRepository.findByUsername(officer.getUsername()).ifPresentOrElse(
                 existingOfficer -> {
                     existingOfficer.setOfficerName(officer.getOfficerName());
                     existingOfficer.setDepartment(officer.getDepartment());
                     existingOfficer.setRole(officer.getRole());
+                    existingOfficer.setEmail(officer.getEmail());
+                    existingOfficer.setPhoneNumber(officer.getPhoneNumber());
+                    existingOfficer.setStatus(officer.getStatus());
                     departmentOfficerRepository.save(existingOfficer);
                     log.info("Updated existing officer: {}", officer.getUsername());
                 },
@@ -55,17 +73,6 @@ public class DataInitializer implements CommandLineRunner {
             );
         }
 
-        // Migrate old application departments to match the new strict names
-        log.info("Migrating legacy department names in ServiceApplications...");
-        List<ServiceApplication> apps = applicationRepository.findAll();
-        for (ServiceApplication app : apps) {
-            if (app.getDepartment() != null && app.getDepartment().endsWith(" Department")) {
-                String oldDept = app.getDepartment();
-                String newDept = oldDept.replace(" Department", "");
-                app.setDepartment(newDept);
-                applicationRepository.save(app);
-                log.info("Migrated application {} department from '{}' to '{}'", app.getApplicationNumber(), oldDept, newDept);
-            }
-        }
+        // Legacy migration removed to preserve exact department names.
     }
 }

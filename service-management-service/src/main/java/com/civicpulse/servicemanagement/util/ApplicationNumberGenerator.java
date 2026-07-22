@@ -17,10 +17,23 @@ public class ApplicationNumberGenerator {
 
     @PostConstruct
     public void init() {
-        long count = repository.count();
-        if (count > 0) {
-            counter.set(count + 1);
+        long maxSeq = 0;
+        for (com.civicpulse.servicemanagement.entity.ServiceApplication app : repository.findAll()) {
+            if (app.getApplicationNumber() != null && app.getApplicationNumber().startsWith("APP-")) {
+                try {
+                    String[] parts = app.getApplicationNumber().split("-");
+                    if (parts.length == 3) {
+                        long seq = Long.parseLong(parts[2]);
+                        if (seq > maxSeq) {
+                            maxSeq = seq;
+                        }
+                    }
+                } catch (Exception e) {
+                    // ignore parse errors
+                }
+            }
         }
+        counter.set(maxSeq + 1);
     }
 
     public String generate() {

@@ -87,10 +87,13 @@ public class ApplicationService {
 
     private String getDepartmentForServiceType(ServiceType serviceType) {
         return switch (serviceType) {
-            case BIRTH_CERTIFICATE, DEATH_CERTIFICATE -> "Health";
-            case INCOME_CERTIFICATE, RESIDENCE_CERTIFICATE -> "Revenue";
-            case TRADE_LICENSE -> "Municipal Corporation";
-            case PERMIT_APPROVAL -> "Urban Planning Department";
+            case BIRTH_CERTIFICATE, DEATH_CERTIFICATE -> "Health Department";
+            case INCOME_CERTIFICATE, RESIDENCE_CERTIFICATE, COMMUNITY_CERTIFICATE -> "Revenue Department";
+            case TRADE_LICENSE, PUBLIC_EVENT_PERMIT -> "Municipal Corporation";
+            case BUILDING_PERMIT, PERMIT_APPROVAL -> "Urban Planning Department";
+            case ROAD_CUTTING_PERMIT -> "Roads Department";
+            case WATER_CONNECTION_PERMIT -> "Water Department";
+            case ELECTRICITY_CONNECTION_PERMIT -> "Electricity Department";
         };
     }
 
@@ -161,6 +164,8 @@ public class ApplicationService {
         
         String prevStatus = app.getStatus().name();
         app.setDocumentsSubmitted(request.getDocumentsSubmitted());
+        app.setRejectionReason(null);
+        app.setOfficerRemarks(null);
         
         if (request.getDynamicData() != null) {
             try {

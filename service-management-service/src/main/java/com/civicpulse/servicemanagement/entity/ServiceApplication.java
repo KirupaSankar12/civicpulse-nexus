@@ -33,6 +33,7 @@ public class ServiceApplication {
     @Pattern(regexp = "^\\d{4}-\\d{4}-\\d{4}$", message = "Aadhaar must be in format XXXX-XXXX-XXXX")
     private String aadhaarNumber;
 
+    @Column(columnDefinition = "TEXT")
     private String documentsSubmitted;
 
     @Column(columnDefinition = "TEXT")

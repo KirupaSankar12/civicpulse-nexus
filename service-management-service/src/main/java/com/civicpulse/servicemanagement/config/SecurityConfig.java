@@ -44,6 +44,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/services/type/**").hasAnyRole("OFFICER", "ADMIN")
                 // Any single application view
                 .requestMatchers(HttpMethod.GET, "/api/services/{id}").authenticated()
+                // Officer CRUD endpoints
+                .requestMatchers("/api/officers/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
             .oauth2ResourceServer(oauth2 -> oauth2.jwt(
