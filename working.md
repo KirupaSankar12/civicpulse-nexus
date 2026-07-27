@@ -53,11 +53,15 @@ This workspace is a microservices-based Citizen Services platform (`civicpulse-m
 - [x] Implement backend sorting (including priority mapping), pagination, and officer assignment endpoints in `grievance-service`.
 - [x] Implement frontend admin assignment workflow with dropdown, custom priority/date sorting, and custom pagination in `citizen-frontend`.
 - [x] Fix CORS duplicate header issue on `service-management-service` and `citizen-service` by removing redundant local CORS configurations and delegating all CORS configurations to the gateway.
-- [ ] Verify notifications event-streaming flow end-to-end.
+- [x] Verify notifications event-streaming flow end-to-end.
 
 ---
 
 ## 📜 Session Log
+
+### 2026-07-25
+- **Verified Event Streaming Flow**: Resolved a Kafka KRaft local storage corruption issue by cleaning up the `kafka_data` folder and re-formatting it with `kafka-storage.bat`. Verified the entire end-to-end notification delivery flow via `test-kafka.js`. Notifications from the `grievance-service` are correctly queued, consumed by the `notification-service`, and served via API for the frontend `NotificationCenter.jsx`.
+
 
 ### 2026-07-18
 - **Fixed CORS Duplicate Headers**: Resolved CORS blocked policy error on `http://localhost:8080/service-management-service/api/services/pending` and `verified` by removing redundant local CORS configurations inside [SecurityConfig.java](file:///d:/civic%20plus%20milestone/service-management-service/src/main/java/com/civicpulse/servicemanagement/config/SecurityConfig.java) and [SecurityConfig.java](file:///d:/civic%20plus%20milestone/citizen-service/src/main/java/com/civicpulse/citizen_service/config/SecurityConfig.java).

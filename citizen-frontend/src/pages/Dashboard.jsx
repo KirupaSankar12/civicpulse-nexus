@@ -1,50 +1,117 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import api from '../api.js';
 import keycloak from '../keycloak.js';
 import AppShell from '../components/AppShell.jsx';
 import PageLoader from '../components/PageLoader.jsx';
-
-import { StatCard } from '../components/StatCard.jsx';
-import { SectionCard } from '../components/SectionCard.jsx';
-import { Badge } from '../components/Badge.jsx';
+import AdminDashboard from './AdminDashboard.jsx';
+import OfficerDashboard from './OfficerDashboard.jsx';
 import { 
-  LayoutDashboard, MessageSquareWarning, CheckCircle2, 
-  Clock, AlertTriangle, Inbox, CheckCircle, 
-  Settings, PenSquare, List, FilePlus, Search, User, Phone,
-  FileText, Activity, Users, FileSignature
+  FileText, Clock, CheckCircle2, PenSquare, 
+  List, FilePlus, Search, User, Phone, Inbox,
+  AlertTriangle, FileBadge, Gift, Heart, Settings
 } from 'lucide-react';
 
-function slaBadgeVariant(s) {
-  if (s === 'ON_TIME') return 'success';
-  if (s === 'NEAR_DEADLINE') return 'warning';
-  if (s === 'OVERDUE') return 'danger';
-  return 'neutral';
+const CITIZEN_MENU = [
+  {
+    category: 'Grievances',
+    icon: AlertTriangle,
+    color: '#ef4444',
+    bg: '#fef2f2',
+    links: [
+      { to: '/complaints/new', label: 'Raise Complaint', icon: PenSquare },
+      { to: '/complaints', label: 'My Complaints', icon: List }
+    ]
+  },
+  {
+    category: 'Services',
+    icon: FileBadge,
+    color: '#3b82f6',
+    bg: '#eff6ff',
+    links: [
+      { to: '/services/apply', label: 'Apply for Certificate', icon: FilePlus },
+      { to: '/services/tracker', label: 'Track Application', icon: Search },
+      { to: '/services', label: 'My Certificates', icon: FileText }
+    ]
+  },
+  {
+    category: 'Welfare',
+    icon: Gift,
+    color: '#10b981',
+    bg: '#f0fdf4',
+    links: [
+      { to: '/welfare', label: 'Apply for Welfare', icon: Heart },
+      { to: '/welfare/applications', label: 'Welfare Applications', icon: FileText }
+    ]
+  },
+  {
+    category: 'Account',
+    icon: User,
+    color: '#8b5cf6',
+    bg: '#f5f3ff',
+    links: [
+      { to: '/profile', label: 'Profile Settings', icon: Settings }
+    ]
+  }
+];
+
+// ── colour maps ───────────────────────────────────────────────────────────────
+const STATUS_MAP = {
+  NEW:        { bg: '#eff6ff', text: '#2563eb', border: '#bfdbfe' },
+  ASSIGNED:   { bg: '#fff7ed', text: '#c2410c', border: '#fed7aa' },
+  IN_PROGRESS:{ bg: '#f0fdf4', text: '#15803d', border: '#bbf7d0' },
+  RESOLVED:   { bg: '#f0fdf4', text: '#15803d', border: '#bbf7d0' },
+  CLOSED:     { bg: '#f8fafc', text: '#475569', border: '#e2e8f0' },
+  REJECTED:   { bg: '#fef2f2', text: '#dc2626', border: '#fecaca' },
+};
+
+function StatusBadge({ status }) {
+  const m = STATUS_MAP[status] || { bg: '#f8fafc', text: '#475569', border: '#e2e8f0' };
+  return (
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', gap: 5,
+      padding: '3px 9px', borderRadius: 20,
+      background: m.bg, color: m.text,
+      border: `1px solid ${m.border}`,
+      fontSize: 11, fontWeight: 700,
+    }}>
+      {status || '—'}
+    </span>
+  );
 }
 
-function statusBadgeVariant(s) {
-  if (s === 'NEW') return 'info';
-  if (s === 'ASSIGNED') return 'info';
-  if (s === 'IN_PROGRESS') return 'warning';
-  if (s === 'RESOLVED') return 'success';
-  if (s === 'CLOSED') return 'neutral';
-  return 'neutral';
-}
-
-function priorityBadgeVariant(p) {
-  if (p === 'HIGH') return 'danger';
-  if (p === 'MEDIUM') return 'warning';
-  return 'info';
+function StatCard({ label, value, icon: Icon, color }) {
+  return (
+    <div style={{
+      background: '#fff', borderRadius: 14, padding: '18px 22px',
+      border: '1.5px solid #e2e8f0', boxShadow: '0 2px 8px rgba(15,23,42,0.06)',
+      display: 'flex', alignItems: 'center', gap: 14, flex: '1 1 160px',
+    }}>
+      <div style={{
+        width: 44, height: 44, borderRadius: 12, flexShrink: 0,
+        background: color + '18', display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}>
+        <Icon size={20} color={color} />
+      </div>
+      <div>
+        <div style={{ fontSize: 22, fontWeight: 800, color: '#0f172a', lineHeight: 1 }}>{value}</div>
+        <div style={{ fontSize: 12, color: '#64748b', marginTop: 3, fontWeight: 500 }}>{label}</div>
+      </div>
+    </div>
+  );
 }
 
 function Dashboard() {
   const roles = keycloak.tokenParsed?.realm_access?.roles || [];
   const isCitizen = roles.includes('CITIZEN') || roles.includes('citizen');
-  const isOfficer = roles.includes('OFFICER') || roles.includes('officer');
+  const isOfficer = roles.includes('OFFICER') || roles.includes('officer') || roles.includes('DEPARTMENT_OFFICER') || roles.includes('department_officer');
   const isAdmin = roles.includes('admin') || roles.includes('ADMIN');
+  const isFinanceOfficer = roles.includes('FINANCE_OFFICER') || roles.includes('finance_officer');
+  const isApprover = roles.includes('APPROVER') || roles.includes('approver') || roles.includes('AUTHORITY') || roles.includes('authority');
 
+  if (isFinanceOfficer || isApprover) return <Navigate to="/welfare/dashboard" replace />;
   if (isAdmin) return <AdminDashboard />;
-  if (isOfficer) return <OfficerDashboardView />;
+  if (isOfficer) return <OfficerDashboard />;
   return <CitizenDashboard />;
 }
 
@@ -63,7 +130,6 @@ function CitizenDashboard() {
     ])
       .then(([statsRes, complaintsRes]) => {
         setStats(statsRes.data);
-        // filter to citizen's own
         const own = complaintsRes.data.filter(c => c.citizenId === citizenId);
         setMyComplaints(own);
         setLoading(false);
@@ -75,608 +141,145 @@ function CitizenDashboard() {
   const resolved = myComplaints.filter(c => c.status === 'RESOLVED' || c.status === 'CLOSED').length;
 
   if (loading) return (
-    <AppShell title="Citizen Dashboard">
+    <AppShell title="Overview">
       <PageLoader message="Loading your dashboard..." />
     </AppShell>
   );
 
   return (
-    <AppShell title="Citizen Dashboard">
-      <div className="welcome-banner">
-        <div>
-          <div className="welcome-label">Citizen Portal</div>
-          <h2>Welcome back, {name}</h2>
-          <p>Your grievances are being handled. Track complaints and access services below.</p>
+    <AppShell title="Overview">
+      {/* ── Welcome Banner ── */}
+      <div style={{
+        background: 'linear-gradient(135deg, #1e40af, #3b82f6)',
+        borderRadius: 16, padding: '32px', color: '#fff',
+        display: 'flex', flexWrap: 'wrap', gap: 20, alignItems: 'center', justifyContent: 'space-between',
+        boxShadow: '0 10px 25px rgba(37,99,235,0.3)',
+        marginBottom: 30, position: 'relative', overflow: 'hidden'
+      }}>
+        <div style={{ position: 'absolute', top: -100, right: -50, width: 300, height: 300, background: '#60a5fa', opacity: 0.2, borderRadius: '50%', filter: 'blur(50px)' }} />
+        
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          <span style={{ 
+            background: 'rgba(255,255,255,0.15)', color: '#dbeafe', border: '1px solid rgba(255,255,255,0.2)',
+            padding: '6px 14px', borderRadius: 20, fontSize: 11, fontWeight: 800, letterSpacing: '0.08em', display: 'inline-block' 
+          }}>
+            CITIZEN PORTAL
+          </span>
+          <h2 style={{ margin: '14px 0 8px', fontSize: 32, fontWeight: 800, color: '#ffffff', letterSpacing: '-0.02em' }}>
+            Welcome back, {name.split(' ')[0].charAt(0).toUpperCase() + name.split(' ')[0].slice(1)}
+          </h2>
+          <p style={{ margin: 0, color: '#bfdbfe', maxWidth: 600, fontSize: 15, lineHeight: 1.6 }}>
+            Track your civic complaints, apply for certificates, and monitor your welfare applications from one unified dashboard.
+          </p>
         </div>
-        <Link to="/complaints/new" className="btn btn-accent btn-lg" style={{ flexShrink: 0 }}>
-          + Raise Complaint
-        </Link>
-      </div>
-
-      {/* Citizen stats */}
-      <div className="stats-grid">
-        <StatCard icon={FileText} title="Total My Complaints" value={myComplaints.length} />
-        <StatCard icon={Clock} title="Pending Resolution" value={pending} trendType="down" />
-        <StatCard icon={CheckCircle2} title="Resolved" value={resolved} trendType="up" />
-      </div>
-
-      {/* Quick actions */}
-      <SectionCard className="mb-4">
-        <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', color: 'var(--color-text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Activity size={20} color="var(--color-primary)" /> Quick Actions
-        </h3>
-        <div className="quick-actions">
-          <Link to="/complaints/new" className="qa-card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '16px', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', textDecoration: 'none', color: 'var(--color-text-primary)' }}>
-            <span className="qa-icon" style={{ padding: '12px', backgroundColor: 'var(--color-primary-light)', color: 'var(--color-primary)', borderRadius: '50%', marginBottom: '12px' }}><PenSquare size={24} /></span>
-            <span className="qa-label" style={{ fontSize: '14px', fontWeight: '500' }}>Raise Complaint</span>
-          </Link>
-          <Link to="/complaints" className="qa-card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '16px', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', textDecoration: 'none', color: 'var(--color-text-primary)' }}>
-            <span className="qa-icon" style={{ padding: '12px', backgroundColor: 'var(--color-primary-light)', color: 'var(--color-primary)', borderRadius: '50%', marginBottom: '12px' }}><List size={24} /></span>
-            <span className="qa-label" style={{ fontSize: '14px', fontWeight: '500' }}>My Complaints</span>
-          </Link>
-          <Link to="/services/apply" className="qa-card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '16px', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', textDecoration: 'none', color: 'var(--color-text-primary)' }}>
-            <span className="qa-icon" style={{ padding: '12px', backgroundColor: 'var(--color-primary-light)', color: 'var(--color-primary)', borderRadius: '50%', marginBottom: '12px' }}><FilePlus size={24} /></span>
-            <span className="qa-label" style={{ fontSize: '14px', fontWeight: '500' }}>Apply for Certificate</span>
-          </Link>
-          <Link to="/services/tracker" className="qa-card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '16px', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', textDecoration: 'none', color: 'var(--color-text-primary)' }}>
-            <span className="qa-icon" style={{ padding: '12px', backgroundColor: 'var(--color-primary-light)', color: 'var(--color-primary)', borderRadius: '50%', marginBottom: '12px' }}><Search size={24} /></span>
-            <span className="qa-label" style={{ fontSize: '14px', fontWeight: '500' }}>Track Application</span>
-          </Link>
-          <Link to="/profile" className="qa-card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '16px', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', textDecoration: 'none', color: 'var(--color-text-primary)' }}>
-            <span className="qa-icon" style={{ padding: '12px', backgroundColor: 'var(--color-primary-light)', color: 'var(--color-primary)', borderRadius: '50%', marginBottom: '12px' }}><User size={24} /></span>
-            <span className="qa-label" style={{ fontSize: '14px', fontWeight: '500' }}>Update Profile</span>
-          </Link>
-          <div className="qa-card" onClick={() => window.open('tel:112')} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '16px', border: '1px solid var(--color-danger-light)', backgroundColor: 'var(--color-danger-light)', borderRadius: 'var(--radius-md)', cursor: 'pointer', color: 'var(--color-danger)' }}>
-            <span className="qa-icon" style={{ padding: '12px', backgroundColor: 'var(--color-white)', color: 'var(--color-danger)', borderRadius: '50%', marginBottom: '12px' }}><Phone size={24} /></span>
-            <span className="qa-label" style={{ fontSize: '14px', fontWeight: '500' }}>Emergency: 112</span>
-          </div>
-        </div>
-      </SectionCard>
-
-      {/* Recent complaints */}
-      <SectionCard>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <h3 style={{ margin: 0, fontSize: '16px', color: 'var(--color-text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <List size={20} /> Recent Complaints
-          </h3>
-          <Link to="/complaints" className="btn btn-outline btn-sm">View All</Link>
-        </div>
-        <div className="table-wrapper" style={{ overflowX: 'auto' }}>
-          {myComplaints.length === 0 ? (
-            <div className="empty-state">
-              <span className="empty-icon text-muted"><Inbox size={48} /></span>
-              <p>No complaints filed yet. <Link to="/complaints/new">Raise your first complaint</Link></p>
-            </div>
-          ) : (
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>ID</th><th>Title</th><th>Department</th><th>Priority</th><th>Status</th><th>SLA</th><th>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {myComplaints.slice(0, 5).map(c => (
-                  <tr key={c.complaintId} style={{ borderBottom: '1px solid var(--color-border)' }}>
-                    <td style={{ fontFamily: 'monospace', fontSize: '11px', color: 'var(--color-text-secondary)' }}>
-                      {c.complaintId?.slice(0, 8)}...
-                    </td>
-                    <td style={{ fontWeight: '500', maxWidth: '200px' }}>{c.title}</td>
-                    <td>{c.department}</td>
-                    <td><Badge variant={priorityBadgeVariant(c.priority)} label={c.priority} /></td>
-                    <td><Badge variant={statusBadgeVariant(c.status)} label={c.status} /></td>
-                    <td><Badge variant={slaBadgeVariant(c.slaStatus)} label={c.slaStatus || 'N/A'} /></td>
-                    <td>
-                      <Link to={`/complaints/${c.complaintId}`} className="btn btn-ghost btn-sm">View →</Link>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
-      </SectionCard>
-    </AppShell>
-  );
-}
-
-/* ==================== OFFICER DASHBOARD ==================== */
-function OfficerDashboardView() {
-  const [complaints, setComplaints] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(0);
-  const [totalPages, setTotalPages] = useState(0);
-  const pageSize = 5;
-
-  const username = keycloak.tokenParsed?.preferred_username;
-  const name = keycloak.tokenParsed?.name || username;
-
-  const fetchOfficerComplaints = (p) => {
-    setLoading(true);
-    api.get(`/grievance-service/api/complaints/officer?page=${p}&size=${pageSize}`)
-      .then(r => {
-        setComplaints(r.data.content || []);
-        setTotalPages(r.data.totalPages || 0);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  };
-
-  useEffect(() => {
-    fetchOfficerComplaints(page);
-  }, [page]);
-
-  const pending = complaints.filter(c => c.status === 'ASSIGNED').length;
-  const inProgress = complaints.filter(c => c.status === 'IN_PROGRESS').length;
-  const resolved = complaints.filter(c => c.status === 'RESOLVED').length;
-  const highPriority = complaints.filter(c => c.priority === 'HIGH').length;
-
-  const handleStatusChange = async (id, newStatus) => {
-    const remarks = prompt('Add remarks for this update:');
-    if (remarks === null) return;
-    try {
-      await api.put(`/grievance-service/api/complaints/${id}/status?status=${newStatus}&remarks=${encodeURIComponent(remarks)}`);
-      fetchOfficerComplaints(page);
-    } catch (e) { alert('Failed: ' + (e.response?.data?.message || e.message)); }
-  };
-
-  if (loading) return (
-    <AppShell title="Officer Dashboard">
-      <PageLoader message="Loading officer dashboard..." />
-    </AppShell>
-  );
-
-  return (
-    <AppShell title="Officer Dashboard">
-      <div className="welcome-banner">
-        <div>
-          <div className="welcome-label">Officer Portal</div>
-          <h2>Welcome, {keycloak.tokenParsed?.name || name}</h2>
-          <p>Manage and resolve assigned complaints. Update status and add remarks.</p>
-        </div>
-      </div>
-
-      {/* Stats */}
-      <div className="stats-grid">
-        <StatCard icon={Inbox} title="Total Assigned" value={complaints.length} />
-        <StatCard icon={Clock} title="Pending Action" value={pending} trendType="down" />
-        <StatCard icon={Settings} title="In Progress" value={inProgress} />
-        <StatCard icon={CheckCircle2} title="Resolved" value={resolved} trendType="up" />
-        <StatCard icon={AlertTriangle} title="High Priority" value={highPriority} trendType="down" />
-      </div>
-
-      {/* Complaints table */}
-      <SectionCard>
-        <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <List size={20} /> My Assigned Complaints
-        </h3>
-        <div className="table-wrapper" style={{ overflowX: 'auto' }}>
-          {complaints.length === 0 ? (
-            <div className="empty-state">
-              <span className="empty-icon text-muted"><Inbox size={48} /></span>
-              <p>No complaints assigned. Great job staying on top of things!</p>
-            </div>
-          ) : (
-            <table className="data-table">
-              <thead>
-                <tr><th>#</th><th>Title</th><th>Dept</th><th>Priority</th><th>SLA</th><th>Status</th><th>Actions</th></tr>
-              </thead>
-              <tbody>
-                {complaints.map((c, i) => (
-                  <tr key={c.complaintId} style={{ borderBottom: '1px solid var(--color-border)' }}>
-                    <td style={{ color: 'var(--color-text-secondary)', fontSize: '13px' }}>{page * pageSize + i + 1}</td>
-                    <td style={{ fontWeight: '500' }}>
-                      <Link to={`/complaints/${c.complaintId}`}>{c.title}</Link>
-                    </td>
-                    <td>{c.department}</td>
-                    <td><Badge variant={priorityBadgeVariant(c.priority)} label={c.priority} /></td>
-                    <td><Badge variant={slaBadgeVariant(c.slaStatus)} label={c.slaStatus || 'N/A'} /></td>
-                    <td><Badge variant={statusBadgeVariant(c.status)} label={c.status} /></td>
-                    <td style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                      {c.status === 'ASSIGNED' && (
-                        <button className="btn btn-primary btn-sm" onClick={() => handleStatusChange(c.complaintId, 'IN_PROGRESS')}>
-                          Start Work
-                        </button>
-                      )}
-                      {c.status === 'IN_PROGRESS' && (
-                        <button className="btn btn-accent btn-sm" onClick={() => handleStatusChange(c.complaintId, 'RESOLVED')}>
-                          Resolve ✓
-                        </button>
-                      )}
-                      <Link to={`/complaints/${c.complaintId}`} className="btn btn-outline btn-sm">View</Link>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
-        {/* Pagination Controls */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', borderTop: '1px solid var(--border-light)' }}>
-          <div style={{ fontSize: '13.5px', color: 'var(--text-secondary)' }}>
-            Page <strong>{page + 1}</strong> of <strong>{totalPages || 1}</strong>
-          </div>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <button
-              className="btn btn-outline btn-sm"
-              onClick={() => setPage(prev => Math.max(0, prev - 1))}
-              disabled={page === 0}
+        
+        <div style={{ position: 'relative', zIndex: 1, display: 'flex', gap: 12 }}>
+          <Link to="/complaints/new" style={{ textDecoration: 'none' }}>
+            <button style={{
+              background: '#fff', color: '#1e40af', border: 'none', padding: '12px 24px',
+              borderRadius: 12, fontWeight: 700, fontSize: 14, cursor: 'pointer',
+              display: 'flex', alignItems: 'center', gap: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+              transition: 'transform 0.2s ease'
+            }}
+            onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+            onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
             >
-              ◀ Previous
+              <PenSquare size={18} /> Raise Complaint
             </button>
-            <button
-              className="btn btn-outline btn-sm"
-              onClick={() => setPage(prev => Math.min(totalPages - 1, prev + 1))}
-              disabled={page >= totalPages - 1}
-            >
-              Next ▶
-            </button>
-          </div>
-        </div>
-      </SectionCard>
-    </AppShell>
-  );
-}
-
-/* ==================== ADMIN DASHBOARD ==================== */
-const OFFICERS = [
-  { username: 'sibi',   name: 'Sibi Officer',   email: 'sibi@muni.gov',   tel: '9100000001', dept: 'Water',           role: 'Field Officer (Junior)' },
-  { username: 'joyel',  name: 'Joyel Officer',  email: 'joyel@muni.gov',  tel: '9100000002', dept: 'Public Works',    role: 'Field Officer (Junior)' },
-  { username: 'kirupa', name: 'Kirupa Officer', email: 'kirupa@muni.gov', tel: '9100000003', dept: 'Sanitation Dept', role: 'Senior Officer (Approver)' },
-  { username: 'harish', name: 'Harish Officer', email: 'harish@muni.gov', tel: '9100000004', dept: 'Water',           role: 'Senior Officer (Approver)' }
-];
-
-function AdminDashboard() {
-  const [stats, setStats] = useState(null);
-  const [allComplaints, setAllComplaints] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [toast, setToast] = useState(null); // { type: 'success'|'error', msg }
-
-  const [page, setPage] = useState(0);
-  const [pageSize, setPageSize] = useState(10);
-  const [sortBy, setSortBy] = useState('createdAt');
-  const [sortDir, setSortDir] = useState('desc');
-  const [totalPages, setTotalPages] = useState(0);
-  const [totalElements, setTotalElements] = useState(0);
-  const [selectedOfficers, setSelectedOfficers] = useState({});
-  const [assigning, setAssigning] = useState({});
-
-  const showToast = (type, msg) => {
-    setToast({ type, msg });
-    setTimeout(() => setToast(null), 3500);
-  };
-
-  useEffect(() => {
-    api.get('/grievance-service/api/complaints/dashboard/stats')
-      .then(s => setStats(s.data))
-      .catch(() => {});
-  }, []);
-
-  const fetchComplaints = (p, sBy, sDir, sz) => {
-    setLoading(true);
-    api.get(`/grievance-service/api/complaints?page=${p}&size=${sz}&sort=${sBy},${sDir}`)
-      .then(r => {
-        setAllComplaints(r.data.content || []);
-        setTotalPages(r.data.totalPages || 0);
-        setTotalElements(r.data.totalElements || 0);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  };
-
-  useEffect(() => {
-    fetchComplaints(page, sortBy, sortDir, pageSize);
-  }, [page, sortBy, sortDir, pageSize]);
-
-  const handleAssign = async (id) => {
-    const officer = selectedOfficers[id];
-    if (!officer) {
-      showToast('error', 'Please select an officer from the dropdown first.');
-      return;
-    }
-    setAssigning(prev => ({ ...prev, [id]: true }));
-    try {
-      await api.put(`/grievance-service/api/complaints/${id}/assign`, { officerUsername: officer });
-      const officerObj = OFFICERS.find(o => o.username === officer);
-      showToast('success', `✅ Assigned to ${officerObj?.name || officer} successfully!`);
-      setSelectedOfficers(prev => { const n = { ...prev }; delete n[id]; return n; });
-      fetchComplaints(page, sortBy, sortDir, pageSize);
-    } catch (e) {
-      showToast('error', '❌ ' + (e.response?.data?.message || e.message));
-    } finally {
-      setAssigning(prev => ({ ...prev, [id]: false }));
-    }
-  };
-
-  if (loading && allComplaints.length === 0) return (
-    <AppShell title="Admin Dashboard">
-      <PageLoader message="Loading admin dashboard..." />
-    </AppShell>
-  );
-
-  const overdue = allComplaints.filter(c => c.slaStatus === 'OVERDUE').length;
-
-  return (
-    <AppShell title="Admin Dashboard">
-      {/* Toast Notification */}
-      {toast && (
-        <div className="toast-container">
-          <div className={`toast toast-${toast.type === 'success' ? 'success' : 'error'}`} role="status">
-            {toast.msg}
-          </div>
-        </div>
-      )}
-
-      <div className="welcome-banner">
-        <div>
-          <div className="welcome-label">Administrator</div>
-          <h2>Admin Control Panel</h2>
-          <p>Monitor all complaints, assign officers, manage departments and track SLA.</p>
-        </div>
-        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-          <Link to="/admin/officers" className="btn btn-outline btn-sm" style={{ color: 'white', borderColor: 'rgba(255,255,255,0.4)' }}>
-            Manage Officers
-          </Link>
-          <Link to="/admin/departments" className="btn btn-accent btn-sm">
-            Departments
           </Link>
         </div>
       </div>
 
-      {/* Stats */}
-      {stats && (
-        <div className="stats-grid">
-          <StatCard icon={FileText} title="Total Complaints" value={stats.totalComplaints} />
-          <StatCard icon={CheckCircle2} title="Resolved" value={stats.resolvedComplaints} trendType="up" />
-          <StatCard icon={Clock} title="Pending" value={stats.pendingComplaints} />
-          <StatCard icon={AlertTriangle} title="SLA Overdue" value={overdue} trendType="down" />
-          <StatCard icon={Activity} title="Resolution Rate" value={`${stats.resolutionRate}%`} />
-        </div>
-      )}
+      {/* ── Stats Grid ── */}
+      <div style={{ display: 'flex', gap: 20, marginBottom: 30, flexWrap: 'wrap' }}>
+        <StatCard icon={FileText} label="Total Complaints Filed" value={myComplaints.length} color="#3b82f6" />
+        <StatCard icon={Clock} label="Pending Resolution" value={pending} color="#f59e0b" />
+        <StatCard icon={CheckCircle2} label="Resolved Issues" value={resolved} color="#10b981" />
+      </div>
 
-      {/* Breakdown cards */}
-      {stats && (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', marginBottom: '24px' }}>
-          <SectionCard>
-            <h3 style={{ margin: '0 0 16px 0', fontSize: '15px' }}>By Department</h3>
-            <div>
-              {Object.entries(stats.byDepartment).map(([d, c]) => (
-                <div key={d} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--color-border)', fontSize: '13.5px' }}>
-                  <span>{d}</span>
-                  <Badge variant="info" label={c} />
-                </div>
-              ))}
-              {Object.keys(stats.byDepartment).length === 0 && <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>No data yet</p>}
+      {/* ── Services Grid ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '24px', marginBottom: '30px' }}>
+        {CITIZEN_MENU.map((menu, i) => (
+          <div key={i} style={{
+            background: '#fff', borderRadius: 16, padding: 20,
+            border: '1px solid #e2e8f0', boxShadow: '0 4px 12px rgba(15,23,42,0.03)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+              <div style={{ width: 44, height: 44, borderRadius: 12, background: menu.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <menu.icon size={22} color={menu.color} />
+              </div>
+              <h3 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: '#0f172a' }}>{menu.category}</h3>
             </div>
-          </SectionCard>
-          <SectionCard>
-            <h3 style={{ margin: '0 0 16px 0', fontSize: '15px' }}>By Status</h3>
-            <div>
-              {Object.entries(stats.byStatus).map(([s, c]) => (
-                <div key={s} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--color-border)', fontSize: '13.5px' }}>
-                  <Badge variant={statusBadgeVariant(s)} label={s} />
-                  <span style={{ fontWeight: '700' }}>{c}</span>
-                </div>
-              ))}
-            </div>
-          </SectionCard>
-          <SectionCard>
-            <h3 style={{ margin: '0 0 16px 0', fontSize: '15px' }}>By Priority</h3>
-            <div>
-              {Object.entries(stats.byPriority).map(([p, c]) => (
-                <div key={p} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--color-border)', fontSize: '13.5px' }}>
-                  <Badge variant={priorityBadgeVariant(p)} label={p} />
-                  <span style={{ fontWeight: '700' }}>{c}</span>
-                </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {menu.links.map((link, j) => (
+                <Link key={j} to={link.to} style={{ 
+                  textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 10,
+                  padding: '12px 14px', borderRadius: 10, background: '#f8fafc', color: '#475569',
+                  fontSize: 14, fontWeight: 600, transition: 'all 0.2s ease',
+                  border: '1px solid transparent'
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = '#f1f5f9'; e.currentTarget.style.color = menu.color; e.currentTarget.style.borderColor = menu.bg; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = '#f8fafc'; e.currentTarget.style.color = '#475569'; e.currentTarget.style.borderColor = 'transparent'; }}
+                >
+                  <link.icon size={18} />
+                  {link.label}
+                </Link>
               ))}
             </div>
-          </SectionCard>
-        </div>
-      )}
+          </div>
+        ))}
+      </div>
 
-      {/* All complaints table */}
-      <SectionCard>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
-          <div>
-            <h3 style={{ margin: 0, fontSize: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <List size={20} /> All Complaints
-            </h3>
-            {totalElements > 0 && (
-              <span style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginTop: '4px', display: 'block' }}>
-                {totalElements} total record{totalElements !== 1 ? 's' : ''}
-              </span>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 24 }}>
+        <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(15,23,42,0.04)', overflow: 'hidden', gridColumn: 'span 2' }}>
+          <div style={{ padding: '16px 20px', borderBottom: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: 16, fontWeight: 700, color: '#0f172a' }}>Recent Complaints</span>
+            <Link to="/complaints" style={{ fontSize: 12, fontWeight: 600, color: '#3b82f6', textDecoration: 'none' }}>View All</Link>
+          </div>
+          
+          <div style={{ overflowX: 'auto' }}>
+            {myComplaints.length === 0 ? (
+              <div style={{ padding: 60, textAlign: 'center' }}>
+                <Inbox size={48} color="#cbd5e1" style={{ marginBottom: 16 }} />
+                <div style={{ fontSize: 16, fontWeight: 600, color: '#64748b' }}>No complaints filed yet</div>
+              </div>
+            ) : (
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                <thead>
+                  <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+                    <th style={{ padding: '12px 20px', fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>ID</th>
+                    <th style={{ padding: '12px 20px', fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Title & Dept</th>
+                    <th style={{ padding: '12px 20px', fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Status</th>
+                    <th style={{ padding: '12px 20px', fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', textAlign: 'right' }}>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {myComplaints.slice(0, 5).map(c => (
+                    <tr key={c.complaintId} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                      <td style={{ padding: '16px 20px', fontSize: 13, fontFamily: 'monospace', color: '#3b82f6', fontWeight: 600 }}>{c.complaintId?.slice(0, 8)}</td>
+                      <td style={{ padding: '16px 20px' }}>
+                        <div style={{ fontSize: 14, fontWeight: 600, color: '#0f172a' }}>{c.title}</div>
+                        <div style={{ fontSize: 12, color: '#64748b', marginTop: 4 }}>{c.department}</div>
+                      </td>
+                      <td style={{ padding: '16px 20px' }}>
+                        <StatusBadge status={c.status} />
+                      </td>
+                      <td style={{ padding: '16px 20px', textAlign: 'right' }}>
+                        <Link to={`/complaints/${c.complaintId}`}>
+                          <button style={{
+                            background: '#f8fafc', border: '1px solid #e2e8f0', padding: '6px 12px',
+                            borderRadius: 6, fontWeight: 600, fontSize: 12, color: '#0f172a', cursor: 'pointer'
+                          }}>View</button>
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             )}
           </div>
-          <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
-            {/* Sort Control */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <label style={{ fontSize: '13px', fontWeight: '600', color: 'var(--color-text-secondary)', whiteSpace: 'nowrap' }}>Sort:</label>
-              <select
-                value={`${sortBy},${sortDir}`}
-                onChange={(e) => {
-                  const [field, dir] = e.target.value.split(',');
-                  setSortBy(field);
-                  setSortDir(dir);
-                  setPage(0);
-                }}
-                style={{ padding: '6px 12px', borderRadius: 'var(--radius-md)', fontSize: '13px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-white)', color: 'var(--color-text-primary)', cursor: 'pointer' }}
-              >
-                <option value="createdAt,desc">📅 Date (Newest first)</option>
-                <option value="createdAt,asc">📅 Date (Oldest first)</option>
-                <option value="priority,desc">🚨 Priority (High → Low)</option>
-              </select>
-            </div>
-            {/* Page Size */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <label style={{ fontSize: '13px', fontWeight: '600', color: 'var(--color-text-secondary)', whiteSpace: 'nowrap' }}>Per page:</label>
-              <select
-                value={pageSize}
-                onChange={(e) => { setPageSize(Number(e.target.value)); setPage(0); }}
-                style={{ padding: '6px 12px', borderRadius: 'var(--radius-md)', fontSize: '13px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-white)', color: 'var(--color-text-primary)', cursor: 'pointer' }}
-              >
-                <option value={5}>5</option>
-                <option value={10}>10</option>
-                <option value={20}>20</option>
-              </select>
-            </div>
-            <Link to="/complaints" className="btn btn-outline btn-sm">Full View</Link>
-          </div>
         </div>
-
-        {/* Loading indicator */}
-        {loading && (
-          <div style={{ textAlign: 'center', padding: '8px', color: 'var(--color-text-secondary)', fontSize: '13px', background: 'var(--color-bg)' }}>
-            ⟳ Refreshing data...
-          </div>
-        )}
-
-        <div className="table-wrapper" style={{ overflowX: 'auto' }}>
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Title</th>
-                <th>Dept.</th>
-                <th>Priority</th>
-                <th>Status</th>
-                <th>SLA</th>
-                <th>Date Filed</th>
-                <th>👮 Assign to Officer</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {allComplaints.map((c, i) => (
-                <tr key={c.complaintId} style={{ borderBottom: '1px solid var(--color-border)' }}>
-                  <td style={{ color: 'var(--color-text-secondary)', fontSize: '13px' }}>{page * pageSize + i + 1}</td>
-                  <td style={{ fontWeight: '500', maxWidth: '180px' }}>
-                    <Link to={`/complaints/${c.complaintId}`}>{c.title}</Link>
-                  </td>
-                  <td style={{ fontSize: '13px' }}>{c.department}</td>
-                  <td><Badge variant={priorityBadgeVariant(c.priority)} label={c.priority} /></td>
-                  <td><Badge variant={statusBadgeVariant(c.status)} label={c.status} /></td>
-                  <td><Badge variant={slaBadgeVariant(c.slaStatus)} label={c.slaStatus || 'N/A'} /></td>
-                  <td style={{ fontSize: '12px', color: 'var(--color-text-secondary)', whiteSpace: 'nowrap' }}>
-                    {c.createdAt
-                      ? new Date(c.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
-                      : '—'}
-                  </td>
-                  <td style={{ minWidth: '250px' }}>
-                    {/* Show assign/re-assign dropdown for NEW and ASSIGNED complaints */}
-                    {(c.status === 'NEW' || c.status === 'ASSIGNED') ? (
-                      <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                        <select
-                          onChange={(e) => setSelectedOfficers(prev => ({ ...prev, [c.complaintId]: e.target.value }))}
-                          value={selectedOfficers[c.complaintId] || ''}
-                          style={{
-                            padding: '6px 12px', borderRadius: 'var(--radius-md)', fontSize: '12.5px',
-                            border: '1px solid var(--color-border)', flexGrow: 1,
-                            backgroundColor: 'var(--color-white)', color: 'var(--color-text-primary)'
-                          }}
-                        >
-                          <option value="" disabled>
-                            {c.status === 'ASSIGNED' && c.assignedOfficer
-                              ? `👤 ${OFFICERS.find(o => o.username === c.assignedOfficer)?.name || c.assignedOfficer} (change?)`
-                              : '👮 Select Officer...'}
-                          </option>
-                          {OFFICERS.map(o => (
-                            <option key={o.username} value={o.username}>
-                              {o.name} ({o.dept} · {o.role})
-                            </option>
-                          ))}
-                        </select>
-                        <button
-                          onClick={() => handleAssign(c.complaintId)}
-                          disabled={assigning[c.complaintId]}
-                          style={{
-                            padding: '6px 12px', fontSize: '12.5px', borderRadius: 'var(--radius-md)',
-                            backgroundColor: assigning[c.complaintId] ? 'var(--color-text-secondary)' : 'var(--color-primary)',
-                            color: 'white', border: 'none',
-                            cursor: assigning[c.complaintId] ? 'not-allowed' : 'pointer',
-                            fontWeight: '600', whiteSpace: 'nowrap'
-                          }}
-                        >
-                          {assigning[c.complaintId] ? '...' : (c.status === 'ASSIGNED' ? '🔄 Re-assign' : 'Assign')}
-                        </button>
-                      </div>
-                    ) : (
-                      <span style={{ fontSize: '13px', color: 'var(--color-text-secondary)', fontWeight: '500' }}>
-                        👤 {OFFICERS.find(o => o.username === c.assignedOfficer)?.name || c.assignedOfficer || 'Unassigned'}
-                      </span>
-                    )}
-                  </td>
-                  <td>
-                    <Link to={`/complaints/${c.complaintId}`} className="btn btn-ghost btn-sm">View</Link>
-                  </td>
-                </tr>
-              ))}
-              {allComplaints.length === 0 && !loading && (
-                <tr><td colSpan="9" style={{ textAlign: 'center', padding: '40px', color: 'var(--color-text-secondary)' }}>No complaints yet</td></tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Pagination Controls */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', borderTop: '1px solid var(--color-border)', flexWrap: 'wrap', gap: '8px' }}>
-          <div style={{ fontSize: '13.5px', color: 'var(--color-text-secondary)' }}>
-            Page <strong>{page + 1}</strong> of <strong>{totalPages || 1}</strong>
-            {totalElements > 0 && <span style={{ marginLeft: '8px' }}>· {totalElements} total records</span>}
-          </div>
-          <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
-            <button
-              className="btn btn-outline btn-sm"
-              onClick={() => setPage(0)}
-              disabled={page === 0}
-              title="First page"
-            >
-              ⏮ First
-            </button>
-            <button
-              className="btn btn-outline btn-sm"
-              onClick={() => setPage(prev => Math.max(0, prev - 1))}
-              disabled={page === 0}
-            >
-              ◀ Previous
-            </button>
-            {/* Page number buttons (show up to 5 pages) */}
-            {Array.from({ length: Math.min(totalPages, 5) }, (_, idx) => {
-              const startPage = Math.max(0, Math.min(page - 2, totalPages - 5));
-              const p = startPage + idx;
-              return (
-                <button
-                  key={p}
-                  onClick={() => setPage(p)}
-                  style={{
-                    padding: '6px 12px', fontSize: '13px', borderRadius: 'var(--radius-md)',
-                    backgroundColor: p === page ? 'var(--color-primary)' : 'var(--color-white)',
-                    color: p === page ? 'white' : 'var(--color-text-primary)',
-                    border: `1px solid ${p === page ? 'var(--color-primary)' : 'var(--color-border)'}`,
-                    cursor: 'pointer', fontWeight: p === page ? '700' : '500',
-                    minWidth: '32px'
-                  }}
-                >
-                  {p + 1}
-                </button>
-              );
-            })}
-            <button
-              className="btn btn-outline btn-sm"
-              onClick={() => setPage(prev => Math.min(totalPages - 1, prev + 1))}
-              disabled={page >= totalPages - 1}
-            >
-              Next ▶
-            </button>
-            <button
-              className="btn btn-outline btn-sm"
-              onClick={() => setPage(totalPages - 1)}
-              disabled={page >= totalPages - 1}
-              title="Last page"
-            >
-              Last ⏭
-            </button>
-          </div>
-        </div>
-      </SectionCard>
+      </div>
     </AppShell>
   );
 }

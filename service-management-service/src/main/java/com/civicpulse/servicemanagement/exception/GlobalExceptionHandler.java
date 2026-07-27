@@ -17,6 +17,17 @@ public class GlobalExceptionHandler {
             ));
     }
 
+    @ExceptionHandler(DuplicateApplicationException.class)
+    public ResponseEntity<Map<String, Object>> handleDuplicateApplication(DuplicateApplicationException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+            .body(Map.of(
+                "error", "Duplicate Application",
+                "message", ex.getMessage(),
+                "existingApplication", ex.getExistingApplication(),
+                "timestamp", LocalDateTime.now().toString()
+            ));
+    }
+
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<Map<String, Object>> handleRuntime(RuntimeException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)

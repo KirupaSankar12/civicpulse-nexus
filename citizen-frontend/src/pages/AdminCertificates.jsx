@@ -5,16 +5,30 @@ import AppShell from '../components/AppShell.jsx';
 import PageLoader from '../components/PageLoader.jsx';
 import { Search, FileText, CheckCircle, Clock, XCircle, Download } from 'lucide-react';
 
-function statusBadge(s) {
-  if (s === 'SUBMITTED') return 'bg-primary text-white';
-  if (s === 'UNDER_VERIFICATION') return 'bg-warning text-dark';
-  if (s === 'VERIFIED') return 'bg-info text-dark';
-  if (s === 'APPROVED') return 'bg-success text-white';
-  if (s === 'CERTIFICATE_GENERATED') return 'bg-secondary text-white';
-  if (s === 'DOWNLOADED') return 'bg-dark text-white';
-  if (s === 'REJECTED') return 'bg-danger text-white';
-  if (s === 'RESUBMITTED') return 'bg-warning text-dark';
-  return 'bg-secondary text-white';
+const STATUS_MAP = {
+  SUBMITTED: { bg: '#eff6ff', text: '#2563eb', border: '#bfdbfe' },
+  RESUBMITTED: { bg: '#eff6ff', text: '#2563eb', border: '#bfdbfe' },
+  UNDER_VERIFICATION: { bg: '#fff7ed', text: '#c2410c', border: '#fed7aa' },
+  VERIFIED: { bg: '#f0fdf4', text: '#15803d', border: '#bbf7d0' },
+  APPROVED: { bg: '#f0fdf4', text: '#15803d', border: '#bbf7d0' },
+  CERTIFICATE_GENERATED: { bg: '#f8fafc', text: '#475569', border: '#e2e8f0' },
+  DOWNLOADED: { bg: '#f8fafc', text: '#475569', border: '#e2e8f0' },
+  REJECTED: { bg: '#fef2f2', text: '#dc2626', border: '#fecaca' },
+};
+
+function StatusBadge({ status }) {
+  const m = STATUS_MAP[status] || { bg: '#f8fafc', text: '#475569', border: '#e2e8f0' };
+  return (
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', gap: 5,
+      padding: '3px 9px', borderRadius: 20,
+      background: m.bg, color: m.text,
+      border: `1px solid ${m.border}`,
+      fontSize: 11, fontWeight: 700,
+    }}>
+      {status?.replace('_', ' ') || '—'}
+    </span>
+  );
 }
 
 function AdminCertificates() {
@@ -75,29 +89,49 @@ function AdminCertificates() {
 
   return (
     <AppShell title="Certificate Management">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <div>
-          <h1 className="h3 mb-1 fw-bold text-primary">Certificate Applications</h1>
-          <p className="text-muted mb-0">Manage and track all citizen certificate requests.</p>
+      {/* ── Welcome Banner ── */}
+      <div style={{
+        background: 'linear-gradient(135deg, #0f172a, #334155)',
+        borderRadius: 16, padding: '24px 32px', color: '#fff',
+        display: 'flex', flexWrap: 'wrap', gap: 20, alignItems: 'center', justifyContent: 'space-between',
+        boxShadow: '0 10px 25px rgba(15,23,42,0.3)',
+        marginBottom: 30, position: 'relative', overflow: 'hidden'
+      }}>
+        <div style={{ position: 'absolute', top: -50, right: -50, width: 200, height: 200, background: '#fff', opacity: 0.03, borderRadius: '50%', filter: 'blur(30px)' }} />
+        
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          <span style={{ background: 'rgba(255,255,255,0.1)', color: '#38bdf8', border: '1px solid rgba(56,189,248,0.3)', padding: '4px 12px', borderRadius: 20, fontSize: 11, fontWeight: 800, letterSpacing: '0.08em', display: 'inline-block' }}>
+            ADMINISTRATION
+          </span>
+          <h2 style={{ margin: '10px 0 6px', fontSize: 28, fontWeight: 800, color: '#ffffff' }}>Certificate Applications</h2>
+          <p style={{ margin: 0, color: '#cbd5e1', maxWidth: 500, fontSize: 14 }}>
+            Manage and track all citizen certificate requests.
+          </p>
         </div>
       </div>
 
-      <div className="card shadow-sm border-0 rounded-4 mb-4">
-        <div className="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center flex-wrap gap-3 rounded-top-4">
-          <h5 className="mb-0 fw-bold"><FileText size={20} className="me-2 text-primary"/> All Certificates</h5>
+      <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(15,23,42,0.04)', overflow: 'hidden', marginBottom: 24 }}>
+        <div style={{ padding: '16px 20px', borderBottom: '1px solid #e2e8f0', background: '#f8fafc', display: 'flex', flexWrap: 'wrap', gap: '16px', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <FileText size={20} color="#0f172a" />
+            <h3 style={{ margin: 0, color: '#0f172a', fontSize: '16px', fontWeight: '700' }}>All Certificates</h3>
+          </div>
           
-          <div className="d-flex gap-2 flex-wrap">
-            <div className="input-group" style={{ width: '250px' }}>
-              <span className="input-group-text bg-white border-end-0"><Search size={16} className="text-muted" /></span>
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+            <div style={{ position: 'relative', width: '250px' }}>
               <input 
                 type="text" 
-                className="form-control border-start-0 ps-0" 
                 placeholder="Search App No or Name..." 
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+                style={{ width: '100%', padding: '8px 12px 8px 36px', borderRadius: 20, border: '1px solid #e2e8f0', fontSize: '14px', background: '#fff', color: '#0f172a', outline: 'none' }}
               />
+              <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
             </div>
-            <select className="form-select" style={{ width: 'auto' }} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+            <select 
+              style={{ padding: '8px 16px', borderRadius: 20, border: '1px solid #e2e8f0', fontSize: '14px', background: '#fff', color: '#0f172a', outline: 'none' }}
+              value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}
+            >
               <option value="ALL">All Statuses</option>
               <option value="SUBMITTED">Submitted</option>
               <option value="UNDER_VERIFICATION">Under Verification</option>
@@ -105,7 +139,10 @@ function AdminCertificates() {
               <option value="REJECTED">Rejected</option>
               <option value="CERTIFICATE_GENERATED">Generated</option>
             </select>
-            <select className="form-select" style={{ width: 'auto' }} value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}>
+            <select 
+              style={{ padding: '8px 16px', borderRadius: 20, border: '1px solid #e2e8f0', fontSize: '14px', background: '#fff', color: '#0f172a', outline: 'none' }}
+              value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}
+            >
               <option value="ALL">All Types</option>
               <option value="BIRTH_CERTIFICATE">Birth Certificate</option>
               <option value="DEATH_CERTIFICATE">Death Certificate</option>
@@ -116,42 +153,46 @@ function AdminCertificates() {
           </div>
         </div>
 
-        <div className="table-responsive">
-          <table className="table table-hover align-middle mb-0">
-            <thead className="table-light">
-              <tr>
-                <th className="ps-4">App No.</th>
-                <th>Applicant</th>
-                <th>Type</th>
-                <th>Department</th>
-                <th>Applied Date</th>
-                <th>Status</th>
-                <th className="text-end pe-4">Actions</th>
+        <div style={{ overflowX: 'auto', padding: '0 0 20px 0' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+            <thead>
+              <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+                <th style={{ padding: '12px 20px', fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>App No.</th>
+                <th style={{ padding: '12px 20px', fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Applicant</th>
+                <th style={{ padding: '12px 20px', fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Type</th>
+                <th style={{ padding: '12px 20px', fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Department</th>
+                <th style={{ padding: '12px 20px', fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Applied Date</th>
+                <th style={{ padding: '12px 20px', fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Status</th>
+                <th style={{ padding: '12px 20px', fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', textAlign: 'right' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {filteredApps.map(app => (
-                <tr key={app.id}>
-                  <td className="ps-4 font-monospace text-muted">{app.applicationNumber}</td>
-                  <td className="fw-semibold">{app.applicantName}</td>
-                  <td>{app.serviceType?.replace('_', ' ')}</td>
-                  <td>{app.department || 'Health Department'}</td>
-                  <td className="text-muted small">
+                <tr key={app.id} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                  <td style={{ padding: '16px 20px', fontSize: 13, fontFamily: 'monospace', color: '#3b82f6', fontWeight: 600 }}>{app.applicationNumber}</td>
+                  <td style={{ padding: '16px 20px', fontWeight: '600', color: '#0f172a' }}>{app.applicantName}</td>
+                  <td style={{ padding: '16px 20px', fontSize: 14 }}>{app.serviceType?.replace('_', ' ')}</td>
+                  <td style={{ padding: '16px 20px', fontSize: 14 }}>{app.department || 'Health Department'}</td>
+                  <td style={{ padding: '16px 20px', color: '#64748b', fontSize: '13px' }}>
                     {app.appliedDate ? new Date(app.appliedDate).toLocaleDateString() : '—'}
                   </td>
-                  <td>
-                    <span className={`badge rounded-pill px-3 py-2 ${statusBadge(app.status)}`}>
-                      {app.status?.replace('_', ' ')}
-                    </span>
+                  <td style={{ padding: '16px 20px' }}>
+                    <StatusBadge status={app.status} />
                   </td>
-                  <td className="text-end pe-4">
-                    <div className="d-flex justify-content-end gap-2">
-                      <Link to={`/services/officer/verify/${app.id}`} className="btn btn-sm btn-outline-primary rounded-pill px-3">
-                        View
+                  <td style={{ padding: '16px 20px', textAlign: 'right' }}>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+                      <Link to={`/services/officer/verify/${app.id}`} style={{ textDecoration: 'none' }}>
+                        <button style={{
+                          background: '#f8fafc', color: '#0f172a', border: '1px solid #e2e8f0', padding: '6px 12px',
+                          borderRadius: 6, fontWeight: 600, fontSize: 12, cursor: 'pointer'
+                        }}>View</button>
                       </Link>
                       {(app.status === 'CERTIFICATE_GENERATED' || app.status === 'DOWNLOADED') && (
-                        <button onClick={() => handleDownload(app.id, app.applicationNumber)} className="btn btn-sm btn-primary rounded-pill px-3">
-                          <Download size={14} className="me-1" /> PDF
+                        <button onClick={() => handleDownload(app.id, app.applicationNumber)} style={{
+                          background: '#0f172a', color: '#fff', border: 'none', padding: '6px 12px',
+                          borderRadius: 6, fontWeight: 600, fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4
+                        }}>
+                          <Download size={14} /> PDF
                         </button>
                       )}
                     </div>
@@ -160,8 +201,8 @@ function AdminCertificates() {
               ))}
               {filteredApps.length === 0 && (
                 <tr>
-                  <td colSpan="7" className="text-center py-5 text-muted">
-                    <div className="mb-2"><Search size={40} className="text-light" /></div>
+                  <td colSpan="7" style={{ padding: 40, textAlign: 'center', color: '#94a3b8', fontSize: 14 }}>
+                    <div style={{ marginBottom: 12 }}><Search size={40} color="#cbd5e1" /></div>
                     No certificates found.
                   </td>
                 </tr>

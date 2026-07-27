@@ -152,45 +152,68 @@ function AdminOfficers() {
   return (
     <AppShell title="Manage Officers">
       {toastMessage && (
-        <div className="position-fixed bottom-0 end-0 p-3" style={{ zIndex: 1100 }}>
-          <div className="toast show align-items-center text-bg-success border-0 fade" role="alert" aria-live="assertive" aria-atomic="true">
-            <div className="d-flex">
-              <div className="toast-body fw-bold">
-                ✓ {toastMessage}
-              </div>
-            </div>
+        <div style={{ position: 'fixed', bottom: 20, right: 20, zIndex: 1100 }}>
+          <div style={{ background: '#10b981', color: '#fff', padding: '12px 20px', borderRadius: 8, fontWeight: 700, boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
+            ✓ {toastMessage}
           </div>
         </div>
       )}
 
-      <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-        <div>
-          <h1 className="h3 mb-1 fw-bold text-primary">🧑‍💼 Manage Officers</h1>
-          <p className="text-muted mb-0">View and manage field officers assigned to municipal departments.</p>
+      {/* ── Welcome Banner ── */}
+      <div style={{
+        background: 'linear-gradient(135deg, #0f172a, #334155)',
+        borderRadius: 16, padding: '24px 32px', color: '#fff',
+        display: 'flex', flexWrap: 'wrap', gap: 20, alignItems: 'center', justifyContent: 'space-between',
+        boxShadow: '0 10px 25px rgba(15,23,42,0.3)',
+        marginBottom: 30, position: 'relative', overflow: 'hidden'
+      }}>
+        <div style={{ position: 'absolute', top: -50, right: -50, width: 200, height: 200, background: '#fff', opacity: 0.03, borderRadius: '50%', filter: 'blur(30px)' }} />
+        
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          <span style={{ background: 'rgba(255,255,255,0.1)', color: '#38bdf8', border: '1px solid rgba(56,189,248,0.3)', padding: '4px 12px', borderRadius: 20, fontSize: 11, fontWeight: 800, letterSpacing: '0.08em', display: 'inline-block' }}>
+            ADMINISTRATION
+          </span>
+          <h2 style={{ margin: '10px 0 6px', fontSize: 28, fontWeight: 800, color: '#ffffff' }}>Manage Officers</h2>
+          <p style={{ margin: 0, color: '#cbd5e1', maxWidth: 500, fontSize: 14 }}>
+            View and manage field officers assigned to municipal departments.
+          </p>
         </div>
-        <button className="btn btn-primary d-flex align-items-center gap-2 rounded-pill shadow-sm" onClick={openAddModal}>
+        
+        <button onClick={openAddModal} style={{
+          background: '#fff', color: '#0f172a', border: 'none', padding: '12px 20px',
+          borderRadius: 12, fontWeight: 700, fontSize: 14, cursor: 'pointer',
+          display: 'flex', alignItems: 'center', gap: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+          position: 'relative', zIndex: 1
+        }}>
           <Plus size={18} /> Add Officer
         </button>
       </div>
 
-      <div className="card shadow-sm border-0 rounded-4 mb-4">
-        <div className="card-header bg-white border-bottom py-3 d-flex flex-wrap gap-3 align-items-center rounded-top-4">
-          <div className="input-group" style={{ flex: '1 1 300px' }}>
-            <span className="input-group-text bg-white border-end-0"><Search size={16} className="text-muted" /></span>
+      <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(15,23,42,0.04)', overflow: 'hidden', marginBottom: 24 }}>
+        <div style={{ padding: '16px 20px', borderBottom: '1px solid #e2e8f0', background: '#f8fafc', display: 'flex', flexWrap: 'wrap', gap: '16px', alignItems: 'center', justifyContent: 'space-between' }}>
+          
+          <div style={{ position: 'relative', flex: '1 1 300px' }}>
             <input 
               type="text" 
-              className="form-control border-start-0 ps-0" 
               placeholder="Search by name or username..." 
               value={search}
               onChange={(e) => setSearch(e.target.value)}
+              style={{ width: '100%', padding: '8px 12px 8px 36px', borderRadius: 20, border: '1px solid #e2e8f0', fontSize: '14px', background: '#fff', color: '#0f172a', outline: 'none' }}
             />
+            <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
           </div>
-          <div className="d-flex gap-2">
-            <select className="form-select" value={deptFilter} onChange={e => setDeptFilter(e.target.value)}>
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+            <select 
+              style={{ padding: '8px 16px', borderRadius: 20, border: '1px solid #e2e8f0', fontSize: '14px', background: '#fff', color: '#0f172a', outline: 'none' }}
+              value={deptFilter} onChange={e => setDeptFilter(e.target.value)}
+            >
               <option value="ALL">All Departments</option>
               {departments.map(d => <option key={d} value={d}>{d}</option>)}
             </select>
-            <select className="form-select" value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
+            <select 
+              style={{ padding: '8px 16px', borderRadius: 20, border: '1px solid #e2e8f0', fontSize: '14px', background: '#fff', color: '#0f172a', outline: 'none' }}
+              value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
+            >
               <option value="ALL">All Status</option>
               <option value="Active">Active</option>
               <option value="Inactive">Inactive</option>
@@ -199,62 +222,81 @@ function AdminOfficers() {
         </div>
 
         {loading ? (
-          <div className="p-5 text-center"><PageLoader message="Fetching officers..." /></div>
+          <div style={{ padding: 40, textAlign: 'center' }}><PageLoader message="Fetching officers..." /></div>
         ) : (
-          <div className="table-responsive">
-            <table className="table table-hover align-middle mb-0">
-              <thead className="table-light">
-                <tr>
-                  <th className="ps-4">Officer Name</th>
-                  <th>Username</th>
-                  <th>Department</th>
-                  <th>Role</th>
-                  <th>Contact Info</th>
-                  <th>Cases (Total/Res)</th>
-                  <th>Resolution %</th>
-                  <th>Status</th>
-                  <th className="text-end pe-4">Actions</th>
+          <div style={{ overflowX: 'auto', padding: '0 0 20px 0' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+              <thead>
+                <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+                  <th style={{ padding: '12px 20px', fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Officer Name</th>
+                  <th style={{ padding: '12px 20px', fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Username</th>
+                  <th style={{ padding: '12px 20px', fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Department</th>
+                  <th style={{ padding: '12px 20px', fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Role</th>
+                  <th style={{ padding: '12px 20px', fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Contact Info</th>
+                  <th style={{ padding: '12px 20px', fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Cases (Total/Res)</th>
+                  <th style={{ padding: '12px 20px', fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Resolution %</th>
+                  <th style={{ padding: '12px 20px', fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Status</th>
+                  <th style={{ padding: '12px 20px', fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', textAlign: 'right' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredOfficers.map((o) => (
-                  <tr key={o.id}>
-                    <td className="ps-4 fw-semibold">{o.officerName}</td>
-                    <td className="font-monospace small text-muted">@{o.username}</td>
-                    <td>{o.department}</td>
-                    <td>
-                      <span className={`badge rounded-pill ${o.role === 'SENIOR_OFFICER' ? 'bg-info text-dark' : 'bg-primary'}`}>
+                  <tr key={o.id} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                    <td style={{ padding: '16px 20px', fontWeight: '600', color: '#0f172a' }}>{o.officerName}</td>
+                    <td style={{ padding: '16px 20px', fontSize: 13, fontFamily: 'monospace', color: '#64748b' }}>@{o.username}</td>
+                    <td style={{ padding: '16px 20px', fontSize: 14 }}>{o.department}</td>
+                    <td style={{ padding: '16px 20px' }}>
+                      <span style={{
+                        background: o.role === 'SENIOR_OFFICER' ? '#cff4fc' : '#cfe2ff',
+                        color: o.role === 'SENIOR_OFFICER' ? '#055160' : '#084298',
+                        padding: '3px 9px', borderRadius: 20, fontSize: 11, fontWeight: 700, border: '1px solid rgba(0,0,0,0.05)'
+                      }}>
                         {o.role?.replace('_', ' ')}
                       </span>
                     </td>
-                    <td className="small text-muted">
-                      <div className="mb-1"><i className="bi bi-envelope me-1"></i> {o.email}</div>
-                      <div><i className="bi bi-telephone me-1"></i> {o.phoneNumber}</div>
+                    <td style={{ padding: '16px 20px', color: '#64748b', fontSize: '13px' }}>
+                      <div style={{ marginBottom: 4 }}>📧 {o.email}</div>
+                      <div>📞 {o.phoneNumber}</div>
                     </td>
-                    <td>
-                      <div className="fw-bold">{o.totalAssigned}</div>
-                      <div className="small text-muted">{o.totalResolved} Resolved</div>
+                    <td style={{ padding: '16px 20px' }}>
+                      <div style={{ fontWeight: 700, color: '#0f172a' }}>{o.totalAssigned}</div>
+                      <div style={{ fontSize: 12, color: '#64748b' }}>{o.totalResolved} Resolved</div>
                     </td>
-                    <td>
-                      <div className="d-flex align-items-center gap-2">
-                        <div className="progress flex-grow-1" style={{ height: '6px', width: '60px' }}>
-                          <div className={`progress-bar ${o.resolutionRate > 80 ? 'bg-success' : o.resolutionRate > 50 ? 'bg-warning' : 'bg-danger'}`} 
-                               style={{ width: `${o.resolutionRate}%` }}></div>
+                    <td style={{ padding: '16px 20px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <div style={{ height: 6, width: 60, background: '#f1f5f9', borderRadius: 3, overflow: 'hidden' }}>
+                          <div style={{
+                            height: '100%',
+                            background: o.resolutionRate > 80 ? '#10b981' : o.resolutionRate > 50 ? '#f59e0b' : '#ef4444',
+                            width: `${o.resolutionRate}%`
+                          }}></div>
                         </div>
-                        <span className="small fw-semibold">{o.resolutionRate}%</span>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: '#0f172a' }}>{o.resolutionRate}%</span>
                       </div>
                     </td>
-                    <td>
-                      <span className={`badge rounded-pill ${o.status === 'Active' ? 'bg-success bg-opacity-10 text-success' : 'bg-secondary bg-opacity-10 text-secondary'}`}>
+                    <td style={{ padding: '16px 20px' }}>
+                      <span style={{
+                        background: o.status === 'Active' ? '#f0fdf4' : '#f8fafc',
+                        color: o.status === 'Active' ? '#15803d' : '#64748b',
+                        padding: '3px 9px', borderRadius: 20, fontSize: 11, fontWeight: 700, border: o.status === 'Active' ? '1px solid #bbf7d0' : '1px solid #e2e8f0'
+                      }}>
                         {o.status}
                       </span>
                     </td>
-                    <td className="text-end pe-4">
-                      <div className="d-inline-flex gap-1">
-                        <button className="btn btn-sm btn-light text-primary border rounded-circle p-2" onClick={() => openEditModal(o)} title="Edit">
+                    <td style={{ padding: '16px 20px', textAlign: 'right' }}>
+                      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+                        <button onClick={() => openEditModal(o)} style={{
+                          background: '#fff', color: '#3b82f6', border: '1px solid #e2e8f0', padding: '6px',
+                          borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          width: 32, height: 32
+                        }}>
                           <Edit2 size={14} />
                         </button>
-                        <button className="btn btn-sm btn-light text-danger border rounded-circle p-2" onClick={() => handleDelete(o.id)} title="Delete">
+                        <button onClick={() => handleDelete(o.id)} style={{
+                          background: '#fff', color: '#ef4444', border: '1px solid #e2e8f0', padding: '6px',
+                          borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          width: 32, height: 32
+                        }}>
                           <Trash2 size={14} />
                         </button>
                       </div>
@@ -263,7 +305,7 @@ function AdminOfficers() {
                 ))}
                 {filteredOfficers.length === 0 && (
                   <tr>
-                    <td colSpan="7" className="text-center py-5 text-muted">
+                    <td colSpan="9" style={{ padding: 40, textAlign: 'center', color: '#94a3b8', fontSize: 14 }}>
                       No officers found matching criteria.
                     </td>
                   </tr>

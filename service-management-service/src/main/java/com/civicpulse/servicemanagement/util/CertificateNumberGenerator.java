@@ -11,12 +11,18 @@ public class CertificateNumberGenerator {
 
     public String generate(ServiceType serviceType) {
         String prefix = switch (serviceType) {
-            case BIRTH_CERTIFICATE     -> "BC";
-            case DEATH_CERTIFICATE     -> "DC";
-            case INCOME_CERTIFICATE    -> "IC";
-            case RESIDENCE_CERTIFICATE -> "RC";
-            case TRADE_LICENSE         -> "TL";
-            case PERMIT_APPROVAL       -> "PA";
+            case BIRTH_CERTIFICATE             -> "BC";
+            case DEATH_CERTIFICATE             -> "DC";
+            case INCOME_CERTIFICATE            -> "IC";
+            case RESIDENCE_CERTIFICATE         -> "RC";
+            case TRADE_LICENSE                 -> "TL";
+            case PERMIT_APPROVAL               -> "PA";
+            case COMMUNITY_CERTIFICATE         -> "CC";
+            case BUILDING_PERMIT               -> "BP";
+            case ROAD_CUTTING_PERMIT           -> "RCP";
+            case WATER_CONNECTION_PERMIT       -> "WCP";
+            case ELECTRICITY_CONNECTION_PERMIT -> "ECP";
+            case PUBLIC_EVENT_PERMIT           -> "PEP";
         };
         int year = Year.now().getValue();
         long seq = counter.getAndIncrement();

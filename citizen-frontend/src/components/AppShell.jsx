@@ -2,12 +2,15 @@ import { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import keycloak from '../keycloak.js';
 import NotificationCenter from './NotificationCenter.jsx';
+import ThemeToggle from './ThemeToggle.jsx';
+import Sidebar from './Sidebar.jsx';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { 
-  Landmark, LayoutDashboard, MessageSquarePlus, List, 
-  FilePlus, Search, Award, User, Inbox, CheckCircle2, 
-  FileText, ShieldCheck, AlertTriangle, UserPlus, Users, Building, 
-  LogOut, Menu 
-} from 'lucide-react';
+  DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, 
+  DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator 
+} from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
+import { Menu, LogOut, X } from 'lucide-react';
 
 function getInitials(name) {
   if (!name) return '?';
@@ -15,164 +18,117 @@ function getInitials(name) {
 }
 
 function AppShell({ children, title }) {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen]       = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const location = useLocation();
 
   useEffect(() => {
     setSidebarOpen(false);
   }, [location.pathname]);
 
-  const roles = keycloak.tokenParsed?.realm_access?.roles || [];
-  const isCitizen = roles.includes('CITIZEN') || roles.includes('citizen');
-  const isOfficer = roles.includes('OFFICER') || roles.includes('officer');
-  const isAdmin = roles.includes('admin') || roles.includes('ADMIN');
   const username = keycloak.tokenParsed?.preferred_username || 'User';
-  const name = keycloak.tokenParsed?.name || username;
+  const name     = keycloak.tokenParsed?.name || username;
+  const roles    = keycloak.tokenParsed?.realm_access?.roles || [];
+  const isAdmin  = roles.includes('admin') || roles.includes('ADMIN');
 
-  const citizenLinks = [
-    { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-    { to: '/complaints/new', icon: MessageSquarePlus, label: 'Raise Complaint' },
-    { to: '/complaints', icon: List, label: 'My Complaints' },
-    { to: '/services/apply', icon: FilePlus, label: 'Apply for Certificate' },
-    { to: '/services/tracker', icon: Search, label: 'Track Application' },
-    { to: '/services/my-certificates', icon: Award, label: 'My Certificates' },
-    { to: '/profile', icon: User, label: 'My Profile' },
-  ];
-
-  const officerLinks = [
-    { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-    { to: '/officer', icon: Inbox, label: 'Assigned Complaints' },
-    { to: '/services/officer/dashboard', icon: CheckCircle2, label: 'Assigned Certificates' },
-  ];
-
-  const adminLinks = [
-    { to: '/admin/dashboard', icon: LayoutDashboard, label: 'Admin Dashboard' },
-    { to: '/admin/certificates', icon: FileText, label: 'Certificates' },
-    { to: '/admin/permits', icon: ShieldCheck, label: 'Permits' },
-    { to: '/complaints', icon: AlertTriangle, label: 'All Complaints' },
-    { to: '/admin/assign', icon: UserPlus, label: 'Assign Officers' },
-    { to: '/admin/officers', icon: Users, label: 'Manage Officers' },
-    { to: '/admin/departments', icon: Building, label: 'Departments' },
-  ];
-
-  const links = isAdmin ? adminLinks : isOfficer ? officerLinks : citizenLinks;
-  const roleLabel = isAdmin ? 'Administrator' : isOfficer ? 'Field Officer' : 'Citizen';
-  const roleColorClass = isAdmin ? 'bg-red-50 text-red-700' : isOfficer ? 'bg-orange-50 text-orange-700' : 'bg-green-50 text-green-700';
 
   return (
-    <div className="app-shell" style={{ backgroundColor: 'var(--color-bg)', minHeight: '100vh', display: 'flex' }}>
+    <div className="flex min-h-screen w-full" style={{ background: '#e8edf4' }}>
+      
+      {/* Mobile Sidebar Backdrop */}
       {sidebarOpen && (
-        <div
-          className="sidebar-overlay"
+        <div 
+          className="fixed inset-0 z-40 bg-slate-900/60 backdrop-blur-sm lg:hidden transition-opacity"
           onClick={() => setSidebarOpen(false)}
-          aria-hidden="true"
-          style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 40 }}
         />
       )}
 
-      <aside className={`sidebar${sidebarOpen ? ' sidebar-open' : ''}`} style={{ width: 'var(--sidebar-w)', backgroundColor: 'var(--color-white)', borderRight: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column', height: '100vh', position: 'fixed', zIndex: 50, transition: 'transform 0.3s ease' }}>
-        <div style={{ padding: '24px 20px', borderBottom: '1px solid var(--color-border)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{ backgroundColor: 'var(--color-primary)', color: 'white', padding: '8px', borderRadius: 'var(--radius-md)', display: 'flex' }}>
-              <Landmark size={24} strokeWidth={2} />
-            </div>
-            <div>
-              <div style={{ fontWeight: 700, fontSize: '18px', color: 'var(--color-text-primary)' }}>CivicPulse Nexus</div>
-              <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>Smart Governance Platform</div>
-            </div>
-          </div>
-        </div>
-
-        <div style={{ padding: '20px 12px', flex: 1, overflowY: 'auto' }}>
-          <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--color-text-secondary)', fontWeight: 600, padding: '0 12px', marginBottom: '12px' }}>Navigation</div>
-          <nav aria-label="Main navigation" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            {links.map((link) => {
-              const Icon = link.icon;
-              return (
-                <NavLink
-                  key={link.to}
-                  to={link.to}
-                  className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`}
-                  end={link.to === '/dashboard'}
-                  style={({ isActive }) => ({
-                    display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', borderRadius: 'var(--radius-md)',
-                    color: isActive ? 'var(--color-primary)' : 'var(--color-text-secondary)',
-                    backgroundColor: isActive ? 'var(--color-primary-light)' : 'transparent',
-                    textDecoration: 'none', fontWeight: isActive ? 600 : 500, transition: 'all 0.2s'
-                  })}
-                >
-                  {({ isActive }) => (
-                    <>
-                      <Icon size={20} strokeWidth={isActive ? 2.5 : 2} />
-                      <span>{link.label}</span>
-                    </>
-                  )}
-                </NavLink>
-              );
-            })}
-          </nav>
-        </div>
-
-        <div style={{ padding: '20px', borderTop: '1px solid var(--color-border)', backgroundColor: 'var(--color-bg)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
-            <div style={{ width: '40px', height: '40px', borderRadius: 'var(--radius-full)', backgroundColor: 'var(--color-primary-light)', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '14px' }}>
-              {getInitials(name)}
-            </div>
-            <div style={{ flex: 1, overflow: 'hidden' }}>
-              <div style={{ fontWeight: 600, fontSize: '14px', color: 'var(--color-text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{name}</div>
-              <div style={{ fontSize: '12px', padding: '2px 8px', borderRadius: 'var(--radius-full)', display: 'inline-block', marginTop: '4px', ...getRoleStyles(roleLabel) }}>
-                {roleLabel}
-              </div>
-            </div>
-          </div>
-          <button 
-            onClick={() => keycloak.logout()} 
-            style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '8px 16px', borderRadius: 'var(--radius-full)', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-white)', color: 'var(--color-text-secondary)', cursor: 'pointer', fontWeight: 500, transition: 'all 0.2s' }}
-            onMouseOver={(e) => { e.currentTarget.style.backgroundColor = 'var(--color-danger-light)'; e.currentTarget.style.color = 'var(--color-danger)'; e.currentTarget.style.borderColor = 'var(--color-danger-light)'; }}
-            onMouseOut={(e) => { e.currentTarget.style.backgroundColor = 'var(--color-white)'; e.currentTarget.style.color = 'var(--color-text-secondary)'; e.currentTarget.style.borderColor = 'var(--color-border)'; }}
+      {/* Sidebar – desktop always visible, mobile slide-in overlay */}
+      <div className={`fixed inset-y-0 left-0 z-50 flex shrink-0 shadow-xl transition-transform duration-300 ease-in-out lg:static lg:shadow-none ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+        {/* Mobile close button */}
+        <div className="absolute right-[-40px] top-3 lg:hidden z-10">
+          <button
+            onClick={() => setSidebarOpen(false)}
+            className="flex h-8 w-8 items-center justify-center rounded-lg bg-white shadow text-slate-600"
           >
-            <LogOut size={16} />
-            <span>Sign Out</span>
+            <X className="h-4 w-4" />
           </button>
         </div>
-      </aside>
+        <Sidebar
+          collapsed={sidebarCollapsed}
+          onToggleCollapse={() => setSidebarCollapsed(c => !c)}
+        />
+      </div>
 
-      <main style={{ marginLeft: 'var(--sidebar-w)', flex: 1, display: 'flex', flexDirection: 'column', minHeight: '100vh', transition: 'margin 0.3s ease' }} className="main-content">
-        <header style={{ height: 'var(--header-h)', backgroundColor: 'var(--color-white)', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 24px', position: 'sticky', top: 0, zIndex: 30 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+      {/* Main Content Area */}
+      <div className="flex flex-1 min-w-0 flex-col overflow-hidden">
+        
+        {/* Top Header */}
+        <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center justify-between border-b-2 border-slate-200 bg-white px-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-3">
             <button
-              type="button"
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              style={{ background: 'none', border: 'none', color: 'var(--color-text-secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
-              className="menu-toggle-btn"
+              className="lg:hidden flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              onClick={() => setSidebarOpen(true)}
             >
-              <Menu size={24} />
+              <Menu className="h-4 w-4" />
             </button>
-            <div style={{ fontWeight: 600, fontSize: '16px', color: 'var(--color-text-primary)' }}>{title || 'CivicPulse Nexus'}</div>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <NotificationCenter />
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '4px 12px 4px 4px', backgroundColor: 'var(--color-bg)', borderRadius: 'var(--radius-full)', border: '1px solid var(--color-border)' }}>
-              <div style={{ width: '28px', height: '28px', borderRadius: '50%', backgroundColor: 'var(--color-primary)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '12px' }}>
-                {getInitials(name)}
-              </div>
-              <span style={{ fontWeight: 600, fontSize: '13px', color: 'var(--color-text-primary)' }}>{username}</span>
+            <div className="flex items-center gap-2.5">
+              <div className="hidden sm:flex h-5 w-1 rounded-full bg-gradient-to-b from-blue-500 to-indigo-500" />
+              <h1 className="text-base font-semibold text-slate-800 dark:text-white hidden sm:block">
+                {title || 'CivicPulse Nexus'}
+              </h1>
             </div>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <NotificationCenter />
+            
+            <div className="h-5 w-px bg-slate-200 dark:bg-slate-700 hidden sm:block mx-1" />
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="flex items-center gap-2 rounded-full pl-1 pr-3 py-1 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                  <Avatar className="h-7 w-7">
+                    <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-xs font-bold">
+                      {getInitials(name)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="text-sm font-medium text-slate-700 dark:text-slate-200 hidden sm:block">{username}</span>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56 mt-2">
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium leading-none">{name}</p>
+                    <p className="text-xs leading-none text-slate-500">{username}</p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => keycloak.logout()} className="text-red-600 focus:text-red-600 cursor-pointer">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Log out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </header>
 
-        <div style={{ padding: 'var(--space-3)', flex: 1 }}>
-          {children}
-        </div>
-      </main>
+        {/* Page Content */}
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8" style={{ background: '#e8edf4' }}>
+          <div className="w-full">
+            <div className="mb-5 sm:hidden">
+              <h1 className="text-xl font-semibold text-slate-900 dark:text-white">
+                {title || 'CivicPulse Nexus'}
+              </h1>
+            </div>
+            {children}
+          </div>
+        </main>
+        
+      </div>
     </div>
   );
-}
-
-function getRoleStyles(role) {
-  if (role === 'Administrator') return { backgroundColor: 'var(--color-danger-light)', color: 'var(--color-danger)' };
-  if (role === 'Field Officer') return { backgroundColor: 'var(--color-warning-light)', color: 'var(--color-warning)' };
-  return { backgroundColor: 'var(--color-success-light)', color: 'var(--color-success)' };
 }
 
 export default AppShell;

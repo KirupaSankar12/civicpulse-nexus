@@ -5,7 +5,7 @@
 # ============================================================
 
 # ── 0. Kill any processes already holding our ports ──────────
-$ports = @(8761, 8080, 8081, 8082, 8083, 8084, 8085, 8180, 9092, 9093, 5173)
+$ports = @(8761, 8080, 8081, 8082, 8083, 8084, 8085, 8086, 8180, 9092, 9093, 5173)
 foreach ($port in $ports) {
     $pids = (Get-NetTCPConnection -LocalPort $port -ErrorAction SilentlyContinue |
              Select-Object -ExpandProperty OwningProcess -Unique)
@@ -55,7 +55,8 @@ $services = @(
     "citizen-service",
     "grievance-service",
     "notification-service",
-    "service-management-service"
+    "service-management-service",
+    "welfare-service"
 )
 
 Write-Host "Starting Spring Boot services..."

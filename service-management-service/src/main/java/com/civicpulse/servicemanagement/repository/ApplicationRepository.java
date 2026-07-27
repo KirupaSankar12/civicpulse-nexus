@@ -11,6 +11,10 @@ public interface ApplicationRepository extends JpaRepository<ServiceApplication,
     List<ServiceApplication> findByCitizenId(String citizenId);
     List<ServiceApplication> findByStatus(ApplicationStatus status);
     List<ServiceApplication> findByServiceType(ServiceType serviceType);
+    
+    java.util.Optional<ServiceApplication> findFirstByServiceTypeAndAadhaarNumberAndStatusIn(
+            ServiceType serviceType, String aadhaarNumber, List<ApplicationStatus> statuses);
+
     List<ServiceApplication> findByDepartment(String department);
     List<ServiceApplication> findByDepartmentOrderByAppliedDateDesc(String department);
 }

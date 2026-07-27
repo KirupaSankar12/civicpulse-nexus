@@ -33,6 +33,10 @@ public class ServiceApplication {
     @Pattern(regexp = "^\\d{4}-\\d{4}-\\d{4}$", message = "Aadhaar must be in format XXXX-XXXX-XXXX")
     private String aadhaarNumber;
 
+    private String relationship;
+    
+    private String applicantDateOfBirth;
+
     @Column(columnDefinition = "TEXT")
     private String documentsSubmitted;
 
@@ -71,7 +75,7 @@ public class ServiceApplication {
     public ServiceApplication() {}
 
     public ServiceApplication(UUID applicationId, String applicationNumber, String citizenId, ServiceType serviceType,
-                              String applicantName, String aadhaarNumber, String documentsSubmitted, String dynamicData,
+                              String applicantName, String aadhaarNumber, String relationship, String applicantDateOfBirth, String documentsSubmitted, String dynamicData,
                               ApplicationStatus status, String department, String rejectionReason, String officerRemarks, String certificateNumber,
                               String digitallySignedBy, String verifiedBy, String approvedBy, String digitalSignature,
                               LocalDateTime appliedDate, LocalDateTime verifiedDate, LocalDateTime approvedDate,
@@ -82,6 +86,8 @@ public class ServiceApplication {
         this.serviceType = serviceType;
         this.applicantName = applicantName;
         this.aadhaarNumber = aadhaarNumber;
+        this.relationship = relationship;
+        this.applicantDateOfBirth = applicantDateOfBirth;
         this.documentsSubmitted = documentsSubmitted;
         this.dynamicData = dynamicData;
         this.status = status;
@@ -155,6 +161,22 @@ public class ServiceApplication {
 
     public void setAadhaarNumber(String aadhaarNumber) {
         this.aadhaarNumber = aadhaarNumber;
+    }
+
+    public String getRelationship() {
+        return relationship;
+    }
+
+    public void setRelationship(String relationship) {
+        this.relationship = relationship;
+    }
+
+    public String getApplicantDateOfBirth() {
+        return applicantDateOfBirth;
+    }
+
+    public void setApplicantDateOfBirth(String applicantDateOfBirth) {
+        this.applicantDateOfBirth = applicantDateOfBirth;
     }
 
     public String getDocumentsSubmitted() {
@@ -288,6 +310,8 @@ public class ServiceApplication {
         private ServiceType serviceType;
         private String applicantName;
         private String aadhaarNumber;
+        private String relationship;
+        private String applicantDateOfBirth;
         private String documentsSubmitted;
         private String dynamicData;
         private ApplicationStatus status;
@@ -310,6 +334,8 @@ public class ServiceApplication {
         public Builder serviceType(ServiceType serviceType) { this.serviceType = serviceType; return this; }
         public Builder applicantName(String applicantName) { this.applicantName = applicantName; return this; }
         public Builder aadhaarNumber(String aadhaarNumber) { this.aadhaarNumber = aadhaarNumber; return this; }
+        public Builder relationship(String relationship) { this.relationship = relationship; return this; }
+        public Builder applicantDateOfBirth(String applicantDateOfBirth) { this.applicantDateOfBirth = applicantDateOfBirth; return this; }
         public Builder documentsSubmitted(String documentsSubmitted) { this.documentsSubmitted = documentsSubmitted; return this; }
         public Builder dynamicData(String dynamicData) { this.dynamicData = dynamicData; return this; }
         public Builder status(ApplicationStatus status) { this.status = status; return this; }
@@ -328,7 +354,7 @@ public class ServiceApplication {
 
         public ServiceApplication build() {
             return new ServiceApplication(applicationId, applicationNumber, citizenId, serviceType, applicantName,
-                    aadhaarNumber, documentsSubmitted, dynamicData, status, department, rejectionReason, officerRemarks, certificateNumber, digitallySignedBy,
+                    aadhaarNumber, relationship, applicantDateOfBirth, documentsSubmitted, dynamicData, status, department, rejectionReason, officerRemarks, certificateNumber, digitallySignedBy,
                     verifiedBy, approvedBy, digitalSignature, appliedDate, verifiedDate, approvedDate, downloadCount);
         }
     }

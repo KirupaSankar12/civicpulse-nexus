@@ -215,57 +215,80 @@ function AdminDashboard() {
     return <AppShell title="Admin Dashboard"><PageLoader message="Generating Enterprise Analytics..." /></AppShell>;
   }
 
-  const KpiCard = ({ title, value, sub, icon: Icon, colorClass }) => (
-    <div className="card shadow-sm border-0 h-100 rounded-4 kpi-card" style={{ background: 'rgba(255, 255, 255, 0.85)', backdropFilter: 'blur(10px)' }}>
-      <div className="card-body d-flex align-items-center">
-        <div className={`p-3 rounded-4 me-3 ${colorClass}`} style={{ background: 'var(--surface2)' }}>
-          <Icon size={24} />
-        </div>
-        <div>
-          <h6 className="text-muted mb-1" style={{ fontSize: '13px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{title}</h6>
-          <h3 className="mb-0 fw-bold" style={{ color: 'var(--text-dark)' }}>{value}</h3>
-          {sub && <small className="text-muted" style={{ fontSize: '11px' }}>{sub}</small>}
-        </div>
+  const KpiCard = ({ title, value, sub, icon: Icon, color }) => (
+    <div style={{
+      background: '#fff', borderRadius: 14, padding: '18px 22px',
+      border: '1.5px solid #e2e8f0', boxShadow: '0 2px 8px rgba(15,23,42,0.06)',
+      display: 'flex', alignItems: 'center', gap: 14, flex: '1 1 200px',
+    }}>
+      <div style={{
+        width: 44, height: 44, borderRadius: 12, flexShrink: 0,
+        background: color + '18', display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}>
+        <Icon size={20} color={color} />
+      </div>
+      <div>
+        <div style={{ fontSize: 22, fontWeight: 800, color: '#0f172a', lineHeight: 1 }}>{value}</div>
+        <div style={{ fontSize: 12, color: '#64748b', marginTop: 3, fontWeight: 600 }}>{title}</div>
+        {sub && <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 2 }}>{sub}</div>}
       </div>
     </div>
   );
 
   return (
-    <AppShell title="Enterprise Admin Dashboard">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <div>
-          <h1 className="h3 mb-1 fw-bold" style={{ color: 'var(--primary)' }}>City Administration Dashboard</h1>
-          <p className="text-muted mb-0">Real-time municipal performance & civic analytics</p>
+    <AppShell title="Enterprise Analytics">
+      {/* ── Welcome Banner ── */}
+      <div style={{
+        background: 'linear-gradient(135deg, #0f172a, #334155)',
+        borderRadius: 16, padding: '24px 32px', color: '#fff',
+        display: 'flex', flexWrap: 'wrap', gap: 20, alignItems: 'center', justifyContent: 'space-between',
+        boxShadow: '0 10px 25px rgba(15,23,42,0.3)',
+        marginBottom: 30, position: 'relative', overflow: 'hidden'
+      }}>
+        <div style={{ position: 'absolute', top: -50, right: -50, width: 200, height: 200, background: '#fff', opacity: 0.03, borderRadius: '50%', filter: 'blur(30px)' }} />
+        
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          <span style={{ background: 'rgba(255,255,255,0.1)', color: '#38bdf8', border: '1px solid rgba(56,189,248,0.3)', padding: '4px 12px', borderRadius: 20, fontSize: 11, fontWeight: 800, letterSpacing: '0.08em', display: 'inline-block' }}>
+            ADMINISTRATION
+          </span>
+          <h2 style={{ margin: '10px 0 6px', fontSize: 28, fontWeight: 800, color: '#ffffff' }}>City Administration Dashboard</h2>
+          <p style={{ margin: 0, color: '#cbd5e1', maxWidth: 500, fontSize: 14 }}>
+            Real-time municipal performance, application tracking & civic analytics.
+          </p>
         </div>
-        <div className="d-flex gap-2">
-          <button className="btn btn-outline-primary rounded-pill px-4" onClick={handleExportCSV}>
-            <i className="bi bi-download me-2"></i>Export Report
-          </button>
-        </div>
+        
+        <button onClick={handleExportCSV} style={{
+          background: '#fff', color: '#0f172a', border: 'none', padding: '12px 20px',
+          borderRadius: 12, fontWeight: 700, fontSize: 14, cursor: 'pointer',
+          display: 'flex', alignItems: 'center', gap: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+          position: 'relative', zIndex: 1
+        }}>
+          Export Report
+        </button>
       </div>
 
-      {/* Row 1: Users & General */}
-      <div className="row g-3 mb-4">
-        <div className="col-md-3 col-sm-6"><KpiCard title="Total Citizens" value={stats.totalCitizens} icon={Users} colorClass="text-primary" /></div>
-        <div className="col-md-3 col-sm-6"><KpiCard title="Total Officers" value={stats.totalOfficers} icon={Briefcase} colorClass="text-info" /></div>
-        <div className="col-md-3 col-sm-6"><KpiCard title="System Users" value={stats.systemUsers} icon={Hash} colorClass="text-secondary" /></div>
-        <div className="col-md-3 col-sm-6"><KpiCard title="Active Departments" value={stats.activeDepartments} icon={Building} colorClass="text-dark" /></div>
+      <div style={{ marginBottom: 12, fontSize: 13, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Overview</div>
+      <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 30 }}>
+        <KpiCard title="Total Citizens" value={stats.totalCitizens} icon={Users} color="#3b82f6" />
+        <KpiCard title="Total Officers" value={stats.totalOfficers} icon={Briefcase} color="#8b5cf6" />
+        <KpiCard title="System Users" value={stats.systemUsers} icon={Hash} color="#64748b" />
+        <KpiCard title="Active Depts" value={stats.activeDepartments} icon={Building} color="#0f172a" />
       </div>
 
-      {/* Row 2: Applications & Permits */}
-      <div className="row g-3 mb-4">
-        <div className="col-md-3 col-sm-6"><KpiCard title="Certificates Applied" value={stats.certApps} sub={`+${stats.todaysApplications} today`} icon={FileText} colorClass="text-primary" /></div>
-        <div className="col-md-3 col-sm-6"><KpiCard title="Permits Applied" value={stats.permitApps} icon={ShieldCheck} colorClass="text-warning" /></div>
-        <div className="col-md-3 col-sm-6"><KpiCard title="Certs Approved" value={stats.certsApproved} icon={CheckCircle} colorClass="text-success" /></div>
-        <div className="col-md-3 col-sm-6"><KpiCard title="Pending Review" value={stats.certsPending} icon={Clock} colorClass="text-warning" /></div>
+      <div style={{ marginBottom: 12, fontSize: 13, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Applications & Permits</div>
+      <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 30 }}>
+        <KpiCard title="Certificates Applied" value={stats.certApps} sub={`+${stats.todaysApplications} today`} icon={FileText} color="#3b82f6" />
+        <KpiCard title="Permits Applied" value={stats.permitApps} icon={ShieldCheck} color="#f59e0b" />
+        <KpiCard title="Certs Approved" value={stats.certsApproved} icon={CheckCircle} color="#10b981" />
+        <KpiCard title="Pending Review" value={stats.certsPending} icon={Clock} color="#f59e0b" />
       </div>
 
-      {/* Row 3: Complaints & SLA */}
-      <div className="row g-3 mb-4">
-        <div className="col-md-3 col-sm-6"><KpiCard title="Total Complaints" value={stats.totalComplaints} sub={`+${stats.todaysComplaints} today`} icon={AlertTriangle} colorClass="text-danger" /></div>
-        <div className="col-md-3 col-sm-6"><KpiCard title="Resolved Cases" value={stats.resolvedComplaints} icon={UserCheck} colorClass="text-success" /></div>
-        <div className="col-md-3 col-sm-6"><KpiCard title="Avg Resolution Time" value={`${stats.avgResolutionTime} Days`} icon={Activity} colorClass="text-info" /></div>
-        <div className="col-md-3 col-sm-6"><KpiCard title="SLA Compliance" value={`${stats.slaCompliance}%`} icon={Award} colorClass={stats.slaCompliance > 90 ? 'text-success' : 'text-danger'} /></div>
+      <div style={{ marginBottom: 12, fontSize: 13, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Complaints & SLA</div>
+      <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 30 }}>
+        <KpiCard title="Total Complaints" value={stats.totalComplaints} sub={`+${stats.todaysComplaints} today`} icon={AlertTriangle} color="#ef4444" />
+        <KpiCard title="Resolved Cases" value={stats.resolvedComplaints} icon={UserCheck} color="#10b981" />
+        <KpiCard title="Avg Resolution (Days)" value={stats.avgResolutionTime} icon={Activity} color="#0ea5e9" />
+        <KpiCard title="SLA Compliance" value={`${stats.slaCompliance}%`} icon={Award} color={stats.slaCompliance > 90 ? '#10b981' : '#ef4444'} />
       </div>
 
       {/* Charts Row 1 */}
@@ -422,36 +445,41 @@ function AdminDashboard() {
         </div>
       </div>
 
-      {/* Timeline */}
-      <div className="card shadow-sm border-0 rounded-4 mb-5">
-        <div className="card-header bg-white border-bottom py-3">
-          <h5 className="mb-0 fw-bold"><Clock size={20} className="me-2 text-primary"/> Recent Activity Timeline</h5>
+      <div style={{
+        background: '#fff', borderRadius: 16, border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(15,23,42,0.04)', overflow: 'hidden', marginBottom: 24
+      }}>
+        <div style={{ padding: '16px 20px', borderBottom: '1px solid #e2e8f0', background: '#f8fafc', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Clock size={20} color="#0f172a" />
+          <h3 style={{ margin: 0, color: '#0f172a', fontSize: '16px', fontWeight: '700' }}>Recent Activity Timeline</h3>
         </div>
-        <div className="card-body p-0">
-          <div className="list-group list-group-flush rounded-bottom-4">
-            {stats.timeline.map((evt, i) => (
-              <div key={i} className="list-group-item p-4 border-bottom" style={{ background: 'transparent' }}>
-                <div className="d-flex w-100 justify-content-between align-items-center">
-                  <div className="d-flex align-items-center gap-3">
-                    <div className={`p-2 rounded-circle ${evt.type === 'Complaint' ? 'bg-danger bg-opacity-10 text-danger' : 'bg-primary bg-opacity-10 text-primary'}`}>
-                      {evt.type === 'Complaint' ? <AlertTriangle size={18}/> : <FileText size={18}/>}
-                    </div>
-                    <div>
-                      <h6 className="mb-1 fw-bold">{evt.title}</h6>
-                      <small className="text-muted">Assigned to: <strong>{evt.assignedTo || 'Unassigned'}</strong></small>
-                    </div>
-                  </div>
-                  <div className="text-end">
-                    <span className="badge bg-light text-dark border mb-1">{evt.status?.replace('_', ' ')}</span>
-                    <div className="text-muted small">
-                      {evt.time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} · {evt.time.toLocaleDateString()}
-                    </div>
-                  </div>
+        <div style={{ padding: 0 }}>
+          {stats.timeline.map((evt, i) => (
+            <div key={i} style={{ padding: '16px 20px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                <div style={{
+                  padding: 10, borderRadius: '50%',
+                  background: evt.type === 'Complaint' ? '#fef2f2' : '#eff6ff',
+                  color: evt.type === 'Complaint' ? '#ef4444' : '#3b82f6',
+                }}>
+                  {evt.type === 'Complaint' ? <AlertTriangle size={20}/> : <FileText size={20}/>}
+                </div>
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: '#0f172a' }}>{evt.title}</div>
+                  <div style={{ fontSize: 12, color: '#64748b', marginTop: 4 }}>Assigned to: <span style={{ fontWeight: 600 }}>{evt.assignedTo || 'Unassigned'}</span></div>
                 </div>
               </div>
-            ))}
-            {stats.timeline.length === 0 && <div className="p-5 text-center text-muted">No recent activity found.</div>}
-          </div>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{
+                  display: 'inline-block', padding: '4px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700,
+                  background: '#f1f5f9', color: '#475569', border: '1px solid #e2e8f0', marginBottom: 4
+                }}>{evt.status?.replace('_', ' ')}</div>
+                <div style={{ fontSize: 11, color: '#94a3b8' }}>
+                  {evt.time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} · {evt.time.toLocaleDateString()}
+                </div>
+              </div>
+            </div>
+          ))}
+          {stats.timeline.length === 0 && <div style={{ padding: 40, textAlign: 'center', color: '#94a3b8', fontSize: 14 }}>No recent activity found.</div>}
         </div>
       </div>
 

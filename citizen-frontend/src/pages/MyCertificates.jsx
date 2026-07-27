@@ -5,7 +5,7 @@ import keycloak from '../keycloak.js';
 import AppShell from '../components/AppShell.jsx';
 import PageLoader from '../components/PageLoader.jsx';
 import { Badge } from '../components/Badge.jsx';
-import { AlertCircle, FileBadge, Download, Printer, Eye, X, Search, GraduationCap, Building2, User, FileSignature } from 'lucide-react';
+import { AlertCircle, FileBadge, Download, Printer, Eye, X, Search, GraduationCap, Building2, User, FileSignature, ShieldCheck, CheckCircle2 } from 'lucide-react';
 
 function formatServiceType(type) {
   return type?.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
@@ -140,15 +140,41 @@ function MyCertificates() {
 
   return (
     <AppShell title="My Certificates">
-      <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+      <div style={{ paddingBottom: 40, display: 'flex', flexDirection: 'column', gap: 24 }}>
         
-        {/* Header Section */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
-          <div>
-            <h1 style={{ color: 'var(--color-primary)', margin: '0 0 4px 0', fontSize: '24px', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <FileBadge size={28} /> My Certificates
-            </h1>
-            <p className="text-muted" style={{ margin: 0, fontSize: '14px' }}>Your permanent digital repository for all officially issued municipal certificates.</p>
+        {/* ── Page Header (Overview-style) ── */}
+        <div style={{
+          background: 'linear-gradient(135deg, #0f172a, #334155)',
+          borderRadius: 16, padding: '24px 32px', color: '#fff',
+          display: 'flex', flexWrap: 'wrap', gap: 16, alignItems: 'center', justifyContent: 'space-between',
+          boxShadow: '0 10px 25px rgba(15,23,42,0.3)',
+          marginBottom: 0, position: 'relative', overflow: 'hidden'
+        }}>
+          <div style={{ position: 'absolute', top: -50, right: -50, width: 200, height: 200, background: '#fff', opacity: 0.03, borderRadius: '50%', filter: 'blur(30px)' }} />
+          <div style={{ position: 'relative', zIndex: 1 }}>
+            <span style={{
+              background: 'rgba(255,255,255,0.1)', color: '#38bdf8', border: '1px solid rgba(56,189,248,0.3)',
+              padding: '4px 12px', borderRadius: 20, fontSize: 11, fontWeight: 800, letterSpacing: '0.08em', display: 'inline-block', marginBottom: 10
+            }}>
+              CIVIC SERVICES
+            </span>
+            <h2 style={{ margin: '0 0 6px', fontSize: 26, fontWeight: 800, color: '#ffffff', letterSpacing: '-0.02em' }}>
+              My Certificates
+            </h2>
+            <p style={{ margin: 0, color: '#cbd5e1', maxWidth: 540, fontSize: 14, lineHeight: 1.5 }}>
+              Your encrypted vault for all officially issued municipal certificates. Download PDFs, verify digital signatures, and print on demand.
+            </p>
+          </div>
+          <div style={{ position: 'relative', zIndex: 1 }}>
+            <Link to="/services/apply" style={{ textDecoration: 'none' }}>
+              <button style={{
+                background: '#ffffff', color: '#0f172a', border: 'none', padding: '10px 22px',
+                borderRadius: 12, fontWeight: 700, fontSize: 14, cursor: 'pointer',
+                display: 'flex', alignItems: 'center', gap: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+              }}>
+                + Apply New Certificate
+              </button>
+            </Link>
           </div>
         </div>
 
@@ -159,40 +185,46 @@ function MyCertificates() {
         )}
 
         {/* Search & Filters */}
-        <div style={{ backgroundColor: 'var(--color-bg)', padding: '16px', borderRadius: 'var(--radius-lg)', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', marginBottom: '32px' }}>
-          <div style={{ position: 'relative', marginBottom: '16px' }}>
-            <Search size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-secondary)' }} />
+        <div style={{
+          background: '#ffffff', borderRadius: 14, padding: '16px 20px',
+          border: '1.5px solid #e2e8f0', boxShadow: '0 2px 8px rgba(15,23,42,0.04)',
+          display: 'flex', flexDirection: 'column', gap: 14
+        }}>
+          <div className="relative">
+            <Search size={18} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8', zIndex: 1 }} />
             <input
               type="text"
               placeholder="Search by Applicant, Cert No, App No..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              style={{ width: '100%', padding: '12px 16px 12px 42px', borderRadius: 'var(--radius-full)', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-bg-secondary)', fontSize: '14px', outline: 'none', transition: 'border-color 0.2s' }}
-              onFocus={(e) => e.target.style.borderColor = 'var(--color-primary)'}
-              onBlur={(e) => e.target.style.borderColor = 'var(--color-border)'}
+              style={{
+                width: '100%', padding: '10px 14px 10px 42px', borderRadius: 10,
+                border: '1px solid #cbd5e1', fontSize: 13, color: '#0f172a', outline: 'none',
+                boxSizing: 'border-box'
+              }}
             />
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '12px' }}>
-            <select style={{ padding: '8px 12px', borderRadius: 'var(--radius-md)', fontSize: '13px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-bg)', outline: 'none', cursor: 'pointer' }} value={sortOrder} onChange={(e) => setSortOrder(e.target.value)}>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+            <select className="h-10 px-3 rounded-xl text-xs font-semibold border border-slate-200 bg-white text-slate-700 outline-none cursor-pointer shadow-xs" value={sortOrder} onChange={(e) => setSortOrder(e.target.value)}>
               <option value="newest">Sort: Newest First</option>
               <option value="oldest">Sort: Oldest First</option>
               <option value="downloads">Sort: Most Downloaded</option>
               <option value="certNum">Sort: Certificate Number</option>
               <option value="appNum">Sort: Application Number</option>
             </select>
-            <select style={{ padding: '8px 12px', borderRadius: 'var(--radius-md)', fontSize: '13px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-bg)', outline: 'none', cursor: 'pointer' }} value={filterType} onChange={(e) => setFilterType(e.target.value)}>
+            <select className="h-10 px-3 rounded-xl text-xs font-semibold border border-slate-200 bg-white text-slate-700 outline-none cursor-pointer shadow-xs" value={filterType} onChange={(e) => setFilterType(e.target.value)}>
               <option value="all">All Types</option>
               {uniqueTypes.map(t => <option key={t} value={t}>{formatServiceType(t)}</option>)}
             </select>
-            <select style={{ padding: '8px 12px', borderRadius: 'var(--radius-md)', fontSize: '13px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-bg)', outline: 'none', cursor: 'pointer' }} value={filterDept} onChange={(e) => setFilterDept(e.target.value)}>
+            <select className="h-10 px-3 rounded-xl text-xs font-semibold border border-slate-200 bg-white text-slate-700 outline-none cursor-pointer shadow-xs" value={filterDept} onChange={(e) => setFilterDept(e.target.value)}>
               <option value="all">All Departments</option>
               {uniqueDepts.map(d => <option key={d} value={d}>{d}</option>)}
             </select>
-            <select style={{ padding: '8px 12px', borderRadius: 'var(--radius-md)', fontSize: '13px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-bg)', outline: 'none', cursor: 'pointer' }} value={filterYear} onChange={(e) => setFilterYear(e.target.value)}>
+            <select className="h-10 px-3 rounded-xl text-xs font-semibold border border-slate-200 bg-white text-slate-700 outline-none cursor-pointer shadow-xs" value={filterYear} onChange={(e) => setFilterYear(e.target.value)}>
               <option value="all">All Years</option>
               {uniqueYears.map(y => <option key={y} value={y}>{y}</option>)}
             </select>
-            <select style={{ padding: '8px 12px', borderRadius: 'var(--radius-md)', fontSize: '13px', border: '1px solid var(--color-border)', backgroundColor: 'var(--color-bg)', outline: 'none', cursor: 'pointer' }} value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
+            <select className="h-10 px-3 rounded-xl text-xs font-semibold border border-slate-200 bg-white text-slate-700 outline-none cursor-pointer shadow-xs" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
               <option value="all">All Statuses</option>
               <option value="CERTIFICATE_GENERATED">New / Ready</option>
               <option value="DOWNLOADED">Downloaded</option>
@@ -207,13 +239,13 @@ function MyCertificates() {
         {!isLoading && certificates.length === 0 && (
           <div style={{ backgroundColor: 'var(--color-bg)', borderRadius: 'var(--radius-lg)', padding: '48px 24px', textAlign: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
-               <div style={{ width: '64px', height: '64px', borderRadius: '50%', backgroundColor: 'var(--color-primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                 <GraduationCap size={32} color="var(--color-primary)" />
-               </div>
+                <div style={{ width: '64px', height: '64px', borderRadius: '50%', backgroundColor: 'var(--color-primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <GraduationCap size={32} color="var(--color-primary)" />
+                </div>
              </div>
              <h3 style={{ fontSize: '18px', fontWeight: '600', color: 'var(--color-text-primary)', marginBottom: '8px' }}>No Certificates Found</h3>
              <p style={{ color: 'var(--color-text-secondary)', fontSize: '14px', marginBottom: '24px', maxWidth: '300px', margin: '0 auto 24px' }}>
-               No certificates have been issued yet. Track your ongoing applications to see when they are ready.
+                No certificates have been issued yet. Track your ongoing applications to see when they are ready.
              </p>
              <Link to="/services/tracker" className="btn btn-primary" style={{ borderRadius: 'var(--radius-full)' }}>Track Applications</Link>
           </div>
@@ -223,95 +255,134 @@ function MyCertificates() {
         {!isLoading && certificates.length > 0 && processedCerts.length === 0 && (
           <div style={{ backgroundColor: 'var(--color-bg)', borderRadius: 'var(--radius-lg)', padding: '48px 24px', textAlign: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
-               <div style={{ width: '64px', height: '64px', borderRadius: '50%', backgroundColor: 'var(--color-bg-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                 <Search size={32} color="var(--color-text-tertiary)" />
-               </div>
+                <div style={{ width: '64px', height: '64px', borderRadius: '50%', backgroundColor: 'var(--color-bg-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Search size={32} color="var(--color-text-tertiary)" />
+                </div>
              </div>
              <h3 style={{ fontSize: '18px', fontWeight: '600', color: 'var(--color-text-primary)', marginBottom: '8px' }}>No Matches Found</h3>
              <p style={{ color: 'var(--color-text-secondary)', fontSize: '14px', maxWidth: '300px', margin: '0 auto' }}>
-               No certificates match your current search or filter criteria. Try adjusting your selections.
+                No certificates match your current search or filter criteria. Try adjusting your selections.
              </p>
           </div>
         )}
 
         {/* Certificate Feed */}
         {!isLoading && processedCerts.length > 0 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {processedCerts.map(app => (
-              <div key={app.id} style={{ 
-                backgroundColor: 'var(--color-bg)', 
-                borderRadius: 'var(--radius-lg)', 
-                boxShadow: '0 2px 12px rgba(0,0,0,0.04)', 
-                border: '1px solid var(--color-border)',
-                overflow: 'hidden',
-                transition: 'transform 0.2s, box-shadow 0.2s',
-                ':hover': { transform: 'translateY(-2px)', boxShadow: '0 4px 16px rgba(0,0,0,0.08)' }
-              }}>
-                {/* Card Header */}
-                <div style={{ padding: '20px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
-                    <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
-                      <div style={{ width: '40px', height: '40px', borderRadius: '10px', backgroundColor: 'var(--color-primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        <FileBadge size={20} color="var(--color-primary)" />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            {processedCerts.map(app => {
+              const isDownloaded = app.status === 'DOWNLOADED';
+              const statusStyle = isDownloaded
+                ? { bg: '#f5f3ff', text: '#7c3aed', border: '#ddd6fe', label: 'Downloaded' }
+                : { bg: '#f0fdf4', text: '#15803d', border: '#bbf7d0', label: 'Ready' };
+
+              return (
+                <div key={app.id} style={{
+                  background: '#ffffff',
+                  border: '1.5px solid #e2e8f0',
+                  borderRadius: 16,
+                  overflow: 'hidden',
+                  boxShadow: '0 2px 10px rgba(15,23,42,0.04)',
+                }}>
+                  {/* ── Section 1: Card Header ── */}
+                  <div style={{ padding: '20px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, borderBottom: '1px solid #f1f5f9' }}>
+                    {/* Left: Icon + Title + Cert No */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 14, minWidth: 0 }}>
+                      <div style={{
+                        width: 44, height: 44, borderRadius: 12, flexShrink: 0,
+                        background: '#eff6ff', border: '1px solid #bfdbfe',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center'
+                      }}>
+                        <FileBadge size={20} color="#2563eb" />
                       </div>
-                      <div>
-                        <h3 style={{ margin: '0 0 4px 0', fontSize: '16px', fontWeight: '600', color: 'var(--color-text-primary)' }}>{formatServiceType(app.serviceType)}</h3>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--color-text-secondary)' }}>
-                          <span style={{ fontWeight: '500' }}>Cert No:</span>
-                          <span style={{ fontFamily: 'monospace', backgroundColor: 'var(--color-bg-secondary)', padding: '2px 6px', borderRadius: '4px', border: '1px solid var(--color-border)' }}>{app.certificateNumber}</span>
+                      <div style={{ minWidth: 0 }}>
+                        <h3 style={{ margin: '0 0 4px', fontSize: 16, fontWeight: 800, color: '#0f172a', letterSpacing: '-0.01em' }}>
+                          {formatServiceType(app.serviceType)}
+                        </h3>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <span style={{ fontSize: 12, color: '#64748b', fontWeight: 600 }}>Cert No:</span>
+                          <span style={{
+                            fontFamily: 'monospace', fontSize: 12, fontWeight: 700,
+                            color: '#1e293b', background: '#f1f5f9',
+                            padding: '2px 8px', borderRadius: 6, border: '1px solid #cbd5e1'
+                          }}>{app.certificateNumber}</span>
                         </div>
                       </div>
                     </div>
-                    {app.status === 'DOWNLOADED' ? (
-                      <Badge variant="success" label="Downloaded" />
-                    ) : (
-                      <Badge variant="info" label="New" />
-                    )}
+                    {/* Right: Status badge */}
+                    <span style={{
+                      flexShrink: 0,
+                      display: 'inline-flex', alignItems: 'center',
+                      padding: '5px 14px', borderRadius: 20,
+                      background: statusStyle.bg, color: statusStyle.text,
+                      border: `1px solid ${statusStyle.border}`,
+                      fontSize: 12, fontWeight: 700, letterSpacing: '0.02em', whiteSpace: 'nowrap'
+                    }}>
+                      {statusStyle.label}
+                    </span>
                   </div>
 
-                  {/* Details Grid */}
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '16px', padding: '16px 0', borderTop: '1px dashed var(--color-border)', borderBottom: '1px dashed var(--color-border)' }}>
-                    <div>
-                      <div style={{ fontSize: '12px', color: 'var(--color-text-tertiary)', marginBottom: '4px' }}>Applicant Name</div>
-                      <div style={{ fontSize: '14px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '6px' }}><User size={14} color="var(--color-text-secondary)" /> {app.applicantName}</div>
-                    </div>
-                    <div>
-                      <div style={{ fontSize: '12px', color: 'var(--color-text-tertiary)', marginBottom: '4px' }}>Application No</div>
-                      <div style={{ fontSize: '14px', fontFamily: 'monospace' }}>{app.applicationNumber}</div>
-                    </div>
-                    <div>
-                      <div style={{ fontSize: '12px', color: 'var(--color-text-tertiary)', marginBottom: '4px' }}>Approved Date</div>
-                      <div style={{ fontSize: '14px', fontWeight: '500' }}>{app.approvedDate ? new Date(app.approvedDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) : 'N/A'}</div>
-                    </div>
-                    <div>
-                      <div style={{ fontSize: '12px', color: 'var(--color-text-tertiary)', marginBottom: '4px' }}>Approved By</div>
-                      <div style={{ fontSize: '14px', fontWeight: '500' }}>{app.approvedBy || 'Municipal Officer'}</div>
-                    </div>
-                    <div>
-                      <div style={{ fontSize: '12px', color: 'var(--color-text-tertiary)', marginBottom: '4px' }}>Department</div>
-                      <div style={{ fontSize: '14px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '6px' }}><Building2 size={14} color="var(--color-text-secondary)" /> {app.department || 'Municipal Corporation'}</div>
-                    </div>
-                    <div>
-                      <div style={{ fontSize: '12px', color: 'var(--color-text-tertiary)', marginBottom: '4px' }}>Total Downloads</div>
-                      <div style={{ fontSize: '14px', fontWeight: '500' }}>{app.downloadCount || 0}</div>
-                    </div>
+                  {/* ── Section 2: Details Grid (Neat 3-Column Structured Pills) ── */}
+                  <div style={{
+                    display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                    gap: 12, padding: '20px 24px', background: '#f8fafc',
+                    borderTop: '1px solid #f1f5f9', borderBottom: '1px solid #f1f5f9'
+                  }}>
+                    {[
+                      { label: 'Applicant Name', value: app.applicantName, icon: <User size={14} color="#64748b" /> },
+                      { label: 'Application No',  value: app.applicationNumber, mono: true },
+                      { label: 'Approved Date',   value: app.approvedDate ? new Date(app.approvedDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'N/A' },
+                      { label: 'Approved By',     value: app.approvedBy || 'Municipal Officer' },
+                      { label: 'Department',      value: app.department || 'Municipal Corporation', icon: <Building2 size={14} color="#64748b" /> },
+                      { label: 'Total Downloads', value: String(app.downloadCount || 0) },
+                    ].map((item) => (
+                      <div key={item.label} style={{
+                        background: '#ffffff', padding: '12px 14px', borderRadius: 10,
+                        border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: 4
+                      }}>
+                        <span style={{ fontSize: 10, fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                          {item.label}
+                        </span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 700, color: '#1e293b', fontFamily: item.mono ? 'monospace' : 'inherit' }}>
+                          {item.icon}
+                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.value}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* ── Section 3: Action Bar ── */}
+                  <div style={{
+                    display: 'flex', background: '#ffffff'
+                  }}>
+                    {[
+                      { label: 'Preview',  Icon: Eye,      color: '#2563eb', hoverBg: '#eff6ff', onClick: () => handlePreview(app.id) },
+                      { label: 'Download', Icon: Download,  color: '#16a34a', hoverBg: '#f0fdf4', onClick: () => handleDownload(app.id, app.certificateNumber, false) },
+                      { label: 'Print',    Icon: Printer,   color: '#475569', hoverBg: '#f8fafc', onClick: () => handleDownload(app.id, app.certificateNumber, true) },
+                    ].map((btn, i, arr) => (
+                      <button
+                        key={btn.label}
+                        type="button"
+                        style={{
+                          flex: 1, padding: '14px 8px',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                          border: 'none',
+                          borderRight: i < arr.length - 1 ? '1px solid #e2e8f0' : 'none',
+                          background: 'transparent', cursor: 'pointer',
+                          fontSize: 13, fontWeight: 700, color: btn.color,
+                          transition: 'background 0.15s ease',
+                        }}
+                        onClick={btn.onClick}
+                        onMouseEnter={e => e.currentTarget.style.background = btn.hoverBg}
+                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                      >
+                        <btn.Icon size={16} />
+                        {btn.label}
+                      </button>
+                    ))}
                   </div>
                 </div>
-                
-                {/* Action Bar */}
-                <div style={{ display: 'flex', padding: '0', backgroundColor: 'var(--color-bg-secondary)' }}>
-                  <button type="button" style={{ flex: 1, padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', border: 'none', borderRight: '1px solid var(--color-border)', backgroundColor: 'transparent', cursor: 'pointer', fontSize: '13px', fontWeight: '600', color: 'var(--color-primary)', transition: 'background-color 0.2s' }} onClick={() => handlePreview(app.id)} onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'var(--color-primary-light)'} onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
-                    <Eye size={16} /> Preview
-                  </button>
-                  <button type="button" style={{ flex: 1, padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', border: 'none', borderRight: '1px solid var(--color-border)', backgroundColor: 'transparent', cursor: 'pointer', fontSize: '13px', fontWeight: '600', color: 'var(--color-success)', transition: 'background-color 0.2s' }} onClick={() => handleDownload(app.id, app.certificateNumber, false)} onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#dcfce7'} onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
-                    <Download size={16} /> Download
-                  </button>
-                  <button type="button" style={{ flex: 1, padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', border: 'none', backgroundColor: 'transparent', cursor: 'pointer', fontSize: '13px', fontWeight: '600', color: 'var(--color-text-secondary)', transition: 'background-color 0.2s' }} onClick={() => handleDownload(app.id, app.certificateNumber, true)} onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'var(--color-border)'} onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
-                    <Printer size={16} /> Print
-                  </button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 
@@ -342,3 +413,4 @@ function MyCertificates() {
 }
 
 export default MyCertificates;
+

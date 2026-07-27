@@ -7,6 +7,7 @@ import com.civicpulse.servicemanagement.repository.ApplicationHistoryRepository;
 import com.civicpulse.servicemanagement.repository.ApplicationRepository;
 import com.civicpulse.servicemanagement.repository.DepartmentOfficerRepository;
 import com.civicpulse.servicemanagement.util.*;
+import com.civicpulse.servicemanagement.exception.DuplicateApplicationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -102,6 +103,18 @@ public class ApplicationService {
     // ─────────────────────────────────────────────────────────────────────────
     @Transactional
     public ServiceApplication submitApplication(ApplicationRequest request) {
+        // Enforce Single Active Application Rule
+        List<ApplicationStatus> activeStatuses = Arrays.asList(
+                ApplicationStatus.SUBMITTED, ApplicationStatus.UNDER_VERIFICATION, 
+                ApplicationStatus.VERIFIED, ApplicationStatus.APPROVED
+        );
+        Optional<ServiceApplication> existing = repo.findFirstByServiceTypeAndAadhaarNumberAndStatusIn(
+                request.getServiceType(), request.getAadhaarNumber(), activeStatuses
+        );
+        if (existing.isPresent()) {
+            throw new DuplicateApplicationException("You already have an active application for this certificate.", existing.get());
+        }
+
         // Validate required documents
         List<String> requiredDocs = REQUIRED_DOCS.get(request.getServiceType());
         if (requiredDocs != null && !requiredDocs.isEmpty()) {

@@ -22,7 +22,22 @@ import AdminOfficers from './pages/AdminOfficers.jsx';
 import AdminDepartments from './pages/AdminDepartments.jsx';
 import AdminCertificates from './pages/AdminCertificates.jsx';
 import AdminPermits from './pages/AdminPermits.jsx';
+import OfficerAssignments from './pages/OfficerAssignments.jsx';
 import NotificationsPage from './pages/NotificationsPage.jsx';
+
+// ── Welfare (Milestone 3) routes ──────────────────────────────────────────
+import WelfareDashboard from './pages/WelfareDashboard.jsx';
+import SchemeManagement from './pages/SchemeManagement.jsx';
+import BeneficiaryManagement from './pages/BeneficiaryManagement.jsx';
+import FundDistribution from './pages/FundDistribution.jsx';
+import BudgetManagement from './pages/BudgetManagement.jsx';
+import WelfareReports from './pages/WelfareReports.jsx';
+import SchemeApplicationForm from './pages/SchemeApplicationForm.jsx';
+import ApplicationVerification from './pages/ApplicationVerification.jsx';
+import ApprovalScreen from './pages/ApprovalScreen.jsx';
+import FundDisbursementScreen from './pages/FundDisbursementScreen.jsx';
+import PaymentSuccessScreen from './pages/PaymentSuccessScreen.jsx';
+import MyWelfareApplications from './pages/MyWelfareApplications.jsx';
 
 // Guard: redirects to /login if not authenticated
 function Protected({ children }) {
@@ -40,9 +55,12 @@ function PublicOnly({ children }) {
   return children;
 }
 
+import { Toaster } from '@/components/ui/sonner';
+
 function App({ authenticated }) {
   return (
     <BrowserRouter>
+      <Toaster position="top-right" richColors closeButton />
       <Routes>
         {/* ===== PUBLIC ROUTES ===== */}
         <Route path="/" element={<LandingPage />} />
@@ -112,13 +130,51 @@ function App({ authenticated }) {
           <Protected><AdminPermits /></Protected>
         } />
         <Route path="/admin/assign" element={
-          <Protected><ComplaintList /></Protected>
+          <Protected><OfficerAssignments /></Protected>
         } />
         <Route path="/admin/officers" element={
           <Protected><AdminOfficers /></Protected>
         } />
         <Route path="/admin/departments" element={
           <Protected><AdminDepartments /></Protected>
+        } />
+
+        {/* ===== WELFARE ROUTES (Milestone 3) ===== */}
+        <Route path="/welfare/dashboard" element={
+          <Protected><WelfareDashboard /></Protected>
+        } />
+        <Route path="/welfare/schemes" element={
+          <Protected><SchemeManagement /></Protected>
+        } />
+        <Route path="/welfare/beneficiaries" element={
+          <Protected><BeneficiaryManagement /></Protected>
+        } />
+        <Route path="/welfare/disbursements" element={
+          <Protected><FundDistribution /></Protected>
+        } />
+        <Route path="/welfare/budgets" element={
+          <Protected><BudgetManagement /></Protected>
+        } />
+        <Route path="/welfare/reports" element={
+          <Protected><WelfareReports /></Protected>
+        } />
+        <Route path="/welfare/apply" element={
+          <Protected><SchemeApplicationForm /></Protected>
+        } />
+        <Route path="/welfare/my-applications" element={
+          <Protected><MyWelfareApplications /></Protected>
+        } />
+        <Route path="/welfare/verify" element={
+          <Protected><ApplicationVerification /></Protected>
+        } />
+        <Route path="/welfare/approve" element={
+          <Protected><ApprovalScreen /></Protected>
+        } />
+        <Route path="/welfare/disburse" element={
+          <Protected><FundDisbursementScreen /></Protected>
+        } />
+        <Route path="/welfare/payment-success" element={
+          <Protected><PaymentSuccessScreen /></Protected>
         } />
 
         {/* Fallback: root redirects based on auth */}

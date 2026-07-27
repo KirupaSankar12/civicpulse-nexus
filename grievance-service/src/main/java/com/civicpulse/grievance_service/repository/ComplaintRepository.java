@@ -17,7 +17,9 @@ public interface ComplaintRepository extends JpaRepository<Complaint, UUID> {
     List<Complaint> findByCitizenId(String citizenId);
     List<Complaint> findByAssignedOfficer(String assignedOfficer);
     Page<Complaint> findByAssignedOfficer(String assignedOfficer, Pageable pageable);
-
+    
+    java.util.Optional<Complaint> findFirstByCitizenIdAndDepartmentAndTitleAndLocationAndStatusIn(
+            String citizenId, String department, String title, String location, List<ComplaintStatus> statuses);
 
     List<Complaint> findByStatus(ComplaintStatus status);
 

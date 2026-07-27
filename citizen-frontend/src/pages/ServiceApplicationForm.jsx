@@ -1,14 +1,24 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import api from '../api.js';
 import keycloak from '../keycloak.js';
 import AppShell from '../components/AppShell.jsx';
 import StepIndicator from '../components/StepIndicator.jsx';
+import { toast } from 'sonner';
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
+import { ChevronRight, ShieldCheck, Clock, Lock, Search, Building2, Filter, Award } from 'lucide-react';
 
 const CERTIFICATE_CONFIG = {
   BIRTH_CERTIFICATE: {
     label: 'Birth Certificate',
     icon: '👶',
+    iconBg: 'bg-blue-100',
+    badge: 'POPULAR',
     description: 'Official record of birth for school admission, passport, and legal purposes.',
     department: 'Health Department',
     approvalTime: '2 Working Days',
@@ -33,6 +43,7 @@ const CERTIFICATE_CONFIG = {
   DEATH_CERTIFICATE: {
     label: 'Death Certificate',
     icon: '📋',
+    iconBg: 'bg-purple-100',
     description: 'Legal document certifying death for insurance, property, and legal proceedings.',
     department: 'Health Department',
     approvalTime: '2 Working Days',
@@ -55,6 +66,7 @@ const CERTIFICATE_CONFIG = {
   INCOME_CERTIFICATE: {
     label: 'Income Certificate',
     icon: '💰',
+    iconBg: 'bg-green-100',
     description: 'Proof of income for scholarships, subsidies, and government schemes.',
     department: 'Revenue Department',
     approvalTime: '5 Working Days',
@@ -78,6 +90,7 @@ const CERTIFICATE_CONFIG = {
   RESIDENCE_CERTIFICATE: {
     label: 'Residence Certificate',
     icon: '🏠',
+    iconBg: 'bg-rose-100',
     description: 'Proof of residence for ration card, voter ID, and local services.',
     department: 'Revenue Department',
     approvalTime: '3 Working Days',
@@ -98,6 +111,7 @@ const CERTIFICATE_CONFIG = {
   TRADE_LICENSE: {
     label: 'Trade License',
     icon: '💼',
+    iconBg: 'bg-amber-100',
     description: 'License to operate a commercial business within municipal limits.',
     department: 'Municipal Corporation',
     approvalTime: '7 Working Days',
@@ -122,6 +136,7 @@ const CERTIFICATE_CONFIG = {
   PERMIT_APPROVAL: {
     label: 'Permit Approval',
     icon: '🏗️',
+    iconBg: 'bg-slate-100',
     description: 'Official permit for construction, event organization, or temporary commercial activities.',
     department: 'Urban Planning Department',
     approvalTime: '10 Working Days',
@@ -144,54 +159,42 @@ const FORM_STEPS = ['Fill Details', 'Upload Documents', 'Review', 'Submit'];
 
 function UploadCard({ doc, isUploaded, isUploading, uploadErr, fileInfo, onUpload, dragOver, onDragOver, onDragLeave, onDrop }) {
   return (
-    <div
-      className={`upload-card${isUploaded ? ' uploaded' : ''}${isUploading ? ' uploading' : ''}${dragOver ? ' drag-over' : ''}`}
-      onDragOver={onDragOver}
-      onDragLeave={onDragLeave}
-      onDrop={onDrop}
-    >
-      <div className="upload-zone">
-        <div className="upload-zone-inner">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-            <h5 style={{ margin: 0, fontSize: '14px', color: isUploaded ? 'var(--accent-dark)' : 'var(--text)' }}>
-              {doc.label} {doc.required && <span style={{ color: 'var(--danger)' }}>*</span>}
-            </h5>
-            {isUploaded && <span className="badge badge-green">Uploaded</span>}
-            {isUploading && <span className="badge badge-blue">Uploading...</span>}
+    <Card className={`transition-all ${isUploaded ? 'border-green-500 bg-green-50/20 dark:bg-green-950/10' : ''} ${dragOver ? 'border-primary ring-2 ring-primary/20' : ''}`}>
+      <CardContent className="p-4">
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <h5 className="font-semibold text-sm">
+                {doc.label} {doc.required && <span className="text-red-500">*</span>}
+              </h5>
+              {isUploaded && <Badge variant="default" className="bg-green-600 hover:bg-green-700">Uploaded</Badge>}
+              {isUploading && <Badge variant="secondary">Uploading...</Badge>}
+            </div>
+
+            {isUploaded ? (
+              <div className="text-xs text-muted-foreground flex items-center gap-1">
+                <span>📄 {fileInfo.name} · {fileInfo.size}</span>
+              </div>
+            ) : (
+              <p className="text-xs text-muted-foreground">PDF, JPG, PNG — max 5MB</p>
+            )}
+
+            {uploadErr && <div className="text-xs text-red-500">{uploadErr}</div>}
           </div>
 
-          {isUploaded ? (
-            <div className="upload-file-info">
-              <span><i className="bi bi-file-earmark-check text-success"></i></span>
-              <span>{fileInfo.name} · {fileInfo.size}</span>
-            </div>
-          ) : (
-            <div className="upload-drop-area">
-              <span className="upload-icon"><i className="bi bi-cloud-arrow-up"></i></span>
-              <p>Drag & drop your file here</p>
-              <div className="upload-hint">PDF, JPG, PNG — max 5MB</div>
-            </div>
-          )}
-
-          {isUploading && (
-            <div className="upload-progress-bar">
-              <div className="upload-progress-fill" style={{ width: '70%' }} />
-            </div>
-          )}
-
-          {uploadErr && <div className="form-error" style={{ marginTop: '8px' }}>{uploadErr}</div>}
+          <div>
+            {!isUploading && (
+              <label className="cursor-pointer">
+                <Button type="button" variant={isUploaded ? "outline" : "default"} size="sm" asChild>
+                  <span>{isUploaded ? 'Replace File' : 'Browse Files'}</span>
+                </Button>
+                <input type="file" accept=".pdf,.jpg,.jpeg,.png" className="hidden" onChange={(e) => onUpload(e.target.files[0])} />
+              </label>
+            )}
+          </div>
         </div>
-
-        <div>
-          {!isUploading && (
-            <label className={`btn btn-sm ${isUploaded ? 'btn-outline' : 'btn-accent'}`} style={{ cursor: 'pointer', margin: 0 }}>
-              {isUploaded ? 'Replace File' : 'Browse Files'}
-              <input type="file" accept=".pdf,.jpg,.jpeg,.png" style={{ display: 'none' }} onChange={(e) => onUpload(e.target.files[0])} />
-            </label>
-          )}
-        </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -206,18 +209,41 @@ function ServiceApplicationForm() {
     applicantName: '',
     aadhaarNumber: '',
     phoneNumber: '',
-    email: ''
+    email: '',
+    relationship: '',
+    applicantDateOfBirth: ''
   });
 
   const [uploadedDocs, setUploadedDocs] = useState({});
   const [uploadingDocs, setUploadingDocs] = useState({});
   const [uploadErrors, setUploadErrors] = useState({});
-
-  const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [successMsg, setSuccessMsg] = useState(null);
+  const [duplicateData, setDuplicateData] = useState(null);
+
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedDept, setSelectedDept] = useState('ALL');
+  const [sortOption, setSortOption] = useState('POPULAR');
 
   const config = CERTIFICATE_CONFIG[serviceType];
+
+  const filteredServices = Object.entries(CERTIFICATE_CONFIG).filter(([key, svc]) => {
+    if (selectedDept !== 'ALL' && svc.department !== selectedDept) return false;
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      const matchLabel = svc.label?.toLowerCase().includes(q);
+      const matchDesc = svc.description?.toLowerCase().includes(q);
+      const matchDept = svc.department?.toLowerCase().includes(q);
+      if (!matchLabel && !matchDesc && !matchDept) return false;
+    }
+    return true;
+  }).sort((a, b) => {
+    if (sortOption === 'AZ') {
+      return a[1].label.localeCompare(b[1].label);
+    }
+    const badgeA = a[1].badge ? 1 : 0;
+    const badgeB = b[1].badge ? 1 : 0;
+    return badgeB - badgeA;
+  });
 
   const requiredDocs = config ? config.documents.filter(d => d.required) : [];
   const uploadedRequiredCount = requiredDocs.filter(d => uploadedDocs[d.id]).length;
@@ -240,28 +266,32 @@ function ServiceApplicationForm() {
       let val = value.replace(/\D/g, '');
       if (val.length > 12) val = val.slice(0, 12);
       const formatted = val.match(/.{1,4}/g)?.join('-') || '';
-      setFormData({ ...formData, [name]: formatted });
+      setFormData(prev => ({ ...prev, [name]: formatted }));
     } else {
-      setFormData({ ...formData, [name]: value });
+      setFormData(prev => ({ ...prev, [name]: value }));
     }
   };
+
+  const setFieldValue = (name, value) => setFormData(prev => ({ ...prev, [name]: value }));
 
   const processFileUpload = (docId, file) => {
     if (!file) return;
 
     const validTypes = ['application/pdf', 'image/jpeg', 'image/png'];
     if (!validTypes.includes(file.type)) {
-      setUploadErrors({ ...uploadErrors, [docId]: 'Only PDF, JPG, and PNG formats are allowed' });
+      setUploadErrors(prev => ({ ...prev, [docId]: 'Only PDF, JPG, and PNG formats are allowed' }));
+      toast.error('Only PDF, JPG, and PNG formats are allowed');
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      setUploadErrors({ ...uploadErrors, [docId]: 'File size must be under 5MB' });
+      setUploadErrors(prev => ({ ...prev, [docId]: 'File size must be under 5MB' }));
+      toast.error('File size must be under 5MB');
       return;
     }
 
-    setUploadErrors({ ...uploadErrors, [docId]: null });
-    setUploadingDocs({ ...uploadingDocs, [docId]: true });
+    setUploadErrors(prev => ({ ...prev, [docId]: null }));
+    setUploadingDocs(prev => ({ ...prev, [docId]: true }));
 
     const reader = new FileReader();
     reader.onloadend = () => {
@@ -276,6 +306,7 @@ function ServiceApplicationForm() {
           data: reader.result 
         }
       }));
+      toast.success(`${docId} uploaded successfully`);
     };
     reader.readAsDataURL(file);
   };
@@ -285,7 +316,6 @@ function ServiceApplicationForm() {
     if (!isFormValid()) return;
 
     setIsLoading(true);
-    setError(null);
 
     const citizenId = keycloak.tokenParsed?.sub;
     const { applicantName, aadhaarNumber, ...dynamicData } = formData;
@@ -301,14 +331,19 @@ function ServiceApplicationForm() {
 
     try {
       const res = await api.post('/service-management-service/api/services/apply', payload);
-      setSuccessMsg(`Application Submitted Successfully! Application No: ${res.data.applicationNumber}`);
+      toast.success(`Application Submitted Successfully! App No: ${res.data.applicationNumber}`);
       setIsLoading(false);
       setTimeout(() => {
         navigate('/services/tracker');
-      }, 3000);
+      }, 2000);
     } catch (err) {
       console.error(err);
-      setError(err.response?.data?.error || err.response?.data?.message || 'Failed to submit application.');
+      if (err.response?.status === 409 && err.response?.data?.existingApplication) {
+        setDuplicateData(err.response.data.existingApplication);
+        toast.error('Duplicate application detected.');
+      } else {
+        toast.error(err.response?.data?.error || err.response?.data?.message || 'Failed to submit application.');
+      }
       setIsLoading(false);
     }
   };
@@ -326,60 +361,254 @@ function ServiceApplicationForm() {
     setServiceType(key);
     setIsStarted(false);
     setFormStep(1);
+    setDuplicateData(null);
   };
+
+  if (duplicateData) {
+    return (
+      <AppShell title="Apply for Certificates">
+        <div style={{ maxWidth: 600, margin: '40px auto', background: '#fff', borderRadius: 16, border: '1px solid #e2e8f0', boxShadow: '0 10px 25px rgba(15,23,42,0.05)', overflow: 'hidden' }}>
+          <div style={{ background: '#fef2f2', padding: '24px', borderBottom: '1px solid #fee2e2', display: 'flex', alignItems: 'center', gap: 16 }}>
+            <div style={{ background: '#ef4444', width: 48, height: 48, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ fontSize: 24, color: '#fff' }}>⚠️</span>
+            </div>
+            <div>
+              <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: '#991b1b' }}>Duplicate Application Detected</h2>
+              <p style={{ margin: '4px 0 0', fontSize: 14, color: '#b91c1c' }}>You already have an active application for this service.</p>
+            </div>
+          </div>
+          <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px', background: '#f8fafc', borderRadius: 8 }}>
+              <span style={{ color: '#64748b', fontSize: 14 }}>Application Number</span>
+              <span style={{ fontWeight: 600, color: '#0f172a', fontFamily: 'monospace' }}>{duplicateData.applicationNumber}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px', background: '#f8fafc', borderRadius: 8 }}>
+              <span style={{ color: '#64748b', fontSize: 14 }}>Status</span>
+              <span style={{ fontWeight: 600, color: '#0f172a' }}>{duplicateData.status}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px', background: '#f8fafc', borderRadius: 8 }}>
+              <span style={{ color: '#64748b', fontSize: 14 }}>Applicant Aadhaar</span>
+              <span style={{ fontWeight: 600, color: '#0f172a' }}>{duplicateData.aadhaarNumber}</span>
+            </div>
+            
+            <div style={{ display: 'flex', gap: 12, marginTop: 16 }}>
+              <button 
+                onClick={() => setDuplicateData(null)}
+                style={{ flex: 1, padding: '12px', background: '#f1f5f9', color: '#475569', border: 'none', borderRadius: 8, fontWeight: 600, cursor: 'pointer' }}
+              >
+                Go Back
+              </button>
+              <button 
+                onClick={() => navigate('/services/tracker')}
+                style={{ flex: 1, padding: '12px', background: '#3b82f6', color: '#fff', border: 'none', borderRadius: 8, fontWeight: 600, cursor: 'pointer' }}
+              >
+                Track Existing Application
+              </button>
+            </div>
+          </div>
+        </div>
+      </AppShell>
+    );
+  }
 
   return (
     <AppShell title="Apply for Certificates">
-      <div style={{ maxWidth: 900, margin: '0 auto', paddingBottom: '3rem' }} className="animate-fade-in">
+      <div style={{ paddingBottom: 40 }}>
 
-        <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
-          <div>
-            <h1 style={{ color: 'var(--primary)', marginBottom: '4px' }}>Apply for Certificates & Permits</h1>
-            <p className="text-muted">Select a service, review requirements, and complete your application online.</p>
-          </div>
-          {(isStarted || serviceType) && (
-            <button type="button" className="btn btn-outline btn-sm" onClick={resetSelection}>
+        {serviceType && (
+          <div style={{ marginBottom: 20 }}>
+            <button
+              onClick={resetSelection}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                padding: '8px 16px', borderRadius: 10, background: '#ffffff',
+                border: '1.5px solid #cbd5e1', color: '#1e293b', fontSize: 13,
+                fontWeight: 700, cursor: 'pointer'
+              }}
+            >
               ← Change Service
             </button>
-          )}
-        </div>
-
-        {error && (
-          <div className="alert alert-error" role="alert">
-            <span>⚠</span> {error}
-          </div>
-        )}
-
-        {successMsg && (
-          <div className="alert alert-success" role="status">
-            <span>✓</span> {successMsg}
           </div>
         )}
 
         {/* Step 1: Service Selection Cards */}
         {!serviceType && (
-          <div className="animate-slide-up">
-            <h2 style={{ fontSize: '1.1rem', color: 'var(--primary)', marginBottom: '16px' }}>Select a Certificate Service</h2>
-            <div className="cert-services-grid">
-              {Object.entries(CERTIFICATE_CONFIG).map(([key, svc]) => (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+            
+            {/* Page Header (Overview-style Banner matching Track Applications) */}
+            <div style={{
+              background: 'linear-gradient(135deg, #0f172a, #334155)',
+              borderRadius: 16, padding: '24px 32px', color: '#fff',
+              display: 'flex', flexWrap: 'wrap', gap: 16, alignItems: 'center', justifyContent: 'space-between',
+              boxShadow: '0 10px 25px rgba(15,23,42,0.3)',
+              marginBottom: 8, position: 'relative', overflow: 'hidden'
+            }}>
+              <div style={{ position: 'absolute', top: -50, right: -50, width: 200, height: 200, background: '#fff', opacity: 0.03, borderRadius: '50%', filter: 'blur(30px)' }} />
+              <div style={{ position: 'relative', zIndex: 1 }}>
+                <span style={{
+                  background: 'rgba(255,255,255,0.1)', color: '#38bdf8', border: '1px solid rgba(56,189,248,0.3)',
+                  padding: '4px 12px', borderRadius: 20, fontSize: 11, fontWeight: 800, letterSpacing: '0.08em', display: 'inline-block', marginBottom: 10
+                }}>
+                  CIVIC SERVICES
+                </span>
+                <h2 style={{ margin: '0 0 6px', fontSize: 26, fontWeight: 800, color: '#ffffff', letterSpacing: '-0.02em' }}>
+                  Apply for Government Certificates
+                </h2>
+                <p style={{ margin: 0, color: '#cbd5e1', maxWidth: 540, fontSize: 14, lineHeight: 1.5 }}>
+                  Choose from digitally verifiable municipal certificate services to start your official application.
+                </p>
+              </div>
+              <div style={{ position: 'relative', zIndex: 1 }}>
+                <Link to="/services/tracker" style={{ textDecoration: 'none' }}>
+                  <button style={{
+                    background: '#ffffff', color: '#0f172a', border: 'none', padding: '10px 22px',
+                    borderRadius: 12, fontWeight: 800, fontSize: 14, cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', gap: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                  }}>
+                    <Search size={16} /> Track My Applications
+                  </button>
+                </Link>
+              </div>
+            </div>
+
+            {/* Search & Filter Toolbar */}
+            <div style={{
+              background: '#ffffff', borderRadius: 14, padding: '16px 20px',
+              border: '1.5px solid #e2e8f0', boxShadow: '0 2px 8px rgba(15,23,42,0.04)',
+              display: 'flex', gap: 14, flexWrap: 'wrap', alignItems: 'center'
+            }}>
+              <div style={{ position: 'relative', flex: '1 1 260px' }}>
+                <Search size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8', zIndex: 1 }} />
+                <input
+                  type="text"
+                  placeholder="Search certificates by title or department..."
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  style={{
+                    width: '100%', padding: '10px 14px 10px 42px', borderRadius: 10,
+                    border: '1px solid #cbd5e1', fontSize: 13, color: '#0f172a', outline: 'none',
+                    boxSizing: 'border-box'
+                  }}
+                />
+              </div>
+
+              <select
+                value={selectedDept}
+                onChange={e => setSelectedDept(e.target.value)}
+                style={{
+                  padding: '9px 14px', borderRadius: 10, border: '1px solid #cbd5e1',
+                  fontSize: 13, fontWeight: 600, color: '#334155', background: '#ffffff', cursor: 'pointer'
+                }}
+              >
+                <option value="ALL">All Departments</option>
+                <option value="Health Department">Health Department</option>
+                <option value="Revenue Department">Revenue Department</option>
+                <option value="Municipal Corporation">Municipal Corporation</option>
+                <option value="Urban Planning Department">Urban Planning Department</option>
+              </select>
+
+              <select
+                value={sortOption}
+                onChange={e => setSortOption(e.target.value)}
+                style={{
+                  padding: '9px 14px', borderRadius: 10, border: '1px solid #cbd5e1',
+                  fontSize: 13, fontWeight: 600, color: '#334155', background: '#ffffff', cursor: 'pointer'
+                }}
+              >
+                <option value="POPULAR">Sort By: Popular</option>
+                <option value="AZ">Sort By: Name (A-Z)</option>
+              </select>
+
+              <span style={{ marginLeft: 'auto', fontSize: 13, color: '#64748b', fontWeight: 600 }}>
+                {filteredServices.length} certificates available
+              </span>
+            </div>
+
+            {/* Section Header */}
+            <div>
+              <h2 style={{ fontSize: 18, fontWeight: 800, color: '#0f172a', margin: '8px 0 2px' }}>
+                Popular Certificates
+              </h2>
+              <p style={{ fontSize: 13, color: '#64748b', margin: 0 }}>
+                Select a certificate service to start your official application
+              </p>
+            </div>
+
+            {/* Certificates Cards Grid */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(270px, 1fr))', gap: 20 }}>
+              {filteredServices.map(([key, svc]) => (
                 <div
                   key={key}
-                  className="cert-service-card"
                   onClick={() => selectService(key)}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => e.key === 'Enter' && selectService(key)}
-                  aria-label={`Apply for ${svc.label}`}
+                  style={{
+                    background: '#ffffff', borderRadius: 16, border: '1.5px solid #e2e8f0',
+                    padding: 20, cursor: 'pointer', transition: 'all 0.15s ease-in-out',
+                    display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
+                    boxShadow: '0 2px 8px rgba(15,23,42,0.04)'
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.borderColor = '#93c5fd';
+                    e.currentTarget.style.boxShadow = '0 12px 24px rgba(37,99,235,0.08)';
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.borderColor = '#e2e8f0';
+                    e.currentTarget.style.boxShadow = '0 2px 8px rgba(15,23,42,0.04)';
+                  }}
                 >
-                  <div className="cert-icon">{svc.icon}</div>
-                  <div className="cert-name">{svc.label}</div>
-                  <div className="cert-desc">{svc.description}</div>
-                  <div className="cert-meta-row">
-                    <span className="cert-meta-tag"><i className="bi bi-building"></i> {svc.department}</span>
-                    <span className="cert-meta-tag"><i className="bi bi-clock"></i> {svc.approvalTime}</span>
-                    <span className="cert-meta-tag"><i className="bi bi-credit-card"></i> {svc.fee}</span>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 14 }}>
+                      <div style={{
+                        width: 46, height: 46, borderRadius: 12,
+                        background: '#eff6ff', display: 'flex', alignItems: 'center',
+                        justifyContent: 'center', fontSize: 22, flexShrink: 0
+                      }}>
+                        {svc.icon}
+                      </div>
+                      {svc.badge && (
+                        <span style={{
+                          background: '#dcfce7', color: '#15803d', fontSize: 10,
+                          fontWeight: 800, padding: '3px 8px', borderRadius: 20,
+                          letterSpacing: '0.05em'
+                        }}>
+                          {svc.badge}
+                        </span>
+                      )}
+                    </div>
+
+                    <h3 style={{ fontSize: 16, fontWeight: 700, color: '#0f172a', margin: '0 0 6px', lineHeight: 1.3 }}>
+                      {svc.label}
+                    </h3>
+                    <p style={{ fontSize: 13, color: '#64748b', margin: '0 0 16px', lineHeight: 1.5 }}>
+                      {svc.description}
+                    </p>
                   </div>
-                  <div className="cert-continue">Click to Continue →</div>
+
+                  <div>
+                    <div style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      paddingTop: 12, borderTop: '1px solid #f1f5f9', fontSize: 12, color: '#475569', fontWeight: 600
+                    }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                        <Building2 size={13} color="#94a3b8" />
+                        {svc.department}
+                      </span>
+                      <span style={{ color: '#2563eb', fontWeight: 700 }}>
+                        {svc.approvalTime}
+                      </span>
+                    </div>
+
+                    <button style={{
+                      width: '100%', marginTop: 14, padding: '10px 14px', borderRadius: 10,
+                      background: 'linear-gradient(135deg, #2563eb, #1d4ed8)', color: '#ffffff',
+                      border: 'none', fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                      boxShadow: '0 2px 6px rgba(37,99,235,0.2)'
+                    }}>
+                      Apply Now <ChevronRight size={14} />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -388,133 +617,131 @@ function ServiceApplicationForm() {
 
         {/* Step 2: Requirements Card */}
         {config && !isStarted && (
-          <div className="card requirements-card animate-slide-up">
-            <div className="card-header" style={{ background: 'var(--surface2)' }}>
-              <h3 style={{ margin: 0, color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span style={{ fontSize: '1.5rem' }}>{config.icon}</span>
+          <Card className="mb-6">
+            <CardHeader className="bg-muted/30">
+              <CardTitle className="flex items-center gap-2 text-primary">
+                <span className="text-2xl">{config.icon}</span>
                 {config.label} — Requirements
-              </h3>
-            </div>
-            <div className="card-body">
-              <div className="req-grid">
-                <div className="req-info-list">
-                  <div className="req-info-item">
-                    <div className="req-icon"><i className="bi bi-building"></i></div>
-                    <div><strong>Department:</strong> {config.department}</div>
-                  </div>
-                  <div className="req-info-item">
-                    <div className="req-icon"><i className="bi bi-clock"></i></div>
-                    <div><strong>Processing Time:</strong> {config.approvalTime}</div>
-                  </div>
-                  <div className="req-info-item">
-                    <div className="req-icon"><i className="bi bi-credit-card"></i></div>
-                    <div><strong>Application Fee:</strong> {config.fee}</div>
-                  </div>
-                </div>
-                <div className="doc-checklist">
-                  <h4>Required Documents Checklist</h4>
-                  <ul>
-                    {config.documents.map(doc => (
-                      <li key={doc.id}>
-                        <span style={{ color: doc.required ? 'var(--accent)' : 'var(--text-muted)' }}>
-                          {doc.required ? '✔' : '○'}
-                        </span>
-                        <span>
-                          {doc.label}
-                          {doc.required
-                            ? <span style={{ color: 'var(--danger)', fontSize: '12px' }}> *</span>
-                            : <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}> (Optional)</span>}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 pt-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                <div><strong>Department:</strong> {config.department}</div>
+                <div><strong>Processing Time:</strong> {config.approvalTime}</div>
+                <div><strong>Application Fee:</strong> {config.fee}</div>
               </div>
-            </div>
-            <div style={{ padding: '0 20px 20px' }}>
-              <button type="button" className="btn btn-primary btn-full btn-lg" onClick={() => setIsStarted(true)}>
+
+              <div>
+                <h4 className="font-semibold text-sm mb-2">Required Documents Checklist</h4>
+                <ul className="space-y-1 text-sm">
+                  {config.documents.map(doc => (
+                    <li key={doc.id} className="flex items-center gap-2">
+                      <span className={doc.required ? "text-green-600 font-bold" : "text-muted-foreground"}>
+                        {doc.required ? "✓" : "○"}
+                      </span>
+                      <span>
+                        {doc.label}
+                        {doc.required ? <span className="text-red-500"> *</span> : <span className="text-xs text-muted-foreground"> (Optional)</span>}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </CardContent>
+            <CardFooter className="pt-2">
+              <Button className="w-full" size="lg" onClick={() => setIsStarted(true)}>
                 Start Application →
-              </button>
-            </div>
-          </div>
+              </Button>
+            </CardFooter>
+          </Card>
         )}
 
         {/* Multi-step Form */}
         {config && isStarted && (
-          <form onSubmit={handleSubmit} className="animate-slide-up">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <StepIndicator steps={FORM_STEPS} currentStep={formStep} />
 
-            <div className="card">
-              <div className="card-header" style={{ background: 'var(--surface2)', borderBottom: '1px solid var(--border)' }}>
-                <h3 style={{ margin: 0, color: 'var(--text)' }}>
-                  {config.icon} {config.label} — <span style={{ color: 'var(--primary)', fontWeight: '600' }}>{FORM_STEPS[formStep - 1]}</span>
-                </h3>
-              </div>
+            <Card>
+              <CardHeader className="bg-muted/30 border-b">
+                <CardTitle className="text-base">
+                  {config.icon} {config.label} — <span className="text-primary">{FORM_STEPS[formStep - 1]}</span>
+                </CardTitle>
+              </CardHeader>
 
-              <div className="card-body">
+              <CardContent className="pt-6 space-y-6">
                 {/* Step 1: Fill Details */}
                 {formStep === 1 && (
-                  <>
-                    <div className="detail-section">
-                      <div className="detail-section-title">👤 Applicant Details</div>
-                      <div className="form-row">
-                        <div className="form-group">
-                          <label className="form-label">Applicant Name <span style={{ color: 'var(--danger)' }}>*</span></label>
-                          <input type="text" className="form-control" name="applicantName" value={formData.applicantName} onChange={handleInputChange} required placeholder="As per Aadhaar" />
+                  <div className="space-y-6">
+                    <div>
+                      <h4 className="font-semibold text-sm mb-3 text-primary border-b pb-1">👤 Applicant Details</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium mb-1">Applicant Name *</label>
+                          <Input name="applicantName" value={formData.applicantName} onChange={handleInputChange} required placeholder="As per Aadhaar" />
                         </div>
-                        <div className="form-group">
-                          <label className="form-label">Aadhaar Number <span style={{ color: 'var(--danger)' }}>*</span></label>
-                          <input type="text" className="form-control" name="aadhaarNumber" value={formData.aadhaarNumber} onChange={handleInputChange} required placeholder="XXXX-XXXX-XXXX" maxLength="14" />
+                        <div>
+                          <label className="block text-sm font-medium mb-1">Aadhaar Number *</label>
+                          <Input name="aadhaarNumber" value={formData.aadhaarNumber} onChange={handleInputChange} required placeholder="XXXX-XXXX-XXXX" maxLength={14} />
                         </div>
-                        <div className="form-group">
-                          <label className="form-label">Phone Number <span style={{ color: 'var(--danger)' }}>*</span></label>
-                          <input type="text" className="form-control" name="phoneNumber" value={formData.phoneNumber} onChange={handleInputChange} required placeholder="10-digit number" />
+                        <div>
+                          <label className="block text-sm font-medium mb-1">Phone Number *</label>
+                          <Input name="phoneNumber" value={formData.phoneNumber} onChange={handleInputChange} required placeholder="10-digit number" />
                         </div>
-                        <div className="form-group">
-                          <label className="form-label">Email Address <span style={{ color: 'var(--danger)' }}>*</span></label>
-                          <input type="email" className="form-control" name="email" value={formData.email} onChange={handleInputChange} required placeholder="Email for updates" />
+                        <div>
+                          <label className="block text-sm font-medium mb-1">Email Address *</label>
+                          <Input type="email" name="email" value={formData.email} onChange={handleInputChange} required placeholder="Email for updates" />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-1">Applying For (Relationship)</label>
+                          <Input name="relationship" value={formData.relationship} onChange={handleInputChange} placeholder="e.g. Self, Son, Daughter" />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-1">Applicant Date of Birth</label>
+                          <Input type="date" name="applicantDateOfBirth" value={formData.applicantDateOfBirth} onChange={handleInputChange} />
                         </div>
                       </div>
                     </div>
 
-                    <div className="detail-section">
-                      <div className="detail-section-title">📋 Service Details</div>
-                      <div className="form-row">
+                    <div>
+                      <h4 className="font-semibold text-sm mb-3 text-primary border-b pb-1">📋 Service Details</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {config.fields.map(field => (
-                          <div className="form-group" key={field.name}>
-                            <label className="form-label">{field.label} {field.required && <span style={{ color: 'var(--danger)' }}>*</span>}</label>
+                          <div key={field.name}>
+                            <label className="block text-sm font-medium mb-1">
+                              {field.label} {field.required && <span className="text-red-500">*</span>}
+                            </label>
                             {field.type === 'select' ? (
-                              <select className="form-control" name={field.name} value={formData[field.name] || ''} onChange={handleInputChange} required={field.required}>
-                                <option value="">— Select —</option>
-                                {field.options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                              </select>
+                              <Select value={formData[field.name] || ''} onValueChange={val => setFieldValue(field.name, val)}>
+                                <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                                <SelectContent>
+                                  {field.options.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}
+                                </SelectContent>
+                              </Select>
                             ) : (
-                              <input type={field.type} className="form-control" name={field.name} value={formData[field.name] || ''} onChange={handleInputChange} required={field.required} />
+                              <Input type={field.type} name={field.name} value={formData[field.name] || ''} onChange={handleInputChange} required={field.required} />
                             )}
                           </div>
                         ))}
                       </div>
                     </div>
-                  </>
+                  </div>
                 )}
 
                 {/* Step 2: Upload Documents */}
                 {formStep === 2 && (
-                  <>
-                    <div style={{ marginBottom: '20px', background: 'var(--surface2)', padding: '16px', borderRadius: 'var(--radius)', border: '1px solid var(--border-light)' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '13px', fontWeight: '600' }}>
+                  <div className="space-y-4">
+                    <div className="p-4 bg-muted/40 rounded-lg border space-y-2">
+                      <div className="flex justify-between text-xs font-semibold">
                         <span>Documents Uploaded: {uploadedRequiredCount} / {requiredDocs.length}</span>
-                        <span style={{ color: progressPercent === 100 ? 'var(--accent)' : 'var(--primary)' }}>{progressPercent}%</span>
+                        <span className={progressPercent === 100 ? "text-green-600" : "text-primary"}>{progressPercent}%</span>
                       </div>
-                      <div style={{ height: '8px', background: 'var(--border-light)', borderRadius: 'var(--radius-full)', overflow: 'hidden' }}>
-                        <div style={{ height: '100%', width: `${progressPercent}%`, background: progressPercent === 100 ? 'var(--accent)' : 'var(--primary)', transition: 'width 0.4s ease' }} />
-                      </div>
+                      <Progress value={progressPercent} />
                       {progressPercent === 100 && (
-                        <p style={{ margin: '8px 0 0', fontSize: '12px', color: 'var(--accent)', fontWeight: '600' }}>✓ All required documents uploaded</p>
+                        <p className="text-xs text-green-600 font-semibold">✓ All required documents uploaded</p>
                       )}
                     </div>
 
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                    <div className="space-y-3">
                       {config.documents.map(doc => (
                         <UploadCard
                           key={doc.id}
@@ -535,104 +762,70 @@ function ServiceApplicationForm() {
                         />
                       ))}
                     </div>
-                  </>
+                  </div>
                 )}
 
                 {/* Step 3: Review */}
                 {formStep === 3 && (
-                  <div className="review-summary">
-                    <div className="detail-section-title" style={{ border: 'none', marginBottom: '12px', paddingBottom: 0 }}>Review Your Application</div>
-                    <div className="review-row">
-                      <span className="review-label">Service Type</span>
-                      <span className="review-value">{config.label}</span>
+                  <div className="space-y-3 text-sm">
+                    <h4 className="font-semibold text-sm mb-2 text-primary">Review Your Application</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 p-4 bg-muted/20 rounded-lg border">
+                      <div><span className="text-muted-foreground">Service Type:</span> <strong>{config.label}</strong></div>
+                      <div><span className="text-muted-foreground">Applicant Name:</span> <strong>{formData.applicantName}</strong></div>
+                      <div><span className="text-muted-foreground">Aadhaar:</span> <strong>{formData.aadhaarNumber}</strong></div>
+                      <div><span className="text-muted-foreground">Phone / Email:</span> <strong>{formData.phoneNumber} · {formData.email}</strong></div>
+                      <div><span className="text-muted-foreground">Department:</span> <strong>{config.department}</strong></div>
+                      <div><span className="text-muted-foreground">Fee:</span> <strong>{config.fee}</strong></div>
+                      <div className="md:col-span-2"><span className="text-muted-foreground">Documents:</span> <strong>{Object.keys(uploadedDocs).length} file(s) uploaded</strong></div>
                     </div>
-                    <div className="review-row">
-                      <span className="review-label">Applicant Name</span>
-                      <span className="review-value">{formData.applicantName}</span>
-                    </div>
-                    <div className="review-row">
-                      <span className="review-label">Aadhaar</span>
-                      <span className="review-value">{formData.aadhaarNumber}</span>
-                    </div>
-                    <div className="review-row">
-                      <span className="review-label">Phone / Email</span>
-                      <span className="review-value">{formData.phoneNumber} · {formData.email}</span>
-                    </div>
-                    <div className="review-row">
-                      <span className="review-label">Department</span>
-                      <span className="review-value">{config.department}</span>
-                    </div>
-                    <div className="review-row">
-                      <span className="review-label">Fee</span>
-                      <span className="review-value">{config.fee}</span>
-                    </div>
-                    <div className="review-row">
-                      <span className="review-label">Documents</span>
-                      <span className="review-value">{Object.keys(uploadedDocs).length} file(s) uploaded</span>
-                    </div>
-                    {config.fields.filter(f => formData[f.name]).map(field => (
-                      <div className="review-row" key={field.name}>
-                        <span className="review-label">{field.label}</span>
-                        <span className="review-value">{formData[field.name]}</span>
-                      </div>
-                    ))}
                   </div>
                 )}
 
                 {/* Step 4: Submit confirmation */}
                 {formStep === 4 && (
-                  <div style={{ textAlign: 'center', padding: '24px 0' }}>
-                    <div style={{ fontSize: '48px', marginBottom: '16px' }}>📨</div>
-                    <h3 style={{ color: 'var(--primary)', marginBottom: '8px' }}>Ready to Submit</h3>
-                    <p style={{ color: 'var(--text-secondary)', fontSize: '14px', maxWidth: '400px', margin: '0 auto 20px', lineHeight: '1.6' }}>
+                  <div className="text-center py-6 space-y-3 max-w-md mx-auto">
+                    <div className="text-5xl">📨</div>
+                    <h3 className="text-lg font-bold text-primary">Ready to Submit</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
                       By submitting, you confirm that all information provided is accurate and all uploaded documents are genuine.
                     </p>
-                    <div className="alert alert-info" style={{ textAlign: 'left', maxWidth: '420px', margin: '0 auto' }}>
-                      Your application will be sent to <strong>{config.department}</strong> for verification. Expected processing time: <strong>{config.approvalTime}</strong>.
-                    </div>
                   </div>
                 )}
-              </div>
+              </CardContent>
 
-              <div className="card-footer" style={{ padding: '16px 20px', background: 'var(--surface2)', borderTop: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', gap: '10px', flexWrap: 'wrap' }}>
+              <CardFooter className="flex justify-between bg-muted/20 border-t p-4">
                 {formStep > 1 && (
-                  <button type="button" className="btn btn-outline" onClick={() => setFormStep(formStep - 1)}>
+                  <Button type="button" variant="outline" onClick={() => setFormStep(formStep - 1)}>
                     ← Previous
-                  </button>
+                  </Button>
                 )}
-                <div style={{ marginLeft: 'auto', display: 'flex', gap: '10px' }}>
+                <div className="ml-auto flex gap-2">
                   {formStep < 4 && (
-                    <button
+                    <Button
                       type="button"
-                      className="btn btn-primary"
                       onClick={() => {
                         if (formStep === 1 && !isDetailsValid()) {
-                          setError('Please fill all required fields before continuing.');
+                          toast.error('Please fill all required fields before continuing.');
                           return;
                         }
                         if (formStep === 2 && uploadedRequiredCount < requiredDocs.length) {
-                          setError('Please upload all required documents before continuing.');
+                          toast.error('Please upload all required documents before continuing.');
                           return;
                         }
-                        setError(null);
                         setFormStep(formStep + 1);
                       }}
                     >
                       Continue →
-                    </button>
+                    </Button>
                   )}
                   {formStep === 4 && (
-                    <button
-                      type="submit"
-                      className="btn btn-accent btn-lg"
-                      disabled={isLoading || !isFormValid()}
-                    >
+                    <Button type="submit" disabled={isLoading || !isFormValid()}>
                       {isLoading ? 'Submitting Application...' : '✓ Submit Application'}
-                    </button>
+                    </Button>
                   )}
                 </div>
-              </div>
-            </div>
+              </CardFooter>
+            </Card>
           </form>
         )}
       </div>

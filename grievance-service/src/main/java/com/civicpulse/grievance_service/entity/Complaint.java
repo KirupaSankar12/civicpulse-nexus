@@ -51,6 +51,9 @@ public class Complaint {
     private Boolean escalated = false;
     private Integer escalationLevel = 0;  // 0 = not escalated, 1 = Level 1, 2 = Level 2, etc.
 
+    @Column(columnDefinition = "TEXT")
+    private String attachmentUrl;
+
     // JPA requires a no-arg constructor
     public Complaint() {}
 
@@ -130,6 +133,7 @@ public class Complaint {
     public Boolean isEscalated()        { return escalated; }
     public Integer getEscalationLevel() { return escalationLevel; }
     public Integer getPriorityOrder()   { return priorityOrder; }
+    public String getAttachmentUrl()    { return attachmentUrl; }
 
     // ----------------------------------------------------------------
     // Setters
@@ -148,6 +152,7 @@ public class Complaint {
     public void setSlaDeadline(LocalDateTime slaDeadline)   { this.slaDeadline = slaDeadline; }
     public void setEscalated(Boolean escalated)             { this.escalated = escalated; }
     public void setEscalationLevel(Integer escalationLevel) { this.escalationLevel = escalationLevel; }
+    public void setAttachmentUrl(String attachmentUrl)      { this.attachmentUrl = attachmentUrl; }
 
     // ----------------------------------------------------------------
     // Enums

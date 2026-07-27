@@ -3,7 +3,7 @@ async function testFlow() {
     const tokenRes = await fetch('http://localhost:8180/realms/civicpulse/protocol/openid-connect/token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: 'client_id=civicpulse-frontend&username=raja&password=password&grant_type=password'
+      body: 'client_id=civicpulse-frontend&username=citizen1@gmail.com&password=Password123&grant_type=password'
     });
     const tokenData = await tokenRes.json();
     const token = tokenData.access_token;
@@ -32,7 +32,8 @@ async function testFlow() {
     });
     const compData = await compRes.json();
     
-    console.log("Complaint Submitted. ID:", compData.complaintId);
+    console.log("Complaint Response:", compData);
+    console.log("Complaint Submitted. ID:", compData.complaintId || compData.id);
 
     // 3. Wait for Kafka to process
     await new Promise(r => setTimeout(r, 2000));

@@ -1,350 +1,542 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Landmark, AlertTriangle, Info, ShieldAlert, BadgeCheck,
   Droplets, Route, Zap, Trash2, HeartPulse, FileText, FileSignature, Building2,
   PenSquare, Search, LogIn, Activity, ShieldCheck, Smartphone, CheckCircle, Bell,
-  PhoneCall, BookOpen, HelpCircle
+  PhoneCall, BookOpen, HelpCircle, ArrowRight, CheckCircle2, Award, Sparkles, ChevronRight, Users, Clock
 } from 'lucide-react';
 
 const notices = [
-  { text: 'Water Supply Maintenance scheduled in Ward 7–12 on 10th July. Expect disruption 6AM–2PM.', date: 'July 8, 2026', type: 'alert', icon: AlertTriangle },
-  { text: 'Road Repair Notice: NH-48 flyover under construction. Use alternate route via Ring Road.', date: 'July 6, 2026', type: 'info', icon: Info },
-  { text: 'Emergency Helpline: 1800-XXX-XXXX available 24×7 for disaster-related complaints.', date: 'July 4, 2026', type: 'emergency', icon: ShieldAlert },
-  { text: 'New e-Service: Residence Certificates can now be applied online — No office visit needed!', date: 'July 1, 2026', type: 'new', icon: BadgeCheck },
+  { text: 'Water Supply Maintenance scheduled in Ward 7–12 on 10th July. Expect disruption 6AM–2PM.', date: 'July 8, 2026', type: 'WATER ALERT', badgeColor: '#f59e0b', icon: AlertTriangle },
+  { text: 'Road Repair Notice: NH-48 flyover under construction. Use alternate route via Ring Road.', date: 'July 6, 2026', type: 'ROAD REPAIR', badgeColor: '#3b82f6', icon: Info },
+  { text: 'Emergency Helpline: 1800-11-2026 available 24×7 for disaster-related complaints.', date: 'July 4, 2026', type: 'EMERGENCY', badgeColor: '#ef4444', icon: ShieldAlert },
+  { text: 'New e-Service: Residence Certificates can now be applied online — No office visit needed!', date: 'July 1, 2026', type: 'NEW E-SERVICE', badgeColor: '#10b981', icon: BadgeCheck },
 ];
 
 const services = [
-  { icon: Droplets, name: 'Water Supply', desc: 'Leakage, shortage, tanker requests', dept: 'Water Dept' },
-  { icon: Route, name: 'Roads & Traffic', desc: 'Potholes, signals, encroachments', dept: 'Public Works' },
-  { icon: Zap, name: 'Electricity', desc: 'Outages, street lights, billing', dept: 'Electricity Board' },
-  { icon: Trash2, name: 'Sanitation', desc: 'Garbage, drains, public hygiene', dept: 'Sanitation Dept' },
-  { icon: HeartPulse, name: 'Health', desc: 'Public health, mosquitoes, stray animals', dept: 'Health Dept' },
-  { icon: FileText, name: 'Birth Certificate', desc: 'Apply for official birth record', dept: 'Health Dept' },
-  { icon: FileSignature, name: 'Death Certificate', desc: 'Register and obtain death record', dept: 'Health Dept' },
-  { icon: Building2, name: 'Trade License', desc: 'Commercial shop/trade registration', dept: 'Municipal Corp' },
+  { icon: Droplets, name: 'Water Supply', desc: 'Leakage, shortage, tanker requests', dept: 'Water Department', color: '#0284c7' },
+  { icon: Route, name: 'Roads & Traffic', desc: 'Potholes, signals, encroachments', dept: 'Roads Department', color: '#d97706' },
+  { icon: Zap, name: 'Electricity', desc: 'Outages, street lights, billing', dept: 'Electricity Department', color: '#7c3aed' },
+  { icon: Trash2, name: 'Sanitation', desc: 'Garbage, drains, public hygiene', dept: 'Sanitation Department', color: '#059669' },
+  { icon: HeartPulse, name: 'Public Health', desc: 'Epidemic control, mosquitoes, stray animals', dept: 'Health Department', color: '#dc2626' },
+  { icon: FileText, name: 'Birth Certificate', desc: 'Apply for official birth record & digital copy', dept: 'Health Department', color: '#2563eb' },
+  { icon: FileSignature, name: 'Death Certificate', desc: 'Register and obtain official death certificate', dept: 'Health Department', color: '#475569' },
+  { icon: Building2, name: 'Trade License', desc: 'Commercial shop & business trade permit', dept: 'Municipal Corporation', color: '#4f46e5' },
 ];
 
 const quickAccess = [
-  { icon: PenSquare, title: 'File Complaint', to: '/login', desc: 'Report civic issues' },
-  { icon: FileText, title: 'Apply Certificate', to: '/login', desc: 'Birth, income & more' },
-  { icon: Search, title: 'Track Status', to: '/login', desc: 'Check application progress' },
-  { icon: LogIn, title: 'Citizen Login', to: '/login', desc: 'Access your account' },
+  { icon: PenSquare, title: 'File Complaint', to: '/login', desc: 'Report civic issues to municipal officers', bg: 'linear-gradient(135deg, #ef4444, #b91c1c)', tag: 'Instant SLA' },
+  { icon: FileText, title: 'Apply Certificate', to: '/login', desc: 'Birth, income & residence certificates', bg: 'linear-gradient(135deg, #2563eb, #1d4ed8)', tag: '100% Digital' },
+  { icon: Search, title: 'Track Status', to: '/login', desc: 'Check complaint & application progress', bg: 'linear-gradient(135deg, #059669, #047857)', tag: 'Real-Time' },
+  { icon: LogIn, title: 'Citizen Login', to: '/login', desc: 'Access your verified identity account', bg: 'linear-gradient(135deg, #7c3aed, #6d28d9)', tag: 'Keycloak SSO' },
 ];
 
 const features = [
-  { icon: Activity, title: 'Real-Time Tracking', desc: 'Track your complaint status live with automatic updates and timeline history.' },
-  { icon: ShieldCheck, title: 'Secured & Private', desc: 'End-to-end encrypted with Keycloak SSO. Your data is 100% safe.' },
-  { icon: Smartphone, title: 'Multi-Channel', desc: 'Access via web, mobile browser, or API. Responsive on all devices.' },
-  { icon: Landmark, title: 'Government Standard', desc: 'Built to comply with Government of India digital services standards.' },
-  { icon: CheckCircle, title: 'SLA Monitoring', desc: 'Strict Service Level Agreements with escalation when deadlines are missed.' },
-  { icon: Bell, title: 'Smart Notifications', desc: 'Instant alerts via in-app notifications on every status change.' },
+  { icon: Activity, title: 'Real-Time SLA Tracking', desc: 'Track complaint progress live with automated officer escalations when deadlines near.' },
+  { icon: ShieldCheck, title: 'Secured Keycloak SSO', desc: 'End-to-end encrypted with Keycloak Single Sign-On and multi-factor authorization.' },
+  { icon: Smartphone, title: 'Multi-Device Responsive', desc: 'Seamless access across desktop, tablets, and smartphones with instant sync.' },
+  { icon: Landmark, title: 'Government Standard', desc: 'Fully compliant with National Digital Service Standards and RTI provisions.' },
+  { icon: CheckCircle2, title: 'Automated Eligibility', desc: 'Instant eligibility calculation for state welfare schemes and certificate issuance.' },
+  { icon: Bell, title: 'Instant Notification Bus', desc: 'Real-time Kafka event bus triggering instant in-app alerts on status updates.' },
 ];
 
 const helpItems = [
-  { icon: PhoneCall, title: 'Helpline Support', desc: 'Call 1800-XXX-XXXX (Mon–Sat, 9AM–6PM) for assistance with services and applications.' },
-  { icon: BookOpen, title: 'User Guide', desc: 'Step-by-step guides for filing complaints, applying for certificates, and tracking status.' },
-  { icon: HelpCircle, title: 'FAQs', desc: 'Find answers to common questions about registration, documents, and processing times.' },
+  { icon: PhoneCall, title: '24/7 Helpline Support', desc: 'Call toll-free 1800-11-2026 for 24×7 assistance with complaints and certificates.' },
+  { icon: BookOpen, title: 'Step-by-Step User Guide', desc: 'Comprehensive guide for registering, filing grievances, and tracking SLA statuses.' },
+  { icon: HelpCircle, title: 'Frequently Asked Questions', desc: 'Instant answers to common questions about document verification and SLAs.' },
 ];
 
 function LandingPage() {
-  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'premium');
+  const [isDark, setIsDark] = useState(true);
 
-  useEffect(() => {
-    if (theme === 'basic') {
-      document.body.classList.add('theme-basic');
-    } else {
-      document.body.classList.remove('theme-basic');
-    }
-  }, [theme]);
-
-  const toggleTheme = () => {
-    const newTheme = theme === 'premium' ? 'basic' : 'premium';
-    localStorage.setItem('theme', newTheme);
-    setTheme(newTheme);
+  // Dynamic Theme Palette
+  const theme = {
+    bg: isDark ? '#0f172a' : '#ffffff',
+    altBg: isDark ? '#0b1329' : '#f8fafc',
+    heroBg: isDark 
+      ? 'linear-gradient(135deg, #0b1329 0%, #0f172a 40%, #1e293b 100%)' 
+      : 'linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 50%, #ffffff 100%)',
+    navBg: isDark ? 'rgba(15, 23, 42, 0.85)' : 'rgba(255, 255, 255, 0.92)',
+    navBorder: isDark ? 'rgba(255, 255, 255, 0.1)' : '#e2e8f0',
+    navLink: isDark ? '#cbd5e1' : '#334155',
+    heading: isDark ? '#ffffff' : '#0f172a',
+    text: isDark ? '#f8fafc' : '#0f172a',
+    muted: isDark ? '#94a3b8' : '#64748b',
+    cardBg: isDark ? 'rgba(15, 23, 42, 0.8)' : '#ffffff',
+    cardBorder: isDark ? 'rgba(255, 255, 255, 0.1)' : '#e2e8f0',
+    cardShadow: isDark ? '0 12px 30px rgba(0,0,0,0.4)' : '0 10px 25px rgba(37,99,235,0.06)',
+    statBg: isDark ? 'rgba(255,255,255,0.05)' : '#ffffff',
+    statBorder: isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0',
+    statShadow: isDark ? 'none' : '0 4px 14px rgba(0,0,0,0.04)',
+    bulletinBg: isDark ? 'rgba(15, 23, 42, 0.95)' : '#ffffff',
+    bulletinBorder: isDark ? 'rgba(255,255,255,0.12)' : '#cbd5e1',
+    bulletinShadow: isDark ? '0 20px 50px rgba(0,0,0,0.5)' : '0 12px 35px rgba(37,99,235,0.1)',
+    noticeBg: isDark ? 'rgba(255,255,255,0.03)' : '#f8fafc',
+    noticeBorder: isDark ? 'rgba(255,255,255,0.06)' : '#e2e8f0',
+    noticeText: isDark ? '#cbd5e1' : '#334155',
+    sectionBorder: isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0',
+    footerBg: isDark ? '#0b1329' : '#0f172a'
   };
 
   return (
-    <div className="public-layout">
-      <nav className="public-nav">
-        <Link to="/" className="nav-brand">
-          <div className="brand-icon">
-            <Landmark size={22} />
+    <div style={{ minHeight: '100vh', background: theme.bg, color: theme.text, fontFamily: 'Inter, system-ui, sans-serif', transition: 'background 0.3s, color 0.3s' }}>
+      
+      {/* ── Top Government Ticker Bar ── */}
+      <div style={{
+        background: '#0b1329', borderBottom: '1px solid rgba(255,255,255,0.08)',
+        padding: '8px 24px', fontSize: 12, fontWeight: 700, color: '#cbd5e1',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ color: '#fbbf24' }}>🇮🇳</span>
+          <span>Government of India — Official Digital Governance Portal</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, fontSize: 11, color: '#94a3b8' }}>
+          <span>Toll-Free Helpline: <strong style={{ color: '#38bdf8' }}>1800-11-2026</strong></span>
+          <span>|</span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 5, color: '#4ade80' }}>
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e', display: 'inline-block' }} />
+            Systems Operational
+          </span>
+        </div>
+      </div>
+
+      {/* ── Navbar ── */}
+      <nav style={{
+        position: 'sticky', top: 0, zIndex: 100,
+        background: theme.navBg, backdropFilter: 'blur(12px)',
+        borderBottom: `1px solid ${theme.navBorder}`,
+        padding: '16px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        boxShadow: isDark ? 'none' : '0 2px 10px rgba(0,0,0,0.04)'
+      }}>
+        <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 14 }}>
+          <div style={{
+            width: 44, height: 44, borderRadius: 12,
+            background: 'linear-gradient(135deg, #2563eb, #1d4ed8)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 4px 14px rgba(37,99,235,0.4)', border: '1.5px solid rgba(255,255,255,0.2)'
+          }}>
+            <Landmark size={24} color="#ffffff" />
           </div>
           <div>
-            <div className="brand-name">CivicPulse Nexus</div>
-            <span className="brand-sub">Smart Governance Platform</span>
+            <div style={{ fontSize: 20, fontWeight: 900, color: theme.heading, letterSpacing: '-0.02em', lineHeight: 1 }}>
+              CivicPulse <span style={{ color: isDark ? '#38bdf8' : '#0284c7' }}>Nexus</span>
+            </div>
+            <div style={{ fontSize: 11, fontWeight: 800, color: isDark ? '#38bdf8' : '#0284c7', letterSpacing: '0.06em', textTransform: 'uppercase', marginTop: 3 }}>
+              Smart Governance Platform
+            </div>
           </div>
         </Link>
 
-        <div className="nav-links">
-          <a href="#services">Services</a>
-          <a href="#quick-access">Quick Access</a>
-          <a href="#about">About</a>
-          <a href="#help">Help</a>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 28, fontSize: 14, fontWeight: 700 }}>
+          <a href="#services" style={{ color: theme.navLink, textDecoration: 'none' }}>Services</a>
+          <a href="#quick-access" style={{ color: theme.navLink, textDecoration: 'none' }}>Quick Access</a>
+          <a href="#about" style={{ color: theme.navLink, textDecoration: 'none' }}>About Platform</a>
+          <a href="#help" style={{ color: theme.navLink, textDecoration: 'none' }}>Help & FAQs</a>
         </div>
 
-        <div className="nav-actions">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          {/* Theme Toggle Button */}
           <button
-            type="button"
-            onClick={toggleTheme}
-            className="btn btn-ghost btn-sm"
-            style={{ border: '1px solid var(--border)' }}
+            onClick={() => setIsDark(!isDark)}
+            style={{
+              height: 42, padding: '0 16px', borderRadius: 10,
+              background: isDark ? 'rgba(255,255,255,0.08)' : '#eff6ff',
+              color: isDark ? '#ffffff' : '#0284c7',
+              border: isDark ? '1px solid rgba(255,255,255,0.2)' : '1px solid #bae6fd',
+              fontWeight: 800, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
+              boxShadow: isDark ? 'none' : '0 2px 6px rgba(2,132,199,0.1)'
+            }}
           >
-            {theme === 'premium' ? '🔵 Basic UI' : '🎨 Premium UI'}
+            {isDark ? '☀️ Light Mode' : '🌙 Dark Mode'}
           </button>
-          <Link to="/login" className="btn btn-outline btn-sm">Login</Link>
-          <Link to="/register" className="btn btn-primary btn-sm">Register</Link>
+
+          <Link to="/login" style={{ textDecoration: 'none' }}>
+            <button style={{
+              height: 42, padding: '0 20px', borderRadius: 10,
+              background: isDark ? 'rgba(255,255,255,0.08)' : '#ffffff',
+              color: isDark ? '#ffffff' : '#0f172a',
+              border: isDark ? '1px solid rgba(255,255,255,0.2)' : '1.5px solid #cbd5e1',
+              fontWeight: 700, fontSize: 14, cursor: 'pointer'
+            }}>
+              Sign In
+            </button>
+          </Link>
+          <Link to="/register" style={{ textDecoration: 'none' }}>
+            <button style={{
+              height: 42, padding: '0 22px', borderRadius: 10,
+              background: 'linear-gradient(135deg, #2563eb, #1d4ed8)', color: '#ffffff',
+              border: 'none', fontWeight: 800, fontSize: 14,
+              boxShadow: '0 4px 14px rgba(37,99,235,0.4)', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', gap: 6
+            }}>
+              Register Account <ArrowRight size={15} />
+            </button>
+          </Link>
         </div>
       </nav>
 
-      <section className="hero">
-        <div className="hero-content">
-          <div className="hero-text">
-            <div className="gov-badge">
-              🇮🇳 Government of India — Digital Services
+      {/* ── Hero Section ── */}
+      <section style={{
+        background: theme.heroBg,
+        padding: '60px 32px 80px', position: 'relative', overflow: 'hidden',
+        borderBottom: `1px solid ${theme.sectionBorder}`
+      }}>
+        {/* Glow Background Spheres */}
+        <div style={{ position: 'absolute', top: -100, left: '20%', width: 500, height: 500, background: '#38bdf8', opacity: isDark ? 0.08 : 0.15, borderRadius: '50%', filter: 'blur(100px)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', bottom: -100, right: '10%', width: 400, height: 400, background: '#7c3aed', opacity: isDark ? 0.08 : 0.12, borderRadius: '50%', filter: 'blur(90px)', pointerEvents: 'none' }} />
+
+        <div style={{ maxWidth: 1280, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: 40, alignItems: 'center' }}>
+          
+          {/* Hero Left Content */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 24, zIndex: 2 }}>
+            <div>
+              <span style={{
+                background: isDark ? 'rgba(251,191,36,0.12)' : '#fffbeb',
+                color: isDark ? '#fbbf24' : '#b45309',
+                border: isDark ? '1px solid rgba(251,191,36,0.3)' : '1px solid #fde68a',
+                padding: '6px 16px', borderRadius: 20, fontSize: 12, fontWeight: 800, letterSpacing: '0.08em', display: 'inline-flex', alignItems: 'center', gap: 6
+              }}>
+                🇮🇳 Government of India — Digital Services
+              </span>
             </div>
-            <h1>
-              Your Gateway to <span>Smart Governance</span>
+
+            <h1 style={{ margin: 0, fontSize: 44, fontWeight: 900, lineHeight: 1.15, letterSpacing: '-0.03em', color: theme.heading }}>
+              Your Gateway to <br />
+              <span style={{
+                color: isDark ? '#38bdf8' : '#0284c7',
+                background: isDark 
+                  ? 'linear-gradient(135deg, #38bdf8, #60a5fa)'
+                  : 'linear-gradient(135deg, #0284c7, #2563eb)',
+                WebkitBackgroundClip: 'text',
+                backgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                display: 'inline-block',
+                textShadow: isDark ? '0 0 30px rgba(56,189,248,0.3)' : 'none',
+                fontWeight: 900
+              }}>
+                Smart Governance
+              </span>
             </h1>
-            <p>
-              CivicPulse Nexus empowers citizens to file grievances, track status in real-time,
-              apply for certificates, and access government services — all from one unified digital portal.
+
+            <p style={{ margin: 0, fontSize: 16, color: theme.muted, lineHeight: 1.6, maxWidth: 580 }}>
+              CivicPulse Nexus empowers citizens to file grievances, track status in real-time, apply for certificates, and access government welfare schemes — all from one unified digital portal.
             </p>
-            <div className="hero-actions">
-              <Link to="/register" className="btn btn-hero-primary btn-xl">
-                Register as Citizen
+
+            <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', paddingTop: 8 }}>
+              <Link to="/register" style={{ textDecoration: 'none' }}>
+                <button style={{
+                  height: 50, padding: '0 28px', borderRadius: 12,
+                  background: 'linear-gradient(135deg, #2563eb, #1d4ed8)', color: '#ffffff',
+                  border: 'none', fontWeight: 800, fontSize: 15,
+                  boxShadow: '0 8px 24px rgba(37,99,235,0.35)', cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', gap: 10
+                }}>
+                  Register as Citizen <ArrowRight size={18} />
+                </button>
               </Link>
-              <Link to="/login" className="btn btn-hero-outline btn-xl">
-                Sign In
+              <Link to="/login" style={{ textDecoration: 'none' }}>
+                <button style={{
+                  height: 50, padding: '0 26px', borderRadius: 12,
+                  background: isDark ? 'rgba(255,255,255,0.06)' : '#ffffff',
+                  color: theme.heading,
+                  border: isDark ? '1.5px solid rgba(255,255,255,0.2)' : '1.5px solid #cbd5e1',
+                  fontWeight: 800, fontSize: 15, boxShadow: isDark ? 'none' : '0 4px 12px rgba(0,0,0,0.05)',
+                  cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8
+                }}>
+                  <LogIn size={16} /> Sign In
+                </button>
               </Link>
             </div>
 
-            <div className="hero-stats">
-              <div className="hero-stat">
-                <div className="num">12,847</div>
-                <div className="lbl">Complaints Resolved</div>
+            {/* Key Hero Stat Counter Cards */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, paddingTop: 16 }}>
+              <div style={{ background: theme.statBg, borderRadius: 14, padding: '16px', border: `1px solid ${theme.statBorder}`, boxShadow: theme.statShadow }}>
+                <div style={{ fontSize: 24, fontWeight: 900, color: '#0284c7' }}>12,847</div>
+                <div style={{ fontSize: 12, color: theme.muted, fontWeight: 600, marginTop: 2 }}>Complaints Resolved</div>
               </div>
-              <div className="hero-stat">
-                <div className="num">4,200+</div>
-                <div className="lbl">Citizens Registered</div>
+              <div style={{ background: theme.statBg, borderRadius: 14, padding: '16px', border: `1px solid ${theme.statBorder}`, boxShadow: theme.statShadow }}>
+                <div style={{ fontSize: 24, fontWeight: 900, color: '#16a34a' }}>4,200+</div>
+                <div style={{ fontSize: 12, color: theme.muted, fontWeight: 600, marginTop: 2 }}>Citizens Registered</div>
               </div>
-              <div className="hero-stat">
-                <div className="num">98.5%</div>
-                <div className="lbl">SLA Compliance</div>
+              <div style={{ background: theme.statBg, borderRadius: 14, padding: '16px', border: `1px solid ${theme.statBorder}`, boxShadow: theme.statShadow }}>
+                <div style={{ fontSize: 24, fontWeight: 900, color: '#d97706' }}>98.5%</div>
+                <div style={{ fontSize: 12, color: theme.muted, fontWeight: 600, marginTop: 2 }}>SLA Compliance</div>
               </div>
             </div>
+
           </div>
 
-          <div className="hero-panel">
-            <h3>📢 Latest Announcements</h3>
-            {notices.map((n, i) => {
-              const Icon = n.icon;
-              return (
-                <div className="notice-item" key={i}>
-                  <div className="notice-icon" style={{ marginTop: '2px', color: 'var(--accent-light)' }}>
-                    <Icon size={16} />
+          {/* Hero Right Bulletin: Live Announcements Panel */}
+          <div style={{
+            background: theme.bulletinBg, borderRadius: 20,
+            border: `1.5px solid ${theme.bulletinBorder}`, padding: '28px',
+            boxShadow: theme.bulletinShadow, backdropFilter: 'blur(16px)',
+            display: 'flex', flexDirection: 'column', gap: 20, zIndex: 2
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 14, borderBottom: `1px solid ${theme.sectionBorder}` }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#ef4444', display: 'inline-block', boxShadow: '0 0 10px #ef4444' }} />
+                <h3 style={{ margin: 0, fontSize: 17, fontWeight: 800, color: theme.heading }}>📢 Latest Announcements</h3>
+              </div>
+              <span style={{ fontSize: 11, fontWeight: 700, color: '#0284c7', background: isDark ? 'rgba(56,189,248,0.1)' : '#e0f2fe', padding: '4px 10px', borderRadius: 12, border: '1px solid #bae6fd' }}>
+                LIVE FEED
+              </span>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              {notices.map((n, i) => {
+                const Icon = n.icon;
+                return (
+                  <div key={i} style={{
+                    background: theme.noticeBg, borderRadius: 12, padding: '14px 16px',
+                    border: `1px solid ${theme.noticeBorder}`, display: 'flex', gap: 12, alignItems: 'flex-start'
+                  }}>
+                    <div style={{
+                      width: 34, height: 34, borderRadius: 10, background: isDark ? 'rgba(255,255,255,0.06)' : '#ffffff',
+                      color: n.badgeColor, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                      boxShadow: isDark ? 'none' : '0 2px 6px rgba(0,0,0,0.05)'
+                    }}>
+                      <Icon size={18} />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                        <span style={{ fontSize: 10, fontWeight: 800, color: n.badgeColor, letterSpacing: '0.06em' }}>{n.type}</span>
+                        <span style={{ fontSize: 11, color: theme.muted, fontWeight: 600 }}>{n.date}</span>
+                      </div>
+                      <p style={{ margin: 0, fontSize: 13, color: theme.noticeText, lineHeight: 1.45, fontWeight: 500 }}>
+                        {n.text}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <div className="notice-text">{n.text}</div>
-                    <div className="notice-date">{n.date}</div>
-                  </div>
-                </div>
-              );
-            })}
-            <div style={{ marginTop: '14px', textAlign: 'center' }}>
-              <Link to="/login" className="btn btn-accent btn-sm">
-                View All Notices
+                );
+              })}
+            </div>
+
+            <div style={{ paddingTop: 6, textAlign: 'center' }}>
+              <Link to="/login" style={{ textDecoration: 'none' }}>
+                <button style={{
+                  width: '100%', height: 42, borderRadius: 10,
+                  background: isDark ? 'rgba(56,189,248,0.1)' : '#f0f9ff',
+                  color: '#0284c7', border: '1px solid #bae6fd', fontWeight: 800, fontSize: 13,
+                  cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6
+                }}>
+                  View All Official Notices <ChevronRight size={15} />
+                </button>
               </Link>
             </div>
           </div>
+
         </div>
       </section>
 
-      <div id="quick-access" style={{ background: 'white' }}>
-        <div className="section">
-          <div className="section-label">Quick Access</div>
-          <h2 className="section-title">Get Started in Seconds</h2>
-          <p className="section-sub">
-            Jump directly to the most used citizen services. Login required for authenticated services.
-          </p>
-          <div className="quick-access-grid">
-            {quickAccess.map((item, i) => {
-              const Icon = item.icon;
+      {/* ── Quick Access Grid Section ── */}
+      <section id="quick-access" style={{ padding: '70px 32px', background: theme.altBg, borderBottom: `1px solid ${theme.sectionBorder}` }}>
+        <div style={{ maxWidth: 1280, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 36 }}>
+          <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+            <span style={{ color: '#0284c7', fontSize: 12, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase' }}>QUICK ACCESS</span>
+            <h2 style={{ margin: 0, fontSize: 32, fontWeight: 900, color: theme.heading, letterSpacing: '-0.02em' }}>Get Started in Seconds</h2>
+            <p style={{ margin: 0, fontSize: 15, color: theme.muted, maxWidth: 560 }}>
+              Jump directly to the most used citizen digital services. Login required for authenticated requests.
+            </p>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 20 }}>
+            {quickAccess.map((qa, i) => {
+              const Icon = qa.icon;
               return (
-                <Link to={item.to} className="quick-access-card" key={i}>
-                  <span className="qa-icon-lg" style={{ color: 'var(--primary)' }}><Icon size={32} strokeWidth={1.5} /></span>
-                  <div className="qa-title" style={{ marginTop: '12px' }}>{item.title}</div>
-                  <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px' }}>{item.desc}</div>
+                <Link key={i} to={qa.to} style={{ textDecoration: 'none' }}>
+                  <div style={{
+                    background: theme.cardBg, borderRadius: 16, padding: '24px',
+                    border: `1px solid ${theme.cardBorder}`, display: 'flex', flexDirection: 'column', gap: 16,
+                    height: '100%', boxSizing: 'border-box', boxShadow: theme.cardShadow
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div style={{ width: 48, height: 48, borderRadius: 14, background: qa.bg, color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 14px rgba(0,0,0,0.2)' }}>
+                        <Icon size={24} />
+                      </div>
+                      <span style={{ fontSize: 11, fontWeight: 800, color: '#0284c7', background: isDark ? 'rgba(56,189,248,0.1)' : '#e0f2fe', padding: '4px 10px', borderRadius: 12, border: '1px solid #bae6fd' }}>
+                        {qa.tag}
+                      </span>
+                    </div>
+                    <div>
+                      <h3 style={{ margin: '0 0 6px', fontSize: 18, fontWeight: 800, color: theme.heading }}>{qa.title}</h3>
+                      <p style={{ margin: 0, fontSize: 13, color: theme.muted, lineHeight: 1.5 }}>{qa.desc}</p>
+                    </div>
+                  </div>
                 </Link>
               );
             })}
           </div>
         </div>
-      </div>
+      </section>
 
-      <div id="services" style={{ background: '#f8fafc' }}>
-        <div className="section">
-          <div className="section-label">Our Services</div>
-          <h2 className="section-title">Popular Government Services</h2>
-          <p className="section-sub">
-            Access all civic services and file grievances directly from your home.
-            No office visits, no queues.
-          </p>
+      {/* ── Services Directory Grid ── */}
+      <section id="services" style={{ padding: '70px 32px', background: theme.bg, borderBottom: `1px solid ${theme.sectionBorder}` }}>
+        <div style={{ maxWidth: 1280, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 36 }}>
+          <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+            <span style={{ color: '#16a34a', fontSize: 12, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase' }}>SERVICES DIRECTORY</span>
+            <h2 style={{ margin: 0, fontSize: 32, fontWeight: 900, color: theme.heading, letterSpacing: '-0.02em' }}>Popular Municipal Services</h2>
+            <p style={{ margin: 0, fontSize: 15, color: theme.muted, maxWidth: 580 }}>
+              Access civic services and file complaints directly from your home. No office visits, no queues.
+            </p>
+          </div>
 
-          <div className="services-grid">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20 }}>
             {services.map((s, i) => {
               const Icon = s.icon;
               return (
-                <div className="service-card" key={i} onClick={() => { window.location.href = '/login'; }} role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && (window.location.href = '/login')}>
-                  <span className="svc-icon" style={{ color: 'var(--primary)', marginBottom: '16px', display: 'flex', justifyContent: 'center' }}>
-                    <Icon size={40} strokeWidth={1.5} />
-                  </span>
-                  <div className="svc-name">{s.name}</div>
-                  <div className="svc-desc">{s.desc}</div>
-                  <div style={{ fontSize: '11px', color: 'var(--accent)', fontWeight: '600', marginTop: '8px' }}>{s.dept}</div>
+                <div key={i} onClick={() => { window.location.href = '/login'; }} style={{
+                  background: theme.cardBg, borderRadius: 16, padding: '24px',
+                  border: `1px solid ${theme.cardBorder}`, cursor: 'pointer',
+                  display: 'flex', flexDirection: 'column', gap: 14, boxShadow: theme.cardShadow
+                }}>
+                  <div style={{ width: 44, height: 44, borderRadius: 12, background: isDark ? 'rgba(255,255,255,0.05)' : '#f0f9ff', color: s.color, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(255,255,255,0.1)' }}>
+                    <Icon size={22} />
+                  </div>
+                  <div>
+                    <h4 style={{ margin: '0 0 4px', fontSize: 17, fontWeight: 800, color: theme.heading }}>{s.name}</h4>
+                    <p style={{ margin: 0, fontSize: 13, color: theme.muted, lineHeight: 1.5 }}>{s.desc}</p>
+                  </div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: s.color, textTransform: 'uppercase', letterSpacing: '0.06em', paddingTop: 4 }}>
+                    {s.dept}
+                  </div>
                 </div>
               );
             })}
           </div>
         </div>
-      </div>
+      </section>
 
-      <div className="stats-section">
-        <div className="stats-section-inner">
-          <div className="citizen-stat">
-            <div className="cs-num">4,200+</div>
-            <div className="cs-label">Registered Citizens</div>
+      {/* ── Enterprise Features Section ── */}
+      <section id="about" style={{ padding: '70px 32px', background: theme.altBg, borderBottom: `1px solid ${theme.sectionBorder}` }}>
+        <div style={{ maxWidth: 1280, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 36 }}>
+          <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+            <span style={{ color: '#d97706', fontSize: 12, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase' }}>WHY CHOOSE CIVICPULSE</span>
+            <h2 style={{ margin: 0, fontSize: 32, fontWeight: 900, color: theme.heading, letterSpacing: '-0.02em' }}>Enterprise Governance Platform</h2>
+            <p style={{ margin: 0, fontSize: 15, color: theme.muted, maxWidth: 600 }}>
+              Cloud-Native architecture engineered for transparent, fast, and accountable public service delivery.
+            </p>
           </div>
-          <div className="citizen-stat">
-            <div className="cs-num">15,340</div>
-            <div className="cs-label">Total Complaints Filed</div>
-          </div>
-          <div className="citizen-stat">
-            <div className="cs-num">12,847</div>
-            <div className="cs-label">Complaints Resolved</div>
-          </div>
-          <div className="citizen-stat">
-            <div className="cs-num">4</div>
-            <div className="cs-label">Active Departments</div>
-          </div>
-        </div>
-      </div>
 
-      <div id="about" style={{ background: 'white' }}>
-        <div className="section">
-          <div className="section-label">About CivicPulse</div>
-          <h2 className="section-title">A Modern Platform for Public Governance</h2>
-          <p className="section-sub">
-            CivicPulse Nexus is a Cloud-Native Smart Governance platform developed to bring
-            transparency, speed, and accountability to civic complaint management and government
-            citizen service delivery.
-          </p>
-          <div style={{ marginTop: '28px', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '16px' }}>
-            {['Built on Microservices Architecture', 'Powered by Keycloak SSO', 'Event-Driven with Apache Kafka', 'Real-time SLA Monitoring & Alerts'].map((p, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '14px', color: 'var(--text)', padding: '12px 16px', background: 'var(--surface2)', borderRadius: 'var(--radius)', border: '1px solid var(--border-light)' }}>
-                <span style={{ color: 'var(--accent)', fontSize: '16px' }}>✓</span> {p}
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div id="features" style={{ background: '#f8fafc' }}>
-        <div className="section">
-          <div className="section-label">Why Choose CivicPulse</div>
-          <h2 className="section-title">Enterprise-Grade Features</h2>
-          <p className="section-sub">
-            Designed for scale, built for citizens — CivicPulse Nexus brings the best of
-            enterprise software to public governance.
-          </p>
-
-          <div className="features-grid">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 20 }}>
             {features.map((f, i) => {
               const Icon = f.icon;
               return (
-                <div className="feature-card animate-fade-in" key={i} style={{ animationDelay: `${i * 0.05}s` }}>
-                  <div className="fc-icon" style={{ color: 'white' }}>
-                    <Icon size={24} strokeWidth={2} />
+                <div key={i} style={{
+                  background: theme.cardBg, borderRadius: 16, padding: '24px',
+                  border: `1px solid ${theme.cardBorder}`, display: 'flex', gap: 16, alignItems: 'flex-start', boxShadow: theme.cardShadow
+                }}>
+                  <div style={{ width: 40, height: 40, borderRadius: 12, background: isDark ? 'rgba(56,189,248,0.1)' : '#e0f2fe', color: '#0284c7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, border: '1px solid #bae6fd' }}>
+                    <Icon size={20} />
                   </div>
-                  <h4>{f.title}</h4>
-                  <p>{f.desc}</p>
+                  <div>
+                    <h4 style={{ margin: '0 0 6px', fontSize: 16, fontWeight: 800, color: theme.heading }}>{f.title}</h4>
+                    <p style={{ margin: 0, fontSize: 13, color: theme.muted, lineHeight: 1.5 }}>{f.desc}</p>
+                  </div>
                 </div>
               );
             })}
           </div>
         </div>
-      </div>
+      </section>
 
-      <div id="help" className="help-section">
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          <div className="section-label">Need Help?</div>
-          <h2 className="section-title">We're Here to Assist You</h2>
-          <p className="section-sub">
-            Get support for registration, complaints, certificate applications, and more.
-          </p>
-          <div className="help-grid">
+      {/* ── Help & FAQs Section ── */}
+      <section id="help" style={{ padding: '70px 32px', background: theme.bg }}>
+        <div style={{ maxWidth: 1280, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 36 }}>
+          <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+            <span style={{ color: '#0284c7', fontSize: 12, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase' }}>NEED HELP?</span>
+            <h2 style={{ margin: 0, fontSize: 32, fontWeight: 900, color: theme.heading, letterSpacing: '-0.02em' }}>We're Here to Assist You</h2>
+            <p style={{ margin: 0, fontSize: 15, color: theme.muted, maxWidth: 560 }}>
+              Get support for registration, complaint tracking, certificate applications, and SLAs.
+            </p>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 20 }}>
             {helpItems.map((h, i) => {
               const Icon = h.icon;
               return (
-                <div className="help-card" key={i}>
-                  <span className="help-icon" style={{ color: 'var(--primary)', marginBottom: '16px', display: 'block' }}>
-                    <Icon size={32} strokeWidth={1.5} />
-                  </span>
-                  <h4>{h.title}</h4>
-                  <p>{h.desc}</p>
+                <div key={i} style={{
+                  background: theme.cardBg, borderRadius: 16, padding: '28px',
+                  border: `1px solid ${theme.cardBorder}`, display: 'flex', flexDirection: 'column', gap: 14, boxShadow: theme.cardShadow
+                }}>
+                  <div style={{ width: 44, height: 44, borderRadius: 12, background: isDark ? 'rgba(56,189,248,0.1)' : '#e0f2fe', color: '#0284c7', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #bae6fd' }}>
+                    <Icon size={22} />
+                  </div>
+                  <h4 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: theme.heading }}>{h.title}</h4>
+                  <p style={{ margin: 0, fontSize: 13, color: theme.muted, lineHeight: 1.5 }}>{h.desc}</p>
                 </div>
               );
             })}
           </div>
-          <div style={{ textAlign: 'center', marginTop: '32px' }}>
-            <Link to="/register" className="btn btn-primary btn-lg">Create Your Citizen Account</Link>
+
+          <div style={{ textAlign: 'center', paddingTop: 16 }}>
+            <Link to="/register" style={{ textDecoration: 'none' }}>
+              <button style={{
+                height: 50, padding: '0 32px', borderRadius: 12,
+                background: 'linear-gradient(135deg, #2563eb, #1d4ed8)', color: '#ffffff',
+                border: 'none', fontWeight: 800, fontSize: 15,
+                boxShadow: '0 8px 24px rgba(37,99,235,0.35)', cursor: 'pointer'
+              }}>
+                Create Your Verified Citizen Account
+              </button>
+            </Link>
           </div>
         </div>
-      </div>
+      </section>
 
-      <footer className="public-footer" id="contact">
-        <div className="footer-grid">
-          <div className="footer-brand">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <div style={{ color: 'white', padding: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '8px', display: 'flex' }}>
-                <Landmark size={24} strokeWidth={2} />
+      {/* ── Footer ── */}
+      <footer style={{ background: theme.footerBg, borderTop: '1px solid rgba(255,255,255,0.08)', padding: '48px 32px 32px' }}>
+        <div style={{ maxWidth: 1280, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 40, paddingBottom: 40, borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: '#2563eb', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Landmark size={20} />
               </div>
-              <div>
-                <div style={{ color: 'white', fontWeight: '800', fontSize: '1rem' }}>CivicPulse Nexus</div>
-                <div style={{ fontSize: '11px', opacity: '0.6' }}>Smart Governance Platform</div>
-              </div>
+              <span style={{ fontSize: 18, fontWeight: 900, color: '#ffffff' }}>CivicPulse Nexus</span>
             </div>
-            <p>
-              A Cloud-Native Smart Governance and Citizen Services Management Platform
-              built for transparent, accountable public service delivery.
+            <p style={{ margin: 0, fontSize: 13, color: '#94a3b8', lineHeight: 1.6 }}>
+              A Cloud-Native Smart Governance and Citizen Services Management Platform built for transparent, accountable public service delivery.
             </p>
           </div>
-          <div className="footer-col">
-            <h5>Platform</h5>
-            <a href="#services">Services</a>
-            <a href="#quick-access">Quick Access</a>
-            <a href="#about">About</a>
-            <a href="#help">Help</a>
+
+          <div>
+            <h5 style={{ margin: '0 0 16px', fontSize: 14, fontWeight: 800, color: '#ffffff', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Platform</h5>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, fontSize: 13, color: '#94a3b8' }}>
+              <a href="#services" style={{ color: 'inherit', textDecoration: 'none' }}>Services Directory</a>
+              <a href="#quick-access" style={{ color: 'inherit', textDecoration: 'none' }}>Quick Access Portal</a>
+              <a href="#about" style={{ color: 'inherit', textDecoration: 'none' }}>About CivicPulse</a>
+              <a href="#help" style={{ color: 'inherit', textDecoration: 'none' }}>Help & Support</a>
+            </div>
           </div>
-          <div className="footer-col">
-            <h5>Legal</h5>
-            <a href="#">Privacy Policy</a>
-            <a href="#">Terms of Use</a>
-            <a href="#">RTI</a>
+
+          <div>
+            <h5 style={{ margin: '0 0 16px', fontSize: 14, fontWeight: 800, color: '#ffffff', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Legal & RTI</h5>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, fontSize: 13, color: '#94a3b8' }}>
+              <a href="#" style={{ color: 'inherit', textDecoration: 'none' }}>Privacy Policy</a>
+              <a href="#" style={{ color: 'inherit', textDecoration: 'none' }}>Terms of Governance</a>
+              <a href="#" style={{ color: 'inherit', textDecoration: 'none' }}>RTI Disclosures</a>
+              <a href="#" style={{ color: 'inherit', textDecoration: 'none' }}>SLA Policies</a>
+            </div>
           </div>
-          <div className="footer-col">
-            <h5>Support</h5>
-            <a href="#help">Help Center</a>
-            <a href="#">Contact Us</a>
-            <a href="#">Emergency: 112</a>
+
+          <div>
+            <h5 style={{ margin: '0 0 16px', fontSize: 14, fontWeight: 800, color: '#ffffff', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Support & Helplines</h5>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, fontSize: 13, color: '#94a3b8' }}>
+              <span>Toll-Free: 1800-11-2026</span>
+              <span>Disaster Helpline: 112</span>
+              <span>Email: support@civicpulse.gov.in</span>
+            </div>
           </div>
         </div>
-        <div className="footer-bottom">
-          <span>© 2026 CivicPulse Nexus. Government of India Digital Initiative.</span>
-          <span>Built with care for citizens.</span>
+
+        <div style={{ maxWidth: 1280, margin: '24px auto 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12, fontSize: 12, color: '#64748b' }}>
+          <span>© 2026 CivicPulse Nexus. Government of India Digital Governance Initiative.</span>
+          <span>Built for transparent & smart citizen service delivery.</span>
         </div>
       </footer>
+
     </div>
   );
 }

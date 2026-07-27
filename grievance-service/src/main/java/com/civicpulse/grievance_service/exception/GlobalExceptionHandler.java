@@ -67,6 +67,18 @@ public class GlobalExceptionHandler {
     }
 
     // Catch-all fallback
+    @ExceptionHandler(DuplicateApplicationException.class)
+    public ResponseEntity<Map<String, Object>> handleDuplicateApplication(DuplicateApplicationException ex) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("timestamp", Instant.now().toString());
+        body.put("status", HttpStatus.CONFLICT.value());
+        body.put("error", "Duplicate Application");
+        body.put("message", ex.getMessage());
+        body.put("existingApplication", ex.getExistingApplication());
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGenericError(Exception ex) {
         Map<String, Object> body = new HashMap<>();

@@ -3,9 +3,20 @@ import { useParams, useNavigate } from 'react-router-dom';
 import api from '../api.js';
 import AppShell from '../components/AppShell.jsx';
 import PageLoader from '../components/PageLoader.jsx';
-import { SectionCard } from '../components/SectionCard.jsx';
-import { Badge } from '../components/Badge.jsx';
+import { toast } from 'sonner';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AlertCircle, ArrowLeft, Check, X, FileText, Download, RotateCw, ZoomIn, ZoomOut, CheckCircle, XCircle } from 'lucide-react';
+
+function getBadgeVariant(status) {
+  if (['APPROVED', 'CERTIFICATE_GENERATED', 'DOWNLOADED'].includes(status)) return 'default';
+  if (status === 'REJECTED') return 'destructive';
+  return 'secondary';
+}
 
 function OfficerApplicationView() {
   const { id } = useParams();
@@ -25,7 +36,6 @@ function OfficerApplicationView() {
   // Modals
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
-  
   const [showApproveModal, setShowApproveModal] = useState(false);
 
   // Document Viewer Modal
@@ -36,18 +46,11 @@ function OfficerApplicationView() {
   const [docRotation, setDocRotation] = useState(0);
 
   const handleDocumentPreview = (docObj) => {
-    console.log("handleDocumentPreview called with:", docObj);
     const isObject = typeof docObj === 'object' && docObj !== null;
     const docName = isObject ? docObj.id : docObj;
     
-    let fallbackReason = "Unknown";
-    if (!isObject) {
-      fallbackReason = "Document is stored as a legacy string instead of an object with file data.";
-    } else if (!docObj.data) {
-      fallbackReason = "Document object is missing the 'data' field (base64 string).";
-    } else {
+    if (isObject && docObj.data) {
       try {
-        // Convert data URL to Blob for better iframe support
         const arr = docObj.data.split(',');
         const mime = arr[0].match(/:(.*?);/)[1];
         const bstr = atob(arr[1]);
@@ -66,11 +69,9 @@ function OfficerApplicationView() {
         return;
       } catch (e) {
         console.error("Error creating blob from data URL", e);
-        fallbackReason = "Error creating blob from base64 data: " + e.message;
       }
     }
     
-    // Fallback for legacy text documents or simulated preview
     const htmlContent = `
       <!DOCTYPE html>
       <html>
@@ -78,151 +79,14 @@ function OfficerApplicationView() {
           <meta charset="utf-8">
           <title>${docName}</title>
           <style>
-            body { 
-              font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-              padding: 40px; 
-              background: #f3f4f6; 
-              display: flex; 
-              justify-content: center; 
-              align-items: flex-start;
-              min-height: 100vh;
-              margin: 0;
-            }
-            .doc { 
-              background: white; 
-              padding: 60px 40px; 
-              box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
-              max-width: 800px; 
-              width: 100%; 
-              border-radius: 8px;
-              border-top: 8px solid #2563eb;
-              position: relative;
-            }
-            .header {
-              text-align: center;
-              margin-bottom: 40px;
-              padding-bottom: 20px;
-              border-bottom: 2px solid #e5e7eb;
-            }
-            h1 { color: #1e3a8a; margin: 0 0 10px 0; font-size: 28px; }
-            h2 { color: #374151; margin: 0; font-size: 20px; font-weight: 500; }
-            .info-grid {
-              display: grid;
-              grid-template-columns: 1fr 1fr;
-              gap: 20px;
-              margin-bottom: 40px;
-            }
-            .info-item {
-              background: #f9fafb;
-              padding: 15px;
-              border-radius: 6px;
-              border: 1px solid #e5e7eb;
-            }
-            .label { font-size: 12px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
-            .value { font-size: 16px; color: #111827; font-weight: 600; }
-            .watermark {
-              position: absolute;
-              top: 50%;
-              left: 50%;
-              transform: translate(-50%, -50%) rotate(-45deg);
-              font-size: 120px;
-              color: rgba(0,0,0,0.03);
-              white-space: nowrap;
-              pointer-events: none;
-              z-index: 0;
-            }
-            .content {
-              position: relative;
-              z-index: 1;
-              line-height: 1.8;
-              color: #4b5563;
-              font-size: 16px;
-            }
-            .footer {
-              margin-top: 60px;
-              padding-top: 20px;
-              border-top: 1px solid #e5e7eb;
-              display: flex;
-              justify-content: space-between;
-              align-items: flex-end;
-            }
-            .seal { 
-              width: 120px; 
-              height: 120px; 
-              border-radius: 50%; 
-              border: 4px dashed #3b82f6; 
-              display: flex; 
-              flex-direction: column;
-              align-items: center; 
-              justify-content: center; 
-              color: #3b82f6; 
-              font-weight: bold; 
-              transform: rotate(-15deg);
-              opacity: 0.8;
-            }
-            .seal-text { font-size: 18px; }
-            .seal-date { font-size: 12px; margin-top: 4px; font-weight: normal; }
-            .signature {
-              text-align: center;
-            }
-            .sig-line {
-              width: 200px;
-              border-bottom: 2px solid #000;
-              margin-bottom: 8px;
-            }
-            .sig-text {
-              font-size: 14px;
-              color: #6b7280;
-            }
+            body { font-family: sans-serif; padding: 40px; background: #f3f4f6; text-align: center; }
+            .doc { background: white; padding: 40px; border-radius: 8px; max-width: 600px; margin: 0 auto; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
           </style>
         </head>
         <body>
           <div class="doc">
-            <div class="watermark">SAMPLE DOCUMENT</div>
-            
-            <div class="header">
-              <h1>GOVERNMENT OF INDIA</h1>
-              <h2>${docName.toUpperCase()}</h2>
-            </div>
-            
-            <div class="info-grid content">
-              <div class="info-item">
-                <div class="label">Applicant Name</div>
-                <div class="value">${app?.applicantName || 'Applicant Name'}</div>
-              </div>
-              <div class="info-item">
-                <div class="label">Application Number</div>
-                <div class="value">${app?.applicationNumber || 'APP-XXXX-XXXX'}</div>
-              </div>
-              <div class="info-item">
-                <div class="label">Document Type</div>
-                <div class="value">${docName}</div>
-              </div>
-              <div class="info-item">
-                <div class="label">Verification Status</div>
-                <div class="value" style="color: #059669;">Verified (Simulated)</div>
-              </div>
-            </div>
-            
-            <div class="content">
-            <div style="text-align: center; padding: 40px; background-color: #f9fafb;">
-            <div style="font-size: 48px; margin-bottom: 16px; color: #9ca3af;">📄</div>
-            <h3 style="color: #111827;">Document Content Not Found</h3>
-            <p style="color: #4b5563; max-width: 400px; margin: 16px auto;">
-              The file payload for <strong>${docName}</strong> is not available.
-              This usually means the application was submitted before file uploads were enabled or the file was truncated.
-            </p>
-          </div>
-            <div class="footer">
-              <div class="seal">
-                <div class="seal-text">VERIFIED</div>
-                <div class="seal-date">${new Date().toLocaleDateString()}</div>
-              </div>
-              <div class="signature">
-                <div class="sig-line"></div>
-                <div class="sig-text">Authorized Signatory</div>
-              </div>
-            </div>
+            <h2>${docName}</h2>
+            <p style="color: #6b7280;">Document Preview Placeholder</p>
           </div>
         </body>
       </html>
@@ -276,18 +140,18 @@ function OfficerApplicationView() {
       await api.put(`/service-management-service/api/services/approve/${id}`, {
         officerRemarks: officerRemarks
       });
-      alert('Application approved successfully!');
+      toast.success('Application approved successfully!');
       setShowApproveModal(false);
       navigate('/services/officer/dashboard');
     } catch (err) {
       console.error(err);
-      alert(err.response?.data?.error || err.response?.data?.message || 'Failed to approve application');
+      toast.error(err.response?.data?.error || err.response?.data?.message || 'Failed to approve application');
     }
   };
 
   const handleReject = async () => {
     if (!rejectReason) {
-      alert('Please select a rejection reason.');
+      toast.error('Please select a rejection reason.');
       return;
     }
     try {
@@ -295,12 +159,12 @@ function OfficerApplicationView() {
         reason: rejectReason,
         officerRemarks: officerRemarks
       });
-      alert('Application rejected.');
+      toast.error('Application rejected.');
       setShowRejectModal(false);
       navigate('/services/officer/dashboard');
     } catch (err) {
       console.error(err);
-      alert(err.response?.data?.error || err.response?.data?.message || 'Failed to reject application');
+      toast.error(err.response?.data?.error || err.response?.data?.message || 'Failed to reject application');
     }
   };
 
@@ -315,16 +179,16 @@ function OfficerApplicationView() {
   if (error || !app) {
     return (
       <AppShell title="Application Details">
-        <SectionCard>
-          <div className="empty-state-enhanced">
-            <AlertCircle size={48} color="var(--color-warning)" style={{ marginBottom: '16px' }} />
-            <h3 style={{ margin: '0 0 8px 0', color: 'var(--color-text-primary)' }}>Application Not Found</h3>
-            <p style={{ color: 'var(--color-text-secondary)', marginBottom: '24px' }}>{error || 'The requested application could not be loaded.'}</p>
-            <button type="button" className="btn btn-primary" onClick={() => navigate('/services/officer/dashboard')}>
-              <ArrowLeft size={16} style={{ marginRight: '8px' }} /> Back to Dashboard
-            </button>
-          </div>
-        </SectionCard>
+        <Card className="text-center py-12">
+          <CardContent className="space-y-4">
+            <AlertCircle size={48} className="text-amber-500 mx-auto" />
+            <h3 className="text-lg font-bold">Application Not Found</h3>
+            <p className="text-sm text-muted-foreground">{error || 'The requested application could not be loaded.'}</p>
+            <Button onClick={() => navigate('/services/officer/dashboard')}>
+              <ArrowLeft size={16} className="mr-2" /> Back to Dashboard
+            </Button>
+          </CardContent>
+        </Card>
       </AppShell>
     );
   }
@@ -342,309 +206,296 @@ function OfficerApplicationView() {
 
   return (
     <AppShell title="Application Details">
-      {/* 1. HEADER */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <button type="button" className="btn btn-ghost" onClick={() => navigate('/services/officer/dashboard')} style={{ padding: '8px' }}>
-            <ArrowLeft size={24} />
-          </button>
-          <h1 style={{ margin: 0, fontSize: '24px', fontWeight: '600', color: 'var(--color-text-primary)' }}>Application Details</h1>
-        </div>
-        <div>
-          <Badge 
-            variant={isPendingAction ? 'warning' : (app.status === 'REJECTED' ? 'danger' : 'success')} 
-            label={app.status} 
-          />
-        </div>
-      </div>
-
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      <div className="space-y-6">
         
-        {/* 2. APPLICATION SUMMARY CARD */}
-        <SectionCard>
-          <div style={{ padding: '24px' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '24px' }}>
+        {/* Header */}
+        <div className="flex justify-between items-center gap-4">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" onClick={() => navigate('/services/officer/dashboard')}>
+              <ArrowLeft size={20} />
+            </Button>
+            <h1 className="text-xl font-bold text-foreground">Application Details</h1>
+          </div>
+          <Badge variant={getBadgeVariant(app.status)}>{app.status}</Badge>
+        </div>
+
+        {/* Application Summary Card */}
+        <Card>
+          <CardContent className="p-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-sm">
               <div>
-                <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Application Number</div>
-                <div style={{ fontSize: '16px', fontWeight: '700', color: 'var(--color-text-primary)' }}>{app.applicationNumber}</div>
+                <div className="text-xs text-muted-foreground uppercase font-medium">Application Number</div>
+                <div className="font-bold text-base mt-0.5">{app.applicationNumber}</div>
               </div>
               <div>
-                <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Applicant Name</div>
-                <div style={{ fontSize: '16px', fontWeight: '700', color: 'var(--color-text-primary)' }}>{app.applicantName}</div>
+                <div className="text-xs text-muted-foreground uppercase font-medium">Applicant Name</div>
+                <div className="font-bold text-base mt-0.5">{app.applicantName}</div>
               </div>
               <div>
-                <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Aadhaar Number</div>
-                <div style={{ fontSize: '16px', fontWeight: '700', color: 'var(--color-text-primary)' }}>XXXX-XXXX-{app.aadhaarNumber?.slice(-4) || 'XXXX'}</div>
+                <div className="text-xs text-muted-foreground uppercase font-medium">Aadhaar Number</div>
+                <div className="font-bold text-base mt-0.5">XXXX-XXXX-{app.aadhaarNumber?.slice(-4) || 'XXXX'}</div>
               </div>
               <div>
-                <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Current Status</div>
-                <div style={{ fontSize: '16px', fontWeight: '700', color: 'var(--color-text-primary)' }}>{app.status}</div>
+                <div className="text-xs text-muted-foreground uppercase font-medium">Current Status</div>
+                <div className="font-bold text-base mt-0.5">{app.status}</div>
               </div>
               <div>
-                <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Certificate Type</div>
-                <div style={{ fontSize: '16px', fontWeight: '700', color: 'var(--color-text-primary)' }}>{app.serviceType?.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</div>
+                <div className="text-xs text-muted-foreground uppercase font-medium">Certificate Type</div>
+                <div className="font-bold text-base mt-0.5">{app.serviceType?.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</div>
               </div>
               <div>
-                <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Applied Date</div>
-                <div style={{ fontSize: '16px', fontWeight: '700', color: 'var(--color-text-primary)' }}>{new Date(app.appliedDate).toLocaleDateString('en-IN')}</div>
+                <div className="text-xs text-muted-foreground uppercase font-medium">Applied Date</div>
+                <div className="font-bold text-base mt-0.5">{new Date(app.appliedDate).toLocaleDateString('en-IN')}</div>
               </div>
               <div>
-                <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Department</div>
-                <div style={{ fontSize: '16px', fontWeight: '700', color: 'var(--color-text-primary)' }}>{app.department || 'Municipal Corporation'}</div>
+                <div className="text-xs text-muted-foreground uppercase font-medium">Department</div>
+                <div className="font-bold text-base mt-0.5">{app.department || 'Municipal Corporation'}</div>
               </div>
               <div>
-                <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Assigned Officer</div>
-                <div style={{ fontSize: '16px', fontWeight: '700', color: 'var(--color-text-primary)' }}>{app.assignedOfficer || 'Auto-Assigned'}</div>
+                <div className="text-xs text-muted-foreground uppercase font-medium">Assigned Officer</div>
+                <div className="font-bold text-base mt-0.5">{app.assignedOfficer || 'Auto-Assigned'}</div>
               </div>
             </div>
-          </div>
-        </SectionCard>
+          </CardContent>
+        </Card>
 
         {isPendingAction ? (
           <>
-            {/* 3. TWO COLUMN SECTION */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '24px' }}>
-              {/* LEFT CARD: Uploaded Documents */}
-              <SectionCard style={{ height: '100%' }}>
-                <div style={{ padding: '24px' }}>
-                  <h3 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '20px', color: 'var(--color-text-primary)' }}>Uploaded Documents</h3>
+            {/* Two Column Section */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              
+              {/* LEFT: Uploaded Documents */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Uploaded Documents</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
                   {documents.length === 0 ? (
-                    <p style={{ color: 'var(--color-text-secondary)', fontSize: '14px' }}>No documents uploaded.</p>
+                    <p className="text-sm text-muted-foreground">No documents uploaded.</p>
                   ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                      {documents.map((doc, idx) => {
-                        const isObject = typeof doc === 'object' && doc !== null;
-                        const docId = isObject ? doc.id : doc;
-                        const docName = isObject ? doc.name : `${doc.toLowerCase().replace(/\s+/g, '_')}.pdf`;
-                        
-                        return (
-                          <div key={idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px', backgroundColor: 'var(--color-bg)', borderRadius: '8px', border: '1px solid var(--color-border)' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                              <div style={{ fontSize: '24px', color: 'var(--color-text-secondary)' }}><FileText size={24} /></div>
-                              <div>
-                                <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--color-text-primary)' }}>{docId}</div>
-                                <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>{docName}</div>
-                              </div>
+                    documents.map((doc, idx) => {
+                      const isObject = typeof doc === 'object' && doc !== null;
+                      const docId = isObject ? doc.id : doc;
+                      const docName = isObject ? doc.name : `${doc.toLowerCase().replace(/\s+/g, '_')}.pdf`;
+                      
+                      return (
+                        <div key={idx} className="flex items-center justify-between p-3 bg-muted/40 rounded-lg border">
+                          <div className="flex items-center gap-3">
+                            <FileText size={24} className="text-muted-foreground" />
+                            <div>
+                              <div className="text-sm font-semibold">{docId}</div>
+                              <div className="text-xs text-muted-foreground">{docName}</div>
                             </div>
-                            <button type="button" className="btn btn-outline btn-sm" onClick={() => handleDocumentPreview(doc)} style={{ padding: '6px 12px', fontSize: '13px' }}>
-                              👁 Preview
-                            </button>
                           </div>
-                        );
-                      })}
-                    </div>
+                          <Button variant="outline" size="sm" onClick={() => handleDocumentPreview(doc)}>
+                            👁 Preview
+                          </Button>
+                        </div>
+                      );
+                    })
                   )}
-                </div>
-              </SectionCard>
+                </CardContent>
+              </Card>
 
-              {/* RIGHT CARD: Verification */}
-              <SectionCard style={{ height: '100%' }}>
-                <div style={{ padding: '24px' }}>
-                  <h3 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '20px', color: 'var(--color-text-primary)' }}>Verification</h3>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '16px', backgroundColor: checklist.documentsVerified ? 'var(--color-success-light)' : 'var(--color-bg)', borderRadius: '8px', border: `1px solid ${checklist.documentsVerified ? 'var(--color-success)' : 'var(--color-border)'}`, cursor: 'pointer', transition: 'all 0.2s' }}>
-                      <input type="checkbox" style={{ width: '20px', height: '20px', cursor: 'pointer', accentColor: 'var(--color-success)' }} checked={checklist.documentsVerified} onChange={(e) => setChecklist({ ...checklist, documentsVerified: e.target.checked })} />
-                      <span style={{ fontSize: '15px', fontWeight: '500', color: 'var(--color-text-primary)' }}>Documents Verified</span>
-                    </label>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '16px', backgroundColor: checklist.infoMatches ? 'var(--color-success-light)' : 'var(--color-bg)', borderRadius: '8px', border: `1px solid ${checklist.infoMatches ? 'var(--color-success)' : 'var(--color-border)'}`, cursor: 'pointer', transition: 'all 0.2s' }}>
-                      <input type="checkbox" style={{ width: '20px', height: '20px', cursor: 'pointer', accentColor: 'var(--color-success)' }} checked={checklist.infoMatches} onChange={(e) => setChecklist({ ...checklist, infoMatches: e.target.checked })} />
-                      <span style={{ fontSize: '15px', fontWeight: '500', color: 'var(--color-text-primary)' }}>Information Matches Application</span>
-                    </label>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '16px', backgroundColor: checklist.readyForApproval ? 'var(--color-success-light)' : 'var(--color-bg)', borderRadius: '8px', border: `1px solid ${checklist.readyForApproval ? 'var(--color-success)' : 'var(--color-border)'}`, cursor: 'pointer', transition: 'all 0.2s' }}>
-                      <input type="checkbox" style={{ width: '20px', height: '20px', cursor: 'pointer', accentColor: 'var(--color-success)' }} checked={checklist.readyForApproval} onChange={(e) => setChecklist({ ...checklist, readyForApproval: e.target.checked })} />
-                      <span style={{ fontSize: '15px', fontWeight: '500', color: 'var(--color-text-primary)' }}>Ready for Approval</span>
-                    </label>
-                  </div>
-                </div>
-              </SectionCard>
+              {/* RIGHT: Verification Checklist */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Verification</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <label className={`flex items-center gap-3 p-4 rounded-lg border cursor-pointer transition-all ${checklist.documentsVerified ? 'bg-green-50/50 dark:bg-green-950/20 border-green-500' : 'bg-muted/20 border-border'}`}>
+                    <Checkbox 
+                      checked={checklist.documentsVerified} 
+                      onCheckedChange={(checked) => setChecklist({ ...checklist, documentsVerified: !!checked })} 
+                    />
+                    <span className="text-sm font-medium">Documents Verified</span>
+                  </label>
+
+                  <label className={`flex items-center gap-3 p-4 rounded-lg border cursor-pointer transition-all ${checklist.infoMatches ? 'bg-green-50/50 dark:bg-green-950/20 border-green-500' : 'bg-muted/20 border-border'}`}>
+                    <Checkbox 
+                      checked={checklist.infoMatches} 
+                      onCheckedChange={(checked) => setChecklist({ ...checklist, infoMatches: !!checked })} 
+                    />
+                    <span className="text-sm font-medium">Information Matches Application</span>
+                  </label>
+
+                  <label className={`flex items-center gap-3 p-4 rounded-lg border cursor-pointer transition-all ${checklist.readyForApproval ? 'bg-green-50/50 dark:bg-green-950/20 border-green-500' : 'bg-muted/20 border-border'}`}>
+                    <Checkbox 
+                      checked={checklist.readyForApproval} 
+                      onCheckedChange={(checked) => setChecklist({ ...checklist, readyForApproval: !!checked })} 
+                    />
+                    <span className="text-sm font-medium">Ready for Approval</span>
+                  </label>
+                </CardContent>
+              </Card>
             </div>
 
-            {/* 4. BOTTOM SECTION */}
-            <SectionCard>
-              <div style={{ padding: '24px' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '32px' }}>
+            {/* Bottom Actions Section */}
+            <Card>
+              <CardContent className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   
-                  {/* LEFT SIDE: Remarks */}
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '12px', color: 'var(--color-text-primary)' }}>Officer Remarks (Optional)</h3>
-                    <div style={{ position: 'relative', flex: 1 }}>
-                      <textarea
-                        style={{ width: '100%', height: '100%', minHeight: '120px', padding: '12px', borderRadius: '8px', border: '1px solid var(--color-border)', fontSize: '14px', resize: 'vertical' }}
-                        placeholder="Enter remarks (optional)..."
-                        value={officerRemarks}
-                        maxLength={500}
-                        onChange={e => setOfficerRemarks(e.target.value)}
-                      />
-                      <div style={{ position: 'absolute', bottom: '12px', right: '12px', fontSize: '12px', color: 'var(--color-text-muted)' }}>
-                        {officerRemarks.length} / 500
-                      </div>
+                  <div>
+                    <h3 className="text-sm font-semibold mb-2">Officer Remarks (Optional)</h3>
+                    <textarea
+                      className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring min-h-[100px]"
+                      placeholder="Enter remarks (optional)..."
+                      value={officerRemarks}
+                      maxLength={500}
+                      onChange={e => setOfficerRemarks(e.target.value)}
+                    />
+                    <div className="text-xs text-muted-foreground text-right mt-1">
+                      {officerRemarks.length} / 500
                     </div>
                   </div>
 
-                  {/* RIGHT SIDE: Actions */}
-                  <div>
-                    <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '12px', color: 'var(--color-text-primary)' }}>Actions</h3>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', height: '100%', justifyContent: 'flex-start' }}>
-                      <button
-                        type="button"
-                        onClick={() => setShowRejectModal(true)}
-                        style={{ width: '100%', padding: '16px', fontSize: '16px', fontWeight: '600', borderRadius: '8px', backgroundColor: 'transparent', color: 'var(--color-danger)', border: '2px solid var(--color-danger)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', transition: 'background-color 0.2s' }}
-                      >
-                        <X size={20} /> Reject
-                      </button>
-                      <button
-                        type="button"
-                        disabled={!allChecked}
-                        onClick={() => setShowApproveModal(true)}
-                        style={{ width: '100%', padding: '16px', fontSize: '16px', fontWeight: '600', borderRadius: '8px', backgroundColor: allChecked ? 'var(--color-success)' : 'var(--color-border)', color: 'white', border: 'none', cursor: allChecked ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', transition: 'background-color 0.2s' }}
-                      >
-                        <Check size={20} /> Approve & Digitally Sign
-                      </button>
-                    </div>
+                  <div className="space-y-3">
+                    <h3 className="text-sm font-semibold mb-2">Actions</h3>
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      className="w-full h-12 text-destructive border-destructive hover:bg-destructive/10 text-base font-semibold"
+                      onClick={() => setShowRejectModal(true)}
+                    >
+                      <X size={20} className="mr-2" /> Reject
+                    </Button>
+                    <Button 
+                      type="button" 
+                      disabled={!allChecked}
+                      className="w-full h-12 bg-green-600 hover:bg-green-700 text-white text-base font-semibold"
+                      onClick={() => setShowApproveModal(true)}
+                    >
+                      <Check size={20} className="mr-2" /> Approve & Digitally Sign
+                    </Button>
                   </div>
                 </div>
-              </div>
-            </SectionCard>
+              </CardContent>
+            </Card>
           </>
         ) : (
-          <SectionCard>
-            <div style={{ padding: '24px' }}>
-              <h3 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '20px', color: 'var(--color-text-primary)' }}>Processing History</h3>
-              {app.status === 'APPROVED' || app.status === 'CERTIFICATE_GENERATED' || app.status === 'DOWNLOADED' ? (
+          <Card>
+            <CardContent className="p-6 space-y-4">
+              <h3 className="text-base font-semibold">Processing History</h3>
+              {['APPROVED', 'CERTIFICATE_GENERATED', 'DOWNLOADED'].includes(app.status) ? (
                 <>
-                  <div style={{ backgroundColor: 'var(--color-success-light)', borderLeft: '4px solid var(--color-success)', padding: '16px', borderRadius: '4px', marginBottom: '16px' }}>
-                    <div style={{ color: 'var(--color-success)', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <CheckCircle size={18} /> Approved By: {app.approvedBy || 'Officer'}
-                    </div>
+                  <div className="p-4 bg-green-50 dark:bg-green-950/40 text-green-800 dark:text-green-200 rounded-lg border border-green-200 dark:border-green-900 flex items-center gap-2 font-semibold text-sm">
+                    <CheckCircle size={18} className="text-green-600" /> Approved By: {app.approvedBy || 'Officer'}
                   </div>
                   {app.officerRemarks && (
-                    <div style={{ backgroundColor: 'var(--color-info-light)', borderLeft: '4px solid var(--color-info)', padding: '16px', borderRadius: '4px', marginBottom: '16px' }}>
-                      <div style={{ color: 'var(--color-info)', fontWeight: '600' }}>Officer Remarks:</div>
-                      <div style={{ color: 'var(--color-info)', marginTop: '4px' }}>{app.officerRemarks}</div>
+                    <div className="p-4 bg-blue-50 dark:bg-blue-950/40 text-blue-800 dark:text-blue-200 rounded-lg border border-blue-200 dark:border-blue-900 space-y-1 text-sm">
+                      <div className="font-semibold">Officer Remarks:</div>
+                      <div>{app.officerRemarks}</div>
                     </div>
                   )}
                   {app.certificateNumber && (
-                    <div style={{ padding: '24px', backgroundColor: 'var(--color-bg)', borderRadius: '8px', border: '1px solid var(--color-border)', textAlign: 'center' }}>
-                      <FileText size={32} color="var(--color-text-secondary)" style={{ marginBottom: '8px' }} />
-                      <div style={{ fontSize: '18px', fontWeight: '600', color: 'var(--color-text-primary)', marginBottom: '8px' }}>Certificate Issued</div>
-                      <div style={{ fontSize: '16px', color: 'var(--color-text-secondary)', fontFamily: 'monospace', fontWeight: '600' }}>{app.certificateNumber}</div>
+                    <div className="p-6 bg-muted/30 rounded-lg border text-center space-y-2">
+                      <FileText size={32} className="text-muted-foreground mx-auto" />
+                      <div className="font-semibold text-base">Certificate Issued</div>
+                      <div className="font-mono text-sm font-bold text-primary">{app.certificateNumber}</div>
                     </div>
                   )}
                 </>
               ) : app.status === 'REJECTED' ? (
-                <div style={{ backgroundColor: 'var(--color-danger-light)', borderLeft: '4px solid var(--color-danger)', padding: '16px', borderRadius: '4px' }}>
-                  <div style={{ color: 'var(--color-danger)', fontWeight: '700', fontSize: '16px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div className="p-4 bg-red-50 dark:bg-red-950/40 text-red-800 dark:text-red-200 rounded-lg border border-red-200 dark:border-red-900 space-y-2 text-sm">
+                  <div className="font-bold flex items-center gap-2 text-red-600">
                     <XCircle size={18} /> Application Rejected
                   </div>
-                  <div style={{ color: 'var(--color-danger)', marginBottom: '4px' }}><strong>Reason:</strong> {app.rejectionReason}</div>
-                  {app.officerRemarks && <div style={{ color: 'var(--color-danger)' }}><strong>Remarks:</strong> {app.officerRemarks}</div>}
+                  <div><strong>Reason:</strong> {app.rejectionReason}</div>
+                  {app.officerRemarks && <div><strong>Remarks:</strong> {app.officerRemarks}</div>}
                 </div>
               ) : null}
-            </div>
-          </SectionCard>
+            </CardContent>
+          </Card>
         )}
       </div>
 
-      {/* 6. APPROVE BUTTON MODAL */}
-      {showApproveModal && (
-        <div className="modal-overlay" style={{ backgroundColor: 'rgba(0,0,0,0.5)', position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <div style={{ backgroundColor: 'white', borderRadius: '12px', width: '100%', maxWidth: '400px', padding: '24px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)' }}>
-            <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#111827', margin: '0 0 16px 0' }}>Approve Certificate</h3>
-            <div style={{ color: '#4b5563', fontSize: '15px', lineHeight: '1.6', marginBottom: '24px' }}>
-              <div style={{ marginBottom: '12px' }}>This action will:</div>
-              <ul style={{ listStyleType: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><span style={{ color: '#16a34a' }}>•</span> Approve the application</li>
-                <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><span style={{ color: '#16a34a' }}>•</span> Generate the certificate</li>
-                <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><span style={{ color: '#16a34a' }}>•</span> Apply your digital signature</li>
-                <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><span style={{ color: '#16a34a' }}>•</span> Notify the citizen</li>
+      {/* Approve Dialog Modal */}
+      <Dialog open={showApproveModal} onOpenChange={setShowApproveModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Approve Certificate</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            <div className="text-sm text-muted-foreground space-y-2">
+              <p>This action will:</p>
+              <ul className="list-disc pl-5 space-y-1 text-foreground">
+                <li>Approve the application</li>
+                <li>Generate the certificate</li>
+                <li>Apply your digital signature</li>
+                <li>Notify the citizen</li>
               </ul>
             </div>
-            <div style={{ display: 'flex', gap: '12px' }}>
-              <button type="button" onClick={() => setShowApproveModal(false)} style={{ flex: 1, padding: '12px', borderRadius: '8px', backgroundColor: 'white', border: '1px solid #d1d5db', color: '#374151', fontWeight: '600', cursor: 'pointer' }}>
-                Cancel
-              </button>
-              <button type="button" onClick={handleApprove} style={{ flex: 1, padding: '12px', borderRadius: '8px', backgroundColor: '#16a34a', border: 'none', color: 'white', fontWeight: '600', cursor: 'pointer' }}>
+            <div className="flex justify-end gap-2 pt-2">
+              <Button variant="outline" onClick={() => setShowApproveModal(false)}>Cancel</Button>
+              <Button className="bg-green-600 hover:bg-green-700 text-white" onClick={handleApprove}>
                 Approve & Sign
-              </button>
+              </Button>
             </div>
           </div>
-        </div>
-      )}
+        </DialogContent>
+      </Dialog>
 
-      {/* 5. REJECT BUTTON MODAL */}
-      {showRejectModal && (
-        <div className="modal-overlay" style={{ backgroundColor: 'rgba(0,0,0,0.5)', position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <div style={{ backgroundColor: 'white', borderRadius: '12px', width: '100%', maxWidth: '450px', padding: '24px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#dc2626', margin: 0 }}>Reject Application</h3>
-              <button type="button" onClick={() => setShowRejectModal(false)} style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#9ca3af' }}>✕</button>
-            </div>
-            
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>Reject Reason</label>
-              <select 
-                style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '14px' }}
-                value={rejectReason} 
-                onChange={e => setRejectReason(e.target.value)}
-              >
-                <option value="">Select reason...</option>
-                <option value="Missing Document">Missing Document</option>
-                <option value="Information Mismatch">Information Mismatch</option>
-                <option value="Invalid Document">Invalid Document</option>
-                <option value="Unreadable Document">Unreadable Document</option>
-                <option value="Duplicate Application">Duplicate Application</option>
-                <option value="Other">Other</option>
-              </select>
+      {/* Reject Dialog Modal */}
+      <Dialog open={showRejectModal} onOpenChange={setShowRejectModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-destructive">Reject Application</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            <div>
+              <label className="block text-xs font-semibold text-muted-foreground mb-1">Reject Reason *</label>
+              <Select value={rejectReason} onValueChange={val => setRejectReason(val)}>
+                <SelectTrigger><SelectValue placeholder="Select reason..." /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Missing Document">Missing Document</SelectItem>
+                  <SelectItem value="Information Mismatch">Information Mismatch</SelectItem>
+                  <SelectItem value="Invalid Document">Invalid Document</SelectItem>
+                  <SelectItem value="Unreadable Document">Unreadable Document</SelectItem>
+                  <SelectItem value="Duplicate Application">Duplicate Application</SelectItem>
+                  <SelectItem value="Other">Other</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
-            <div style={{ marginBottom: '24px' }}>
-              <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>Remarks</label>
+            <div>
+              <label className="block text-xs font-semibold text-muted-foreground mb-1">Remarks</label>
               <textarea
-                style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '14px', minHeight: '80px', resize: 'vertical' }}
+                className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring min-h-[80px]"
                 placeholder="Provide details to help the citizen fix the issue..."
                 value={officerRemarks}
                 onChange={e => setOfficerRemarks(e.target.value)}
               />
             </div>
 
-            <div style={{ display: 'flex', gap: '12px' }}>
-              <button type="button" onClick={() => setShowRejectModal(false)} style={{ flex: 1, padding: '12px', borderRadius: '8px', backgroundColor: 'white', border: '1px solid #d1d5db', color: '#374151', fontWeight: '600', cursor: 'pointer' }}>
-                Cancel
-              </button>
-              <button type="button" onClick={handleReject} style={{ flex: 1, padding: '12px', borderRadius: '8px', backgroundColor: '#dc2626', border: 'none', color: 'white', fontWeight: '600', cursor: 'pointer' }}>
+            <div className="flex justify-end gap-2 pt-2">
+              <Button variant="outline" onClick={() => setShowRejectModal(false)}>Cancel</Button>
+              <Button variant="destructive" onClick={handleReject}>
                 Reject Application
-              </button>
+              </Button>
             </div>
           </div>
-        </div>
-      )}
+        </DialogContent>
+      </Dialog>
 
       {/* Document Viewer Modal */}
-      {showDocViewer && (
-        <div className="modal-overlay" style={{ backgroundColor: 'rgba(0,0,0,0.7)', position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000 }}>
-          <div style={{ backgroundColor: 'var(--color-bg)', width: '90%', height: '85vh', borderRadius: '12px', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-            <div style={{ padding: '16px 24px', backgroundColor: 'var(--color-white)', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '600', color: 'var(--color-text-primary)' }}>{docViewerName}</h3>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <button type="button" onClick={() => setDocZoom(z => z + 0.25)} className="btn btn-outline btn-sm" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><ZoomIn size={16} /> Zoom In</button>
-                <button type="button" onClick={() => setDocZoom(z => Math.max(0.5, z - 0.25))} className="btn btn-outline btn-sm" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><ZoomOut size={16} /> Zoom Out</button>
-                <button type="button" onClick={() => setDocRotation(r => r + 90)} className="btn btn-outline btn-sm" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><RotateCw size={16} /> Rotate</button>
-                <button type="button" onClick={downloadDocument} className="btn btn-primary btn-sm" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Download size={16} /> Download</button>
-                <button type="button" onClick={closeDocViewer} className="btn btn-ghost" style={{ padding: '6px', marginLeft: '12px' }}><X size={20} /></button>
-              </div>
-            </div>
-            <div style={{ flex: 1, padding: '40px', overflow: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <div style={{ 
-                backgroundColor: 'white', padding: '40px', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)',
-                minWidth: '60%', minHeight: '60%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                transform: `scale(${docZoom}) rotate(${docRotation}deg)`, transition: 'transform 0.2s ease-out'
-              }}>
-                {docViewerUrl && <iframe src={docViewerUrl} style={{ border: 'none', width: '100%', height: '400px' }} title="Document Preview" />}
-              </div>
+      <Dialog open={showDocViewer} onOpenChange={closeDocViewer}>
+        <DialogContent className="max-w-4xl h-[85vh] flex flex-col p-0 overflow-hidden">
+          <div className="flex justify-between items-center p-4 border-b bg-background">
+            <h3 className="font-semibold text-base">{docViewerName}</h3>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={() => setDocZoom(z => z + 0.25)}><ZoomIn size={16} /></Button>
+              <Button variant="outline" size="sm" onClick={() => setDocZoom(z => Math.max(0.5, z - 0.25))}><ZoomOut size={16} /></Button>
+              <Button variant="outline" size="sm" onClick={() => setDocRotation(r => r + 90)}><RotateCw size={16} /></Button>
+              <Button size="sm" onClick={downloadDocument}><Download size={16} className="mr-1" /> Download</Button>
             </div>
           </div>
-        </div>
-      )}
+          <div className="flex-1 p-6 overflow-auto bg-muted/20 flex items-center justify-center">
+            <div className="bg-background p-6 rounded shadow-lg min-w-[60%] min-h-[60%] flex items-center justify-center transition-transform" style={{ transform: `scale(${docZoom}) rotate(${docRotation}deg)` }}>
+              {docViewerUrl && <iframe src={docViewerUrl} className="w-full h-[400px] border-none" title="Document Preview" />}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </AppShell>
   );
 }

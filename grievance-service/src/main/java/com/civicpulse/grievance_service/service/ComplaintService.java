@@ -10,6 +10,7 @@ import com.civicpulse.grievance_service.repository.ComplaintHistoryRepository;
 import com.civicpulse.grievance_service.repository.ComplaintRepository;
 import com.civicpulse.grievance_service.repository.OfficerRepository;
 import com.civicpulse.grievance_service.dto.NotificationEvent;
+import com.civicpulse.grievance_service.exception.DuplicateApplicationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -79,6 +80,17 @@ public class ComplaintService {
     // CREATE
     // ----------------------------------------------------------------
     public Complaint createComplaint(Complaint complaint) {
+        // Enforce Single Active Application Rule
+        java.util.List<ComplaintStatus> activeStatuses = java.util.Arrays.asList(
+                ComplaintStatus.NEW, ComplaintStatus.ASSIGNED, ComplaintStatus.IN_PROGRESS, ComplaintStatus.PENDING
+        );
+        java.util.Optional<Complaint> existing = complaintRepository.findFirstByCitizenIdAndDepartmentAndTitleAndLocationAndStatusIn(
+                complaint.getCitizenId(), complaint.getDepartment(), complaint.getTitle(), complaint.getLocation(), activeStatuses
+        );
+        if (existing.isPresent()) {
+            throw new DuplicateApplicationException("You already have an active complaint for this issue.", existing.get());
+        }
+
         LocalDateTime now = LocalDateTime.now();
         complaint.setCreatedAt(now);
 
