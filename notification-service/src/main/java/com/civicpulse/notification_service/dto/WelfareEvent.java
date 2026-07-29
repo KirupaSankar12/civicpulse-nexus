@@ -13,6 +13,7 @@ public class WelfareEvent {
     private String status;
     private String remarks;
     private String transactionId;
+    private String department;
     private LocalDateTime timestamp;
 
     public WelfareEvent() {}
@@ -46,6 +47,9 @@ public class WelfareEvent {
 
     public String getTransactionId() { return transactionId; }
     public void setTransactionId(String transactionId) { this.transactionId = transactionId; }
+
+    public String getDepartment() { return department; }
+    public void setDepartment(String department) { this.department = department; }
 
     public LocalDateTime getTimestamp() { return timestamp; }
     public void setTimestamp(LocalDateTime timestamp) { this.timestamp = timestamp; }

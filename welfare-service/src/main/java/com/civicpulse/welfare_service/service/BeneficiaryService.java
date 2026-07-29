@@ -6,6 +6,7 @@ import com.civicpulse.welfare_service.exception.DuplicateApplicationException;
 import com.civicpulse.welfare_service.repository.BeneficiaryHistoryRepository;
 import com.civicpulse.welfare_service.repository.BeneficiaryRepository;
 import com.civicpulse.welfare_service.repository.WelfareSchemeRepository;
+import com.civicpulse.welfare_service.repository.BudgetRepository;
 import com.civicpulse.welfare_service.util.BeneficiaryCodeGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,17 +57,20 @@ public class BeneficiaryService {
     private final BeneficiaryRepository beneficiaryRepo;
     private final BeneficiaryHistoryRepository historyRepo;
     private final WelfareSchemeRepository schemeRepo;
+    private final BudgetRepository budgetRepo;
     private final BeneficiaryCodeGenerator codeGenerator;
     private final WelfareEventPublisher eventPublisher;
 
     public BeneficiaryService(BeneficiaryRepository beneficiaryRepo,
                                BeneficiaryHistoryRepository historyRepo,
                                WelfareSchemeRepository schemeRepo,
+                               BudgetRepository budgetRepo,
                                BeneficiaryCodeGenerator codeGenerator,
                                WelfareEventPublisher eventPublisher) {
         this.beneficiaryRepo = beneficiaryRepo;
         this.historyRepo = historyRepo;
         this.schemeRepo = schemeRepo;
+        this.budgetRepo = budgetRepo;
         this.codeGenerator = codeGenerator;
         this.eventPublisher = eventPublisher;
     }
@@ -369,9 +373,19 @@ public class BeneficiaryService {
 
         Beneficiary saved = beneficiaryRepo.save(b);
 
-        // Update Scheme Beneficiary Count
+        // Update Scheme Beneficiary Count and Budget Spent
         scheme.setBeneficiaryCount(scheme.getBeneficiaryCount() + 1);
+        BigDecimal currentSpent = scheme.getBudgetSpent() != null ? scheme.getBudgetSpent() : BigDecimal.ZERO;
+        scheme.setBudgetSpent(currentSpent.add(amount));
         schemeRepo.save(scheme);
+
+        // Update matching Department Budget
+        String dept = scheme.getDepartment();
+        budgetRepo.findByDepartment(dept).forEach(budget -> {
+            BigDecimal budgetSpent = (budget.getTotalSpent() != null ? budget.getTotalSpent() : BigDecimal.ZERO).add(amount);
+            budget.setTotalSpent(budgetSpent);
+            budgetRepo.save(budget);
+        });
 
         // Audit Events
         addAudit(saved, prev, BeneficiaryStatus.ADMIN_APPROVED, "Admin Approved Financial Release", adminUsername, "Financial sanction granted.");
@@ -404,6 +418,10 @@ public class BeneficiaryService {
         return beneficiaryRepo.findByStatusIn(
                 List.of(BeneficiaryStatus.SUBMITTED, BeneficiaryStatus.ASSIGNED_TO_DEPARTMENT,
                         BeneficiaryStatus.UNDER_DEPARTMENT_VERIFICATION, BeneficiaryStatus.RECOMMENDED));
+    }
+
+    public List<Beneficiary> getAll() {
+        return beneficiaryRepo.findAll();
     }
 
     public List<BeneficiaryHistory> getHistory(UUID beneficiaryId) {
@@ -440,8 +458,7 @@ public class BeneficiaryService {
     }
 
     private WelfareEvent toEvent(String type, Beneficiary b, String schemeName, String remarks) {
-        return new WelfareEvent(type, b.getBeneficiaryId(), b.getBeneficiaryCode(),
-                b.getCitizenId(), b.getApplicantName(), b.getSchemeId(), schemeName,
-                b.getStatus().name(), remarks, null);
+        return new WelfareEvent(type, b.getBeneficiaryId(), b.getBeneficiaryCode(), b.getCitizenId(),
+                b.getApplicantName(), b.getSchemeId(), schemeName, b.getStatus().name(), remarks, b.getTransactionId(), b.getAssignedDepartment());
     }
 }

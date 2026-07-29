@@ -14,13 +14,14 @@ public class WelfareEvent {
     private String status;
     private String remarks;
     private String transactionId;
+    private String department;
     private LocalDateTime timestamp;
 
     public WelfareEvent() {}
 
     public WelfareEvent(String eventType, UUID beneficiaryId, String beneficiaryCode,
                         String citizenId, String applicantName, UUID schemeId,
-                        String schemeName, String status, String remarks, String transactionId) {
+                        String schemeName, String status, String remarks, String transactionId, String department) {
         this.eventType = eventType;
         this.beneficiaryId = beneficiaryId;
         this.beneficiaryCode = beneficiaryCode;
@@ -31,6 +32,7 @@ public class WelfareEvent {
         this.status = status;
         this.remarks = remarks;
         this.transactionId = transactionId;
+        this.department = department;
         this.timestamp = LocalDateTime.now();
     }
 
@@ -63,6 +65,9 @@ public class WelfareEvent {
 
     public String getTransactionId() { return transactionId; }
     public void setTransactionId(String transactionId) { this.transactionId = transactionId; }
+
+    public String getDepartment() { return department; }
+    public void setDepartment(String department) { this.department = department; }
 
     public LocalDateTime getTimestamp() { return timestamp; }
     public void setTimestamp(LocalDateTime timestamp) { this.timestamp = timestamp; }

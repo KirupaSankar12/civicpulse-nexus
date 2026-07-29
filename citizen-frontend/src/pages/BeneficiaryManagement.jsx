@@ -4,42 +4,21 @@ import keycloak from '../keycloak.js';
 import AppShell from '../components/AppShell.jsx';
 import { toast } from 'sonner';
 import {
-  Users, Search, X, ShieldCheck, CheckCircle2, Clock, XCircle, FileText
+  Users, Search, X, CheckCircle2, Clock, XCircle, FileText, Calendar, Building2, Layers
 } from 'lucide-react';
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-function EligibilityBadge({ s }) {
-  const isEl = s === 'ELIGIBLE';
-  const isNot = s === 'NOT_ELIGIBLE';
-  const bg = isEl ? '#f0fdf4' : isNot ? '#fef2f2' : '#f8fafc';
-  const text = isEl ? '#16a34a' : isNot ? '#dc2626' : '#64748b';
-  const border = isEl ? '#bbf7d0' : isNot ? '#fecaca' : '#e2e8f0';
+function StatusBadge({ s }) {
+  const isAct = ['COMPLETED', 'FUNDS_DISBURSED', 'APPROVED', 'ADMIN_APPROVED', 'RECOMMENDED'].includes(s);
+  const isErr = ['REJECTED'].includes(s);
+  const bg = isAct ? '#f0fdf4' : isErr ? '#fef2f2' : '#eff6ff';
+  const text = isAct ? '#15803d' : isErr ? '#dc2626' : '#2563eb';
+  const border = isAct ? '#bbf7d0' : isErr ? '#fecaca' : '#bfdbfe';
   return (
     <span style={{
       display: 'inline-flex', alignItems: 'center', padding: '3px 9px', borderRadius: 20,
       background: bg, color: text, border: `1px solid ${border}`, fontSize: 11, fontWeight: 700,
     }}>
-      {s?.replace('_', ' ') || 'PENDING'}
-    </span>
-  );
-}
-
-const STATUS_MAP = {
-  APPLIED:        { bg: '#eff6ff', text: '#2563eb', border: '#bfdbfe' },
-  UNDER_REVIEW:   { bg: '#fff7ed', text: '#d97706', border: '#fed7aa' },
-  APPROVED:       { bg: '#f0fdf4', text: '#15803d', border: '#bbf7d0' },
-  FUNDS_DISBURSED:{ bg: '#f0fdf4', text: '#15803d', border: '#bbf7d0' },
-  REJECTED:       { bg: '#fef2f2', text: '#dc2626', border: '#fecaca' },
-};
-
-function StatusBadge({ s }) {
-  const m = STATUS_MAP[s] || { bg: '#f8fafc', text: '#475569', border: '#e2e8f0' };
-  return (
-    <span style={{
-      display: 'inline-flex', alignItems: 'center', padding: '3px 9px', borderRadius: 20,
-      background: m.bg, color: m.text, border: `1px solid ${m.border}`, fontSize: 11, fontWeight: 700,
-    }}>
-      {s?.replace('_', ' ') || s}
+      {s?.replace(/_/g, ' ') || 'PENDING'}
     </span>
   );
 }
@@ -66,32 +45,29 @@ function StatCard({ label, value, icon: Icon, color }) {
 }
 
 export default function BeneficiaryManagement() {
-  const roles = keycloak.tokenParsed?.realm_access?.roles || [];
-  const isOfficer = roles.includes('OFFICER') || roles.includes('officer') || roles.includes('DEPARTMENT_OFFICER');
-  const isApprover = roles.includes('APPROVER') || roles.includes('approver') || roles.includes('AUTHORITY');
-  const isAdmin = roles.includes('ADMIN') || roles.includes('admin');
-  const canReview = isOfficer || isApprover || isAdmin;
-  const canApprove = isApprover || isAdmin;
-
   const [beneficiaries, setBeneficiaries] = useState([]);
   const [schemes, setSchemes] = useState({});
   const [loading, setLoading] = useState(true);
+  
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
-  
-  const [rejectModal, setRejectModal] = useState(null);
-  const [rejectReason, setRejectReason] = useState('');
-  const [actioning, setActioning] = useState(false);
+  const [schemeFilter, setSchemeFilter] = useState('ALL');
+  const [deptFilter, setDeptFilter] = useState('ALL');
+  const [dateFilter, setDateFilter] = useState('');
+
+  const [viewModal, setViewModal] = useState(null);
+  const [history, setHistory] = useState([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
 
   const load = async () => {
     setLoading(true);
     try {
       const [bRes, sRes] = await Promise.all([
-        api.get('/welfare-service/api/welfare/beneficiaries/pending'),
+        api.get('/welfare-service/api/welfare/beneficiaries/all'),
         api.get('/welfare-service/api/welfare/schemes'),
       ]);
       const schemeMap = {};
-      (sRes.data || []).forEach(s => { schemeMap[s.schemeId] = s.schemeName; });
+      (sRes.data || []).forEach(s => { schemeMap[s.schemeId] = s; });
       setSchemes(schemeMap);
       setBeneficiaries(bRes.data || []);
     } catch { }
@@ -102,53 +78,43 @@ export default function BeneficiaryManagement() {
 
   const filtered = useMemo(() => {
     return beneficiaries.filter(b => {
-      const matchSearch = !search || b.applicantName?.toLowerCase().includes(search.toLowerCase()) ||
-        b.beneficiaryCode?.toLowerCase().includes(search.toLowerCase());
+      const matchSearch = !search || 
+        b.applicantName?.toLowerCase().includes(search.toLowerCase()) ||
+        b.beneficiaryCode?.toLowerCase().includes(search.toLowerCase()) ||
+        b.applicantAadhaar?.toLowerCase().includes(search.toLowerCase());
       const matchStatus = statusFilter === 'ALL' || b.status === statusFilter;
-      return matchSearch && matchStatus;
+      const matchScheme = schemeFilter === 'ALL' || b.schemeId === schemeFilter;
+      const matchDept = deptFilter === 'ALL' || b.assignedDepartment === deptFilter;
+      const matchDate = !dateFilter || (b.appliedDate && b.appliedDate.startsWith(dateFilter));
+      
+      return matchSearch && matchStatus && matchScheme && matchDept && matchDate;
     });
-  }, [beneficiaries, search, statusFilter]);
+  }, [beneficiaries, search, statusFilter, schemeFilter, deptFilter, dateFilter]);
 
-  const handleReview = async (id) => {
-    setActioning(true);
-    try { 
-      await api.put(`/welfare-service/api/welfare/beneficiaries/${id}/review`, {}); 
-      toast.success('Application put Under Review');
-      load(); 
-    } catch (e) { toast.error(e.response?.data?.error || 'Action failed'); }
-    setActioning(false);
-  };
-
-  const handleApprove = async (id) => {
-    setActioning(true);
-    try { 
-      await api.put(`/welfare-service/api/welfare/beneficiaries/${id}/approve`, {}); 
-      toast.success('Application Approved!');
-      load(); 
-    } catch (e) { toast.error(e.response?.data?.error || 'Action failed'); }
-    setActioning(false);
-  };
-
-  const handleReject = async () => {
-    if (!rejectModal) return;
-    setActioning(true);
+  const handleView = async (b) => {
+    setViewModal(b);
+    setHistoryLoading(true);
+    setHistory([]);
     try {
-      await api.put(`/welfare-service/api/welfare/beneficiaries/${rejectModal}/reject`, { reason: rejectReason });
-      toast.error('Application Rejected');
-      setRejectModal(null); setRejectReason(''); load();
-    } catch (e) { toast.error(e.response?.data?.error || 'Reject failed'); }
-    setActioning(false);
+      const res = await api.get(`/welfare-service/api/welfare/beneficiaries/${b.beneficiaryId}/history`);
+      setHistory(res.data || []);
+    } catch { }
+    setHistoryLoading(false);
   };
 
-  const pendingCount = beneficiaries.length;
-  const underReviewCount = beneficiaries.filter(b => b.status === 'UNDER_REVIEW').length;
-  const approvedCount = beneficiaries.filter(b => b.status === 'APPROVED').length;
-  
+  const pendingCount = beneficiaries.filter(b => ['SUBMITTED', 'ASSIGNED_TO_DEPARTMENT', 'UNDER_DEPARTMENT_VERIFICATION'].includes(b.status)).length;
+  const approvedCount = beneficiaries.filter(b => ['ADMIN_APPROVED', 'APPROVED', 'COMPLETED', 'FUNDS_DISBURSED', 'RECOMMENDED'].includes(b.status)).length;
+  const rejectedCount = beneficiaries.filter(b => b.status === 'REJECTED').length;
+  const fundsDisbursedCount = beneficiaries.filter(b => ['COMPLETED', 'FUNDS_DISBURSED'].includes(b.status)).length;
+
   const thStyle = {
     padding: '12px 14px', fontSize: 11, fontWeight: 700, color: '#475569',
     textTransform: 'uppercase', letterSpacing: '0.06em', whiteSpace: 'nowrap',
     background: '#f8fafc', borderBottom: '2px solid #e2e8f0', textAlign: 'left'
   };
+
+  const schemeOptions = Object.values(schemes);
+  const deptOptions = [...new Set(beneficiaries.map(b => b.assignedDepartment).filter(Boolean))];
 
   return (
     <AppShell title="Beneficiary Management">
@@ -167,10 +133,10 @@ export default function BeneficiaryManagement() {
             </div>
             <div>
               <h1 style={{ fontSize: 20, fontWeight: 800, color: '#0f172a', margin: 0 }}>
-                Beneficiary Management
+                Beneficiaries
               </h1>
               <p style={{ fontSize: 13, color: '#64748b', margin: 0, marginTop: 2 }}>
-                Review and approve welfare scheme applications.
+                Master database of all welfare applications submitted by citizens.
               </p>
             </div>
           </div>
@@ -178,9 +144,11 @@ export default function BeneficiaryManagement() {
 
         {/* ── Stats Row ────────────────────────────────────────────────────── */}
         <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
-          <StatCard label="Pending Applications" value={pendingCount} icon={FileText} color="#3b82f6" />
-          <StatCard label="Under Review" value={underReviewCount} icon={Clock} color="#f59e0b" />
-          <StatCard label="Approved Awaiting Payment" value={approvedCount} icon={CheckCircle2} color="#10b981" />
+          <StatCard label="Total Applications" value={beneficiaries.length} icon={FileText} color="#3b82f6" />
+          <StatCard label="Pending Verification" value={pendingCount} icon={Clock} color="#f59e0b" />
+          <StatCard label="Approved" value={approvedCount} icon={CheckCircle2} color="#10b981" />
+          <StatCard label="Rejected" value={rejectedCount} icon={XCircle} color="#ef4444" />
+          <StatCard label="Funds Disbursed" value={fundsDisbursedCount} icon={CheckCircle2} color="#8b5cf6" />
         </div>
 
         {/* ── Main Card ────────────────────────────────────────────────────── */}
@@ -196,7 +164,7 @@ export default function BeneficiaryManagement() {
             <div style={{ position: 'relative', flex: '1 1 200px', minWidth: 180 }}>
               <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
               <input
-                placeholder="Search by name or code..." value={search} onChange={e => setSearch(e.target.value)}
+                placeholder="Search by ID, Name, Aadhaar..." value={search} onChange={e => setSearch(e.target.value)}
                 style={{
                   width: '100%', padding: '8px 10px 8px 32px', border: '1.5px solid #e2e8f0', borderRadius: 9,
                   fontSize: 13, color: '#1e293b', background: '#fff', outline: 'none', boxSizing: 'border-box',
@@ -212,18 +180,27 @@ export default function BeneficiaryManagement() {
               )}
             </div>
             
-            <select
-              value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
-              style={{
-                padding: '8px 12px', border: '1.5px solid #e2e8f0', borderRadius: 9,
-                fontSize: 13, color: '#374151', background: '#fff', cursor: 'pointer', fontWeight: 500,
-              }}
-            >
-              <option value="ALL">All Statuses</option>
-              <option value="APPLIED">Applied</option>
-              <option value="UNDER_REVIEW">Under Review</option>
-              <option value="APPROVED">Approved</option>
+            <select value={schemeFilter} onChange={e => setSchemeFilter(e.target.value)} style={{ padding: '8px 12px', border: '1.5px solid #e2e8f0', borderRadius: 9, fontSize: 13, color: '#374151', background: '#fff', cursor: 'pointer', fontWeight: 500 }}>
+              <option value="ALL">All Schemes</option>
+              {schemeOptions.map(s => <option key={s.schemeId} value={s.schemeId}>{s.schemeName}</option>)}
             </select>
+
+            <select value={deptFilter} onChange={e => setDeptFilter(e.target.value)} style={{ padding: '8px 12px', border: '1.5px solid #e2e8f0', borderRadius: 9, fontSize: 13, color: '#374151', background: '#fff', cursor: 'pointer', fontWeight: 500 }}>
+              <option value="ALL">All Departments</option>
+              {deptOptions.map(d => <option key={d} value={d}>{d}</option>)}
+            </select>
+
+            <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} style={{ padding: '8px 12px', border: '1.5px solid #e2e8f0', borderRadius: 9, fontSize: 13, color: '#374151', background: '#fff', cursor: 'pointer', fontWeight: 500 }}>
+              <option value="ALL">All Statuses</option>
+              <option value="SUBMITTED">Submitted</option>
+              <option value="UNDER_DEPARTMENT_VERIFICATION">Pending Verification</option>
+              <option value="RECOMMENDED">Recommended</option>
+              <option value="ADMIN_APPROVED">Approved</option>
+              <option value="REJECTED">Rejected</option>
+              <option value="COMPLETED">Completed</option>
+            </select>
+
+            <input type="date" value={dateFilter} onChange={e => setDateFilter(e.target.value)} style={{ padding: '8px 12px', border: '1.5px solid #e2e8f0', borderRadius: 9, fontSize: 13, color: '#374151', background: '#fff', outline: 'none' }} />
 
             <div style={{ fontSize: 12, color: '#94a3b8', fontWeight: 500, marginLeft: 'auto' }}>
               {filtered.length} shown
@@ -250,14 +227,14 @@ export default function BeneficiaryManagement() {
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr>
-                    <th style={thStyle}>Code</th>
+                    <th style={thStyle}>Beneficiary ID</th>
                     <th style={thStyle}>Name</th>
                     <th style={thStyle}>Scheme</th>
-                    <th style={thStyle}>Income</th>
-                    <th style={thStyle}>Age</th>
-                    <th style={thStyle}>Eligibility</th>
+                    <th style={thStyle}>Department</th>
                     <th style={thStyle}>Status</th>
-                    <th style={{ ...thStyle, width: 180 }}>Actions</th>
+                    <th style={thStyle}>Assigned Officer</th>
+                    <th style={thStyle}>Applied Date</th>
+                    <th style={{ ...thStyle, width: 80 }}>Action</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -270,50 +247,28 @@ export default function BeneficiaryManagement() {
                         {b.applicantName}
                       </td>
                       <td style={{ padding: '13px 14px', color: '#475569', fontSize: 13, fontWeight: 500 }}>
-                        {schemes[b.schemeId] || b.schemeId?.substring(0, 8)}
+                        {schemes[b.schemeId]?.schemeName || b.schemeId?.substring(0, 8)}
                       </td>
-                      <td style={{ padding: '13px 14px', fontWeight: 600, color: '#475569' }}>
-                        {b.annualIncome ? `₹${Number(b.annualIncome).toLocaleString('en-IN')}` : '—'}
-                      </td>
-                      <td style={{ padding: '13px 14px', fontWeight: 600, color: '#475569' }}>
-                        {b.age ?? '—'}
-                      </td>
-                      <td style={{ padding: '13px 14px' }}>
-                        <EligibilityBadge s={b.eligibilityStatus} />
+                      <td style={{ padding: '13px 14px', color: '#475569', fontSize: 13, fontWeight: 500 }}>
+                        {b.assignedDepartment || '—'}
                       </td>
                       <td style={{ padding: '13px 14px' }}>
                         <StatusBadge s={b.status} />
                       </td>
+                      <td style={{ padding: '13px 14px', color: '#475569', fontSize: 13, fontWeight: 500 }}>
+                        {b.assignedOfficer || '—'}
+                      </td>
+                      <td style={{ padding: '13px 14px', color: '#475569', fontSize: 13, fontWeight: 500 }}>
+                        {b.appliedDate ? new Date(b.appliedDate).toLocaleDateString('en-IN') : '—'}
+                      </td>
                       <td style={{ padding: '13px 14px' }}>
-                        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                          {canReview && b.status === 'APPLIED' && (
-                            <button onClick={() => handleReview(b.beneficiaryId)} disabled={actioning} style={{
-                              display: 'inline-flex', alignItems: 'center', gap: 5, padding: '6px 12px', borderRadius: 8,
-                              background: '#f1f5f9', color: '#1e293b', fontSize: 12, fontWeight: 700, cursor: 'pointer',
-                              border: '1px solid #e2e8f0',
-                            }}>
-                              <Search size={13} /> Review
-                            </button>
-                          )}
-                          {canApprove && b.status === 'UNDER_REVIEW' && (
-                            <>
-                              <button onClick={() => handleApprove(b.beneficiaryId)} disabled={actioning} style={{
-                                display: 'inline-flex', alignItems: 'center', gap: 5, padding: '6px 12px', borderRadius: 8,
-                                background: '#10b981', color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', border: 'none',
-                                boxShadow: '0 2px 4px rgba(16,185,129,0.2)'
-                              }}>
-                                <CheckCircle2 size={13} /> Approve
-                              </button>
-                              <button onClick={() => setRejectModal(b.beneficiaryId)} disabled={actioning} style={{
-                                display: 'inline-flex', alignItems: 'center', gap: 5, padding: '6px 12px', borderRadius: 8,
-                                background: '#ef4444', color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', border: 'none',
-                                boxShadow: '0 2px 4px rgba(239,68,68,0.2)'
-                              }}>
-                                <XCircle size={13} /> Reject
-                              </button>
-                            </>
-                          )}
-                        </div>
+                        <button onClick={() => handleView(b)} style={{
+                          display: 'inline-flex', alignItems: 'center', gap: 5, padding: '6px 12px', borderRadius: 8,
+                          background: '#f1f5f9', color: '#1e293b', fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                          border: '1px solid #e2e8f0', transition: 'background 0.2s'
+                        }} onMouseEnter={e => e.currentTarget.style.background = '#e2e8f0'} onMouseLeave={e => e.currentTarget.style.background = '#f1f5f9'}>
+                          <Search size={13} /> View
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -323,46 +278,115 @@ export default function BeneficiaryManagement() {
           )}
         </div>
 
-        {/* Reject Modal */}
-        {rejectModal && (
+        {/* View Details Modal */}
+        {viewModal && (
           <div style={{
             position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(15,23,42,0.6)', backdropFilter: 'blur(4px)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
           }}>
             <div style={{
-              background: '#fff', borderRadius: 16, width: '100%', maxWidth: 400,
-              display: 'flex', flexDirection: 'column', boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
+              background: '#f8fafc', borderRadius: 16, width: '100%', maxWidth: 700, maxHeight: '90vh',
+              display: 'flex', flexDirection: 'column', boxShadow: '0 20px 40px rgba(0,0,0,0.2)', overflow: 'hidden'
             }}>
-              <div style={{ padding: '20px 24px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: '#0f172a' }}>Reject Application</h3>
-                <button onClick={() => setRejectModal(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}><X size={20} /></button>
+              <div style={{ padding: '20px 24px', background: '#fff', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: 8 }}>
+                    Beneficiary Details <StatusBadge s={viewModal.status} />
+                  </h3>
+                  <div style={{ fontSize: 13, color: '#64748b', marginTop: 4, fontFamily: 'monospace' }}>
+                    {viewModal.beneficiaryCode}
+                  </div>
+                </div>
+                <button onClick={() => setViewModal(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}><X size={20} /></button>
               </div>
               
-              <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#475569', marginBottom: 6 }}>Rejection Reason *</label>
-                  <textarea
-                    value={rejectReason} onChange={e => setRejectReason(e.target.value)} rows={4}
-                    placeholder="Enter reason for rejection..."
-                    style={{
-                      width: '100%', padding: '10px 12px', border: '1.5px solid #cbd5e1', borderRadius: 8,
-                      fontSize: 14, color: '#1e293b', boxSizing: 'border-box', outline: 'none', resize: 'vertical'
-                    }}
-                  />
+              <div style={{ padding: '24px', overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: 24 }}>
+                
+                {/* Citizen Details */}
+                <div style={{ background: '#fff', borderRadius: 12, padding: 16, border: '1px solid #e2e8f0' }}>
+                  <h4 style={{ margin: '0 0 12px', fontSize: 14, color: '#1e293b', fontWeight: 800, display: 'flex', alignItems: 'center', gap: 6 }}><Users size={16} /> Citizen Details</h4>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12, fontSize: 13 }}>
+                    <div><span style={{ color: '#64748b', display: 'block', marginBottom: 2 }}>Name</span><strong style={{ color: '#0f172a' }}>{viewModal.applicantName}</strong></div>
+                    <div><span style={{ color: '#64748b', display: 'block', marginBottom: 2 }}>Aadhaar</span><strong style={{ color: '#0f172a', fontFamily: 'monospace' }}>{viewModal.applicantAadhaar}</strong></div>
+                    <div><span style={{ color: '#64748b', display: 'block', marginBottom: 2 }}>Age</span><strong style={{ color: '#0f172a' }}>{viewModal.age || '—'}</strong></div>
+                    <div><span style={{ color: '#64748b', display: 'block', marginBottom: 2 }}>Annual Income</span><strong style={{ color: '#0f172a' }}>{viewModal.annualIncome ? `₹${Number(viewModal.annualIncome).toLocaleString('en-IN')}` : '—'}</strong></div>
+                    <div><span style={{ color: '#64748b', display: 'block', marginBottom: 2 }}>Family Status</span><strong style={{ color: '#0f172a' }}>{viewModal.familyStatus || '—'}</strong></div>
+                  </div>
                 </div>
-              </div>
 
-              <div style={{ padding: '16px 24px', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'flex-end', gap: 12, background: '#f8fafc', borderRadius: '0 0 16px 16px' }}>
-                <button onClick={() => setRejectModal(null)} style={{
-                  padding: '8px 16px', borderRadius: 8, border: '1.5px solid #cbd5e1', background: '#fff',
-                  fontSize: 14, fontWeight: 600, color: '#475569', cursor: 'pointer'
-                }}>Cancel</button>
-                <button onClick={handleReject} disabled={!rejectReason.trim() || actioning} style={{
-                  padding: '8px 16px', borderRadius: 8, border: 'none', background: '#ef4444',
-                  fontSize: 14, fontWeight: 600, color: '#fff', cursor: 'pointer', opacity: (!rejectReason.trim() || actioning) ? 0.7 : 1
-                }}>
-                  {actioning ? 'Rejecting...' : 'Reject Application'}
-                </button>
+                {/* Scheme Details */}
+                <div style={{ background: '#fff', borderRadius: 12, padding: 16, border: '1px solid #e2e8f0' }}>
+                  <h4 style={{ margin: '0 0 12px', fontSize: 14, color: '#1e293b', fontWeight: 800, display: 'flex', alignItems: 'center', gap: 6 }}><Layers size={16} /> Scheme Details</h4>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12, fontSize: 13 }}>
+                    <div><span style={{ color: '#64748b', display: 'block', marginBottom: 2 }}>Scheme</span><strong style={{ color: '#0f172a' }}>{schemes[viewModal.schemeId]?.schemeName || '—'}</strong></div>
+                    <div><span style={{ color: '#64748b', display: 'block', marginBottom: 2 }}>Department</span><strong style={{ color: '#0f172a' }}>{viewModal.assignedDepartment || '—'}</strong></div>
+                    <div><span style={{ color: '#64748b', display: 'block', marginBottom: 2 }}>Applied Date</span><strong style={{ color: '#0f172a' }}>{viewModal.appliedDate ? new Date(viewModal.appliedDate).toLocaleDateString('en-IN') : '—'}</strong></div>
+                    <div><span style={{ color: '#64748b', display: 'block', marginBottom: 2 }}>Eligibility</span><strong style={{ color: '#0f172a' }}>{viewModal.eligibilityStatus || 'PENDING_CHECK'}</strong></div>
+                  </div>
+                </div>
+
+                {/* Bank Details */}
+                <div style={{ background: '#fff', borderRadius: 12, padding: 16, border: '1px solid #e2e8f0' }}>
+                  <h4 style={{ margin: '0 0 12px', fontSize: 14, color: '#1e293b', fontWeight: 800, display: 'flex', alignItems: 'center', gap: 6 }}><Building2 size={16} /> Bank Details</h4>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12, fontSize: 13 }}>
+                    <div><span style={{ color: '#64748b', display: 'block', marginBottom: 2 }}>Account Name</span><strong style={{ color: '#0f172a' }}>{viewModal.accountHolderName || '—'}</strong></div>
+                    <div><span style={{ color: '#64748b', display: 'block', marginBottom: 2 }}>Bank Name</span><strong style={{ color: '#0f172a' }}>{viewModal.bankName || '—'}</strong></div>
+                    <div><span style={{ color: '#64748b', display: 'block', marginBottom: 2 }}>Account No.</span><strong style={{ color: '#0f172a', fontFamily: 'monospace' }}>{viewModal.accountNumber || '—'}</strong></div>
+                    <div><span style={{ color: '#64748b', display: 'block', marginBottom: 2 }}>IFSC Code</span><strong style={{ color: '#0f172a', fontFamily: 'monospace' }}>{viewModal.ifscCode || '—'}</strong></div>
+                    <div><span style={{ color: '#64748b', display: 'block', marginBottom: 2 }}>Verified?</span><strong style={{ color: viewModal.bankVerified ? '#16a34a' : '#ef4444' }}>{viewModal.bankVerified ? 'Yes' : 'No'}</strong></div>
+                  </div>
+                </div>
+
+                {/* Uploaded Documents */}
+                <div style={{ background: '#fff', borderRadius: 12, padding: 16, border: '1px solid #e2e8f0' }}>
+                  <h4 style={{ margin: '0 0 12px', fontSize: 14, color: '#1e293b', fontWeight: 800, display: 'flex', alignItems: 'center', gap: 6 }}><FileText size={16} /> Uploaded Documents</h4>
+                  <div style={{ fontSize: 13, color: '#475569', lineHeight: 1.5 }}>
+                    {viewModal.documentsSubmitted || 'No documents submitted.'}
+                  </div>
+                </div>
+
+                {/* Officer Recommendation */}
+                {viewModal.recommendationStatus && (
+                  <div style={{ background: '#f0fdf4', borderRadius: 12, padding: 16, border: '1px solid #bbf7d0' }}>
+                    <h4 style={{ margin: '0 0 12px', fontSize: 14, color: '#166534', fontWeight: 800, display: 'flex', alignItems: 'center', gap: 6 }}><CheckCircle2 size={16} /> Officer Recommendation</h4>
+                    <div style={{ fontSize: 13, color: '#15803d' }}>
+                      <strong>Officer:</strong> {viewModal.assignedOfficer || '—'}<br/>
+                      <strong>Remarks:</strong> {viewModal.recommendationRemarks || '—'}
+                    </div>
+                  </div>
+                )}
+
+                {/* Audit History */}
+                <div style={{ background: '#fff', borderRadius: 12, padding: 16, border: '1px solid #e2e8f0' }}>
+                  <h4 style={{ margin: '0 0 12px', fontSize: 14, color: '#1e293b', fontWeight: 800, display: 'flex', alignItems: 'center', gap: 6 }}><Calendar size={16} /> Audit History & Timeline</h4>
+                  {historyLoading ? (
+                    <div style={{ fontSize: 13, color: '#64748b' }}>Loading history...</div>
+                  ) : history.length === 0 ? (
+                    <div style={{ fontSize: 13, color: '#64748b' }}>No history found.</div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                      {history.map((h, i) => (
+                        <div key={i} style={{ display: 'flex', gap: 12, fontSize: 12 }}>
+                          <div style={{ width: 120, flexShrink: 0, color: '#64748b', fontWeight: 600 }}>
+                            {new Date(h.timestamp).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' })}
+                          </div>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontWeight: 700, color: '#0f172a' }}>{h.actionTitle} <span style={{ color: '#94a3b8', fontWeight: 500 }}>by {h.actorName}</span></div>
+                            <div style={{ color: '#475569', marginTop: 2 }}>{h.remarks}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+              </div>
+              
+              <div style={{ padding: '16px 24px', background: '#fff', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'flex-end' }}>
+                <button onClick={() => setViewModal(null)} style={{
+                  padding: '8px 20px', borderRadius: 8, background: '#f1f5f9', color: '#1e293b', border: '1px solid #e2e8f0',
+                  fontSize: 14, fontWeight: 700, cursor: 'pointer'
+                }}>Close</button>
               </div>
             </div>
           </div>

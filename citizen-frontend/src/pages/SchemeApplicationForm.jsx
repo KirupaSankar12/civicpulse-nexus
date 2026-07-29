@@ -11,7 +11,9 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { CheckCircle, RefreshCw, AlertTriangle, FileText, User, Users, Landmark, IndianRupee, HandHeart, Upload, FileCheck, X, Paperclip, ArrowRight, RotateCcw, ShieldCheck, Trash2 } from 'lucide-react';
+import { CheckCircle, RefreshCw, AlertTriangle, FileText, User, Users, Landmark, IndianRupee, HandHeart, Upload, FileCheck, X, Paperclip, ArrowRight, RotateCcw, ShieldCheck, Trash2, Printer } from 'lucide-react';
+import { jsPDF } from "jspdf";
+import autoTable from "jspdf-autotable";
 
 const STEPS = ['Application', 'Verification', 'Authority Approval', 'Disbursement', 'Success'];
 const DOCS = ['Aadhaar Card', 'Income Certificate', 'Bank Passbook', 'Photograph', 'Residence Proof'];
@@ -339,7 +341,7 @@ export default function SchemeApplicationForm() {
   const allDocsUploaded = DOCS.every(doc => checkedDocs.includes(doc));
   const missingDocs = DOCS.filter(doc => !checkedDocs.includes(doc));
   const isDocsValid = allDocsUploaded;
-  const isFormValid = isSchemeValid && isAadhaarValid && isIncomeValid && isAgeValid && isDocsValid;
+  const isFormValid = isSchemeValid && isAadhaarValid && isIncomeValid && isAgeValid && isDocsValid && !isIncomeExceeded && !isAgeExceeded;
 
   const handleAadhaarChange = (e) => {
     let val = e.target.value.replace(/\D/g, '');
@@ -406,32 +408,114 @@ export default function SchemeApplicationForm() {
     const deptName = submitted.assignedDepartment || selectedScheme?.department || 'Government Department';
 
     const handleDownloadReceipt = () => {
-      const text = `
-===================================================================
-     GOVERNMENT OF INDIA — WELFARE APPLICATION ACKNOWLEDGEMENT
-===================================================================
-Beneficiary Code    : ${submitted.beneficiaryCode}
-Applicant Name      : ${submitted.applicantName}
-Aadhaar Number      : ${submitted.applicantAadhaar}
-Welfare Scheme      : ${submitted.schemeName}
-Assigned Department : ${deptName}
-Assigned Officer    : ${submitted.assignedOfficer || 'Department Officer'}
-Submission Date     : ${new Date(submitted.appliedDate || Date.now()).toLocaleString('en-IN')}
-Automated Check     : ${submitted.eligibilityStatus || 'ELIGIBLE'}
-Application Status  : ${submitted.status || 'APPLIED'}
-===================================================================
-Verified & Issued by CivicPulse e-Governance Platform
-===================================================================
-`;
-      const blob = new Blob([text], { type: 'text/plain' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `Acknowledgement_${submitted.beneficiaryCode}.txt`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      toast.success('Downloaded Digital Acknowledgement Receipt!');
+      const doc = new jsPDF({ format: 'a4', unit: 'mm' });
+      const pageWidth = doc.internal.pageSize.getWidth();
+      
+      // Page Border
+      doc.setDrawColor(30, 64, 175);
+      doc.setLineWidth(1);
+      doc.rect(5, 5, pageWidth - 10, doc.internal.pageSize.getHeight() - 10);
+      
+      // Header Banner Background
+      doc.setFillColor(30, 64, 175); // Blue-800
+      doc.rect(5, 5, pageWidth - 10, 40, 'F');
+      
+      // Header Text
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(26);
+      doc.setFont('helvetica', 'bold');
+      doc.text("GOVERNMENT OF INDIA", pageWidth / 2, 22, { align: 'center', charSpace: 1.5 });
+      
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'normal');
+      doc.text("WELFARE APPLICATION ACKNOWLEDGEMENT RECEIPT", pageWidth / 2, 32, { align: 'center', charSpace: 0.5 });
+      
+      // Watermark
+      doc.setTextColor(241, 245, 249); // Light blue watermark
+      doc.setFontSize(55);
+      doc.text("OFFICIAL ACKNOWLEDGEMENT", pageWidth / 2, 160, { align: 'center', angle: -45 });
+      
+      // Beneficiary Code Box
+      doc.setDrawColor(37, 99, 235);
+      doc.setFillColor(239, 246, 255);
+      doc.setLineWidth(0.5);
+      doc.rect(14, 55, pageWidth - 28, 28, 'FD');
+      
+      doc.setTextColor(30, 64, 175);
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.text("BENEFICIARY APPLICATION CODE:", 20, 65);
+      
+      doc.setFontSize(17);
+      doc.setFont('courier', 'bold');
+      doc.text(submitted.beneficiaryCode, 20, 75);
+      
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(100, 116, 139);
+      doc.text("CURRENT STATUS:", pageWidth - 20, 65, { align: 'right' });
+      
+      doc.setFontSize(14);
+      doc.setTextColor(22, 163, 74);
+      doc.text(submitted.status || 'APPLIED', pageWidth - 20, 73, { align: 'right' });
+      
+      // Draw a fake barcode for premium feel
+      doc.setFillColor(15, 23, 42);
+      for(let i=0; i<30; i++) {
+          const width = Math.random() > 0.5 ? 1 : 2.5;
+          doc.rect(20 + (i*2.2), 90, width, 12, 'F');
+      }
+      doc.setFontSize(8);
+      doc.setFont('courier', 'normal');
+      doc.text(`*${submitted.beneficiaryCode}*`, 35, 106);
+      
+      // "RECEIVED" Stamp
+      doc.setDrawColor(37, 99, 235);
+      doc.setTextColor(37, 99, 235);
+      doc.setLineWidth(1);
+      doc.circle(pageWidth - 35, 100, 12, 'S');
+      doc.circle(pageWidth - 35, 100, 11, 'S');
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'bold');
+      doc.text("RECEIVED", pageWidth - 35, 101, { align: 'center' });
+
+      // AutoTable for Details
+      autoTable(doc, {
+        startY: 115,
+        theme: 'grid',
+        headStyles: { fillColor: [37, 99, 235], textColor: 255, fontStyle: 'bold', fontSize: 11 },
+        alternateRowStyles: { fillColor: [248, 250, 252] },
+        columnStyles: { 
+            0: { fontStyle: 'bold', cellWidth: 65, fillColor: [241, 245, 249], textColor: [15, 23, 42] },
+            1: { textColor: [51, 65, 85] }
+        },
+        body: [
+          ['Applicant Name', submitted.applicantName],
+          ['Aadhaar Number', submitted.applicantAadhaar],
+          ['Welfare Scheme', submitted.schemeName],
+          ['Assigned Department', deptName],
+          ['Assigned Officer', submitted.assignedOfficer || 'Pending Assignment'],
+          ['Submission Date', new Date(submitted.appliedDate || Date.now()).toLocaleString('en-IN')],
+          ['Automated Eligibility Check', submitted.eligibilityStatus || 'ELIGIBLE']
+        ],
+      });
+      
+      // Footer
+      const finalY = doc.lastAutoTable.finalY || 200;
+      doc.setDrawColor(203, 213, 225);
+      doc.setLineWidth(0.5);
+      doc.line(14, finalY + 15, pageWidth - 14, finalY + 15);
+      
+      doc.setTextColor(100, 116, 139);
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'italic');
+      doc.text("Verified & Issued Electronically by CivicPulse e-Governance Platform.", pageWidth / 2, finalY + 25, { align: 'center' });
+      
+      doc.setFontSize(8);
+      doc.text("This is a system-generated receipt and does not require a physical signature.", pageWidth / 2, finalY + 31, { align: 'center' });
+      
+      doc.save(`Acknowledgement_${submitted.beneficiaryCode}.pdf`);
+      toast.success('Downloaded Official PDF Receipt!');
     };
 
     return (
@@ -692,26 +776,7 @@ Verified & Issued by CivicPulse e-Governance Platform
 
             {/* Action Buttons */}
             <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', paddingTop: 8 }}>
-              <button 
-                type="button"
-                onClick={async () => {
-                  if (!window.confirm("Are you sure you want to DELETE your existing application from the database to start completely fresh?")) return;
-                  try {
-                    if (duplicateData?.beneficiaryId) {
-                      await api.delete(`/welfare-service/api/welfare/beneficiaries/${duplicateData.beneficiaryId}`);
-                    } else {
-                      await api.delete('/welfare-service/api/welfare/beneficiaries/reset-all');
-                    }
-                    toast.success("Previous active application deleted cleanly from database! You can now submit your new application.");
-                    setDuplicateData(null);
-                  } catch (e) {
-                    toast.error("Failed to delete application.");
-                  }
-                }}
-                style={{ flex: '1 1 100%', height: 48, padding: '0 20px', background: '#fef2f2', color: '#dc2626', border: '1.5px solid #fecaca', borderRadius: 12, fontWeight: 800, fontSize: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
-              >
-                <Trash2 size={18} /> 🗑️ Delete Existing Application & Start Fresh
-              </button>
+
 
               <button 
                 type="button"
@@ -733,12 +798,11 @@ Verified & Issued by CivicPulse e-Governance Platform
                 type="button"
                 onClick={() => {
                   setDuplicateData(null);
-                  setForm(f => ({ ...f, applicantAadhaar: '' }));
-                  toast.info('Cleared duplicate warning. Please enter fresh Aadhaar credentials.');
+                  toast.info('You can now edit your application details.');
                 }}
                 style={{ flex: 1, height: 46, padding: '0 20px', background: '#ecfdf5', color: '#047857', border: '1.5px solid #a7f3d0', borderRadius: 12, fontWeight: 800, fontSize: 14, cursor: 'pointer' }}
               >
-                🔄 Enter Fresh Aadhaar & Retry
+                ✏️ Edit Application
               </button>
             </div>
 
@@ -826,31 +890,80 @@ Verified & Issued by CivicPulse e-Governance Platform
 
               {form.schemeId && (() => {
                 const s = schemes.find(s => s.schemeId === form.schemeId);
-                return s ? (
-                  <div style={{
-                    marginTop: 20, padding: 20, borderRadius: 14, background: '#f8fafc',
-                    border: '1px solid #e2e8f0', display: 'flex', flexWrap: 'wrap', gap: 20, alignItems: 'center'
-                  }}>
-                    <div style={{ flex: 1, minWidth: 240 }}>
-                      <h4 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: '#0f172a' }}>{s.schemeName}</h4>
-                      <p style={{ margin: '4px 0 0', fontSize: 13, color: '#475569', lineHeight: 1.5 }}>{s.eligibilityCriteria || 'General citizen welfare scheme.'}</p>
-                    </div>
-                    <div style={{ display: 'flex', gap: 20, borderLeft: '1px solid #cbd5e1', paddingLeft: 20 }}>
-                      <div>
-                        <p style={{ margin: '0 0 4px', fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#94a3b8' }}>Income Limit</p>
-                        <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: '#0f172a' }}>
-                          {s.minIncome ? `₹${Number(s.minIncome).toLocaleString()} - ₹${Number(s.maxIncome || 0).toLocaleString()}` : 'None'}
-                        </p>
+                if (!s) return null;
+                
+                const ageReqMet = isAgeValid && !isAgeExceeded;
+                const incomeReqMet = isIncomeValid && !isIncomeExceeded;
+                const docsReqMet = allDocsUploaded;
+                const aadhaarReqMet = isAadhaarValid;
+                
+                const isOverallEligible = ageReqMet && incomeReqMet && docsReqMet && aadhaarReqMet;
+
+                return (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 20 }}>
+                    <div style={{
+                      padding: 20, borderRadius: 14, background: '#f8fafc',
+                      border: '1px solid #e2e8f0', display: 'flex', flexWrap: 'wrap', gap: 20, alignItems: 'center'
+                    }}>
+                      <div style={{ flex: 1, minWidth: 240 }}>
+                        <h4 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: '#0f172a' }}>{s.schemeName}</h4>
+                        <p style={{ margin: '4px 0 0', fontSize: 13, color: '#475569', lineHeight: 1.5 }}>{s.eligibilityCriteria || 'General citizen welfare scheme.'}</p>
                       </div>
-                      <div>
-                        <p style={{ margin: '0 0 4px', fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#94a3b8' }}>Age Limit</p>
-                        <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: '#0f172a' }}>
-                          {s.minAge ? `${s.minAge} - ${s.maxAge || 'Max'} yrs` : 'None'}
-                        </p>
+                      <div style={{ display: 'flex', gap: 20, borderLeft: '1px solid #cbd5e1', paddingLeft: 20 }}>
+                        <div>
+                          <p style={{ margin: '0 0 4px', fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#94a3b8' }}>Income Limit</p>
+                          <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: '#0f172a' }}>
+                            {s.maxIncome ? `Up to ₹${Number(s.maxIncome).toLocaleString('en-IN')}` : 'None'}
+                          </p>
+                        </div>
+                        <div>
+                          <p style={{ margin: '0 0 4px', fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#94a3b8' }}>Age Limit</p>
+                          <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: '#0f172a' }}>
+                            {s.minAge ? `${s.minAge} - ${s.maxAge || 'Max'} yrs` : 'None'}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div style={{
+                      padding: 20, borderRadius: 14, 
+                      background: isOverallEligible ? '#f0fdf4' : '#fffbeb',
+                      border: isOverallEligible ? '1.5px solid #86efac' : '1.5px solid #fde68a',
+                      display: 'flex', flexDirection: 'column', gap: 16
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <h4 style={{ margin: 0, fontSize: 14, fontWeight: 800, color: isOverallEligible ? '#166534' : '#92400e', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                          Live Eligibility Checklist
+                        </h4>
+                        <span style={{ 
+                          fontSize: 12, fontWeight: 800, padding: '4px 12px', borderRadius: 20,
+                          background: isOverallEligible ? '#10b981' : '#f59e0b', color: '#ffffff'
+                        }}>
+                          {isOverallEligible ? 'Eligible to Apply' : 'Requirements Pending'}
+                        </span>
+                      </div>
+                      
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: ageReqMet ? '#047857' : (form.age ? '#b91c1c' : '#64748b'), fontWeight: 600 }}>
+                          {ageReqMet ? <CheckCircle size={16} /> : <X size={16} />}
+                          Age Requirement {s.minAge ? `(${s.minAge}-${s.maxAge || 'Max'} yrs)` : ''}
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: incomeReqMet ? '#047857' : (form.annualIncome ? '#b91c1c' : '#64748b'), fontWeight: 600 }}>
+                          {incomeReqMet ? <CheckCircle size={16} /> : <X size={16} />}
+                          Income Requirement {s.maxIncome ? `(≤ ₹${Number(s.maxIncome).toLocaleString('en-IN')})` : ''}
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: aadhaarReqMet ? '#047857' : '#64748b', fontWeight: 600 }}>
+                          {aadhaarReqMet ? <CheckCircle size={16} /> : <X size={16} />}
+                          Aadhaar Format Valid
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: docsReqMet ? '#047857' : '#64748b', fontWeight: 600 }}>
+                          {docsReqMet ? <CheckCircle size={16} /> : <X size={16} />}
+                          Mandatory Documents Ready
+                        </div>
                       </div>
                     </div>
                   </div>
-                ) : null;
+                );
               })()}
             </div>
           </div>
@@ -906,14 +1019,9 @@ Verified & Issued by CivicPulse e-Governance Platform
                   value={form.age}
                   placeholder="e.g., 25"
                   onChange={e => setForm(f => ({ ...f, age: e.target.value }))}
-                  style={{ height: 44, borderRadius: 10, border: isAgeExceeded ? '1.5px solid #ef4444' : '1px solid #cbd5e1', fontSize: 14, color: '#0f172a' }}
+                  style={{ height: 44, borderRadius: 10, border: '1px solid #cbd5e1', fontSize: 14, color: '#0f172a' }}
                   required
                 />
-                {isAgeExceeded && (
-                  <span style={{ fontSize: 12, color: '#dc2626', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
-                    <AlertTriangle size={14} /> Outside scheme limit ({selectedScheme?.minAge || 0} - {selectedScheme?.maxAge || '∞'} yrs)
-                  </span>
-                )}
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -953,22 +1061,7 @@ Verified & Issued by CivicPulse e-Governance Platform
               </div>
             </div>
 
-            {isIncomeExceeded && (
-              <div style={{
-                background: '#fef2f2', padding: '14px 18px', borderRadius: 12, border: '1.5px solid #fecaca',
-                display: 'flex', alignItems: 'flex-start', gap: 12
-              }}>
-                <AlertTriangle size={22} color="#dc2626" style={{ flexShrink: 0, marginTop: 2 }} />
-                <div>
-                  <p style={{ margin: '0 0 2px', fontSize: 14, fontWeight: 800, color: '#991b1b' }}>
-                    Income Limit Warning for {selectedScheme?.schemeName}
-                  </p>
-                  <p style={{ margin: 0, fontSize: 13, color: '#b91c1c', lineHeight: 1.5 }}>
-                    Your entered income (<strong>₹{userIncome.toLocaleString('en-IN')}</strong>) exceeds the scheme's maximum threshold of <strong>₹{Number(selectedScheme?.maxIncome).toLocaleString('en-IN')}</strong>. If submitted, your application will be automatically flagged as <strong>NOT ELIGIBLE</strong>.
-                  </p>
-                </div>
-              </div>
-            )}
+
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20, alignItems: 'center' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -978,23 +1071,16 @@ Verified & Issued by CivicPulse e-Governance Platform
                   value={form.annualIncome}
                   placeholder="e.g., 250000"
                   onChange={e => setForm(f => ({ ...f, annualIncome: e.target.value }))}
-                  style={{ height: 44, borderRadius: 10, border: isIncomeExceeded ? '1.5px solid #ef4444' : '1px solid #cbd5e1', fontSize: 14, fontFamily: 'monospace', color: '#0f172a' }}
+                  style={{ height: 44, borderRadius: 10, border: '1px solid #cbd5e1', fontSize: 14, fontFamily: 'monospace', color: '#0f172a' }}
                   required
                 />
-                {isIncomeExceeded && (
-                  <span style={{ fontSize: 12, color: '#dc2626', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
-                    <AlertTriangle size={14} /> Exceeds max limit ₹{Number(selectedScheme?.maxIncome).toLocaleString('en-IN')}
-                  </span>
-                )}
               </div>
-              <div style={{ background: isIncomeExceeded ? '#fff5f5' : '#f0fdf4', padding: '14px 18px', borderRadius: 12, border: isIncomeExceeded ? '1px solid #feb2b2' : '1px solid #bbf7d0', display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-                <div style={{ width: 22, height: 22, borderRadius: '50%', background: isIncomeExceeded ? '#fed7d7' : '#dcfce7', color: isIncomeExceeded ? '#c53030' : '#15803d', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 12, flexShrink: 0 }}>i</div>
+              <div style={{ background: '#f0fdf4', padding: '14px 18px', borderRadius: 12, border: '1px solid #bbf7d0', display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+                <div style={{ width: 22, height: 22, borderRadius: '50%', background: '#dcfce7', color: '#15803d', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 12, flexShrink: 0 }}>i</div>
                 <div>
-                  <p style={{ margin: '0 0 2px', fontSize: 13, fontWeight: 700, color: isIncomeExceeded ? '#9b2c2c' : '#14532d' }}>Validation Rule</p>
-                  <p style={{ margin: 0, fontSize: 12, color: isIncomeExceeded ? '#9b2c2c' : '#166534', lineHeight: 1.5 }}>
-                    {isIncomeExceeded
-                      ? `Scheme "${selectedScheme?.schemeName}" is strictly restricted to applicants with annual income up to ₹${Number(selectedScheme?.maxIncome).toLocaleString('en-IN')}.`
-                      : 'Income details are cross-referenced with Revenue Department certificates to compute automated eligibility scores.'}
+                  <p style={{ margin: '0 0 2px', fontSize: 13, fontWeight: 700, color: '#14532d' }}>Validation Rule</p>
+                  <p style={{ margin: 0, fontSize: 12, color: '#166534', lineHeight: 1.5 }}>
+                    Income details are cross-referenced with Revenue Department certificates to compute automated eligibility scores.
                   </p>
                 </div>
               </div>
@@ -1205,11 +1291,7 @@ Verified & Issued by CivicPulse e-Governance Platform
                   </span>
                 ) : !isFormValid ? (
                   <span style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#fffbeb', color: '#92400e', padding: '8px 14px', borderRadius: 10, border: '1px solid #fde68a', fontSize: 12, fontWeight: 700 }}>
-                    <AlertTriangle className="w-4 h-4 text-amber-600" /> Complete all required profile fields (* scheme, Aadhaar, age, income) to proceed.
-                  </span>
-                ) : (isIncomeExceeded || isAgeExceeded) ? (
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#fef2f2', color: '#991b1b', padding: '8px 14px', borderRadius: 10, border: '1px solid #fecaca', fontSize: 12, fontWeight: 700 }}>
-                    <AlertTriangle className="w-4 h-4 text-red-600" /> Eligibility Warning: Entered {isIncomeExceeded ? 'income' : 'age'} exceeds scheme criteria. Will be flagged as NOT ELIGIBLE.
+                    <AlertTriangle className="w-4 h-4 text-amber-600" /> Please satisfy all eligibility requirements in the checklist above to submit.
                   </span>
                 ) : (
                   <span style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#f0fdf4', color: '#166534', padding: '8px 14px', borderRadius: 10, border: '1px solid #bbf7d0', fontSize: 12, fontWeight: 700 }}>

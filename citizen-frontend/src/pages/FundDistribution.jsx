@@ -1,20 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import api from '../api.js';
-import keycloak from '../keycloak.js';
 import AppShell from '../components/AppShell.jsx';
-import { toast } from 'sonner';
-import { DollarSign, Clock, Send, CheckCircle, X } from 'lucide-react';
-
-function getPaymentBadgeVariant(s) {
-  if (s === 'COMPLETED') return { bg: '#f0fdf4', text: '#15803d', border: '#bbf7d0' };
-  if (s === 'FAILED') return { bg: '#fef2f2', text: '#dc2626', border: '#fecaca' };
-  return { bg: '#eff6ff', text: '#2563eb', border: '#bfdbfe' }; // PENDING
-}
-
-function fmt(n) {
-  if (!n) return '₹0';
-  return '₹' + Number(n).toLocaleString('en-IN');
-}
+import { 
+  DollarSign, CheckCircle2, CheckCircle, Download, FileText, Search, X, Hash, Calendar, Building2, Layers, Check, ShieldCheck, Landmark, Clock
+} from 'lucide-react';
 
 function StatCard({ label, value, icon: Icon, color }) {
   return (
@@ -38,62 +27,48 @@ function StatCard({ label, value, icon: Icon, color }) {
 }
 
 export default function FundDistribution() {
-  const roles = keycloak.tokenParsed?.realm_access?.roles || [];
-  const isFinance = roles.includes('FINANCE_OFFICER') || roles.includes('finance_officer');
-  const isAdmin = roles.includes('ADMIN') || roles.includes('admin');
-  const canDisburse = isFinance || isAdmin;
-
-  const [disbursements, setDisbursements] = useState([]);
-  const [approvedBeneficiaries, setApprovedBeneficiaries] = useState([]);
+  const [payments, setPayments] = useState([]);
   const [schemes, setSchemes] = useState({});
   const [loading, setLoading] = useState(true);
   
-  const [showDisburseForm, setShowDisburseForm] = useState(false);
-  const [disburseForm, setDisburseForm] = useState({ beneficiaryId: '', amount: '', paymentMode: 'BANK_TRANSFER' });
-  const [disbursing, setDisbursing] = useState(false);
+  const [search, setSearch] = useState('');
+  const [receiptModal, setReceiptModal] = useState(null);
 
   const load = async () => {
     setLoading(true);
     try {
-      const [dRes, sRes] = await Promise.all([
-        api.get('/welfare-service/api/welfare/disbursements'),
+      const [bRes, sRes] = await Promise.all([
+        api.get('/welfare-service/api/welfare/beneficiaries/all'),
         api.get('/welfare-service/api/welfare/schemes'),
       ]);
-      setDisbursements(dRes.data || []);
       const schemeMap = {};
       (sRes.data || []).forEach(s => { schemeMap[s.schemeId] = s.schemeName; });
       setSchemes(schemeMap);
 
-      if (canDisburse) {
-        const bRes = await api.get('/welfare-service/api/welfare/beneficiaries/pending');
-        setApprovedBeneficiaries((bRes.data || []).filter(b => b.status === 'APPROVED'));
-      }
+      const dbtPayments = (bRes.data || []).filter(b => 
+        ['COMPLETED', 'FUNDS_DISBURSED'].includes(b.status) && b.transactionId
+      );
+      setPayments(dbtPayments);
     } catch { }
     setLoading(false);
   };
 
   useEffect(() => { load(); }, []);
 
-  const totalDisbursed = disbursements.filter(d => d.paymentStatus === 'COMPLETED')
-    .reduce((sum, d) => sum + Number(d.amount || 0), 0);
-  const pendingCount = disbursements.filter(d => d.paymentStatus === 'PENDING').length;
+  const filtered = useMemo(() => {
+    return payments.filter(p => {
+      if (!search) return true;
+      const term = search.toLowerCase();
+      return (p.transactionId?.toLowerCase().includes(term) ||
+              p.beneficiaryCode?.toLowerCase().includes(term) ||
+              p.applicantName?.toLowerCase().includes(term));
+    });
+  }, [payments, search]);
 
-  const handleDisburse = async () => {
-    setDisbursing(true);
-    try {
-      await api.post('/welfare-service/api/welfare/disbursements', {
-        beneficiaryId: disburseForm.beneficiaryId,
-        amount: Number(disburseForm.amount),
-        paymentMode: disburseForm.paymentMode,
-      });
-      toast.success('Funds disbursed successfully!');
-      setShowDisburseForm(false);
-      setDisburseForm({ beneficiaryId: '', amount: '', paymentMode: 'BANK_TRANSFER' });
-      load();
-    } catch (e) {
-      toast.error(e.response?.data?.error || 'Disbursement failed');
-    } finally { setDisbursing(false); }
-  };
+  const totalAmount = payments.reduce((sum, p) => sum + Number(p.disbursedAmount || 0), 0);
+  
+  const todayStr = new Date().toISOString().split('T')[0];
+  const todayPayments = payments.filter(p => p.approvedDate && p.approvedDate.startsWith(todayStr)).length;
 
   const thStyle = {
     padding: '12px 14px', fontSize: 11, fontWeight: 700, color: '#475569',
@@ -102,7 +77,7 @@ export default function FundDistribution() {
   };
 
   return (
-    <AppShell title="Fund Distribution">
+    <AppShell title="Payment History">
       <div style={{ display: 'flex', flexDirection: 'column', gap: 22, paddingBottom: 40 }}>
 
         {/* ── Page Header ──────────────────────────────────────────────────── */}
@@ -118,31 +93,21 @@ export default function FundDistribution() {
             </div>
             <div>
               <h1 style={{ fontSize: 20, fontWeight: 800, color: '#0f172a', margin: 0 }}>
-                Fund Distribution
+                Payment History
               </h1>
               <p style={{ fontSize: 13, color: '#64748b', margin: 0, marginTop: 2 }}>
-                Manage and track welfare disbursements.
+                Track every Direct Benefit Transfer (DBT) transaction.
               </p>
             </div>
           </div>
-          {canDisburse && (
-            <button onClick={() => setShowDisburseForm(true)} style={{
-              display: 'flex', alignItems: 'center', gap: 6, padding: '8px 18px',
-              borderRadius: 9, background: 'linear-gradient(135deg,#10b981,#059669)',
-              color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', border: 'none',
-              boxShadow: '0 4px 12px rgba(16,185,129,0.35)',
-            }}>
-              <Send size={15} /> Disburse Funds
-            </button>
-          )}
         </div>
 
         {/* ── Stats Row ────────────────────────────────────────────────────── */}
         <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
-          <StatCard label="Total Disbursed" value={fmt(totalDisbursed)} icon={DollarSign} color="#10b981" />
-          <StatCard label="Completed Payments" value={disbursements.filter(d => d.paymentStatus === 'COMPLETED').length} icon={CheckCircle} color="#3b82f6" />
-          <StatCard label="Pending Payments" value={pendingCount} icon={Clock} color="#f59e0b" />
-          <StatCard label="Approved Awaiting Payment" value={approvedBeneficiaries.length} icon={Send} color="#ec4899" />
+          <StatCard label="Total Payments" value={payments.length} icon={FileText} color="#3b82f6" />
+          <StatCard label="Today's Payments" value={todayPayments} icon={Calendar} color="#f59e0b" />
+          <StatCard label="Total Amount Disbursed" value={`₹${totalAmount.toLocaleString('en-IN')}`} icon={DollarSign} color="#10b981" />
+          <StatCard label="Pending Payments" value={0} icon={Clock} color="#64748b" />
         </div>
 
         {/* ── Main Card ────────────────────────────────────────────────────── */}
@@ -150,13 +115,26 @@ export default function FundDistribution() {
           background: '#fff', borderRadius: 16, border: '1.5px solid #e2e8f0',
           boxShadow: '0 2px 12px rgba(15,23,42,0.07)', overflow: 'hidden',
         }}>
-          {/* Header */}
-          <div style={{
-            padding: '16px 18px', borderBottom: '2px solid #f1f5f9', background: '#fafbfc',
-          }}>
-            <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: '#1e293b' }}>
-              All Disbursements ({disbursements.length})
-            </h3>
+          {/* Toolbar */}
+          <div style={{ padding: '14px 18px', borderBottom: '2px solid #f1f5f9', display: 'flex', gap: 10, alignItems: 'center', background: '#fafbfc' }}>
+            <div style={{ position: 'relative', flex: '1 1 200px', maxWidth: 400 }}>
+              <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+              <input
+                placeholder="Search by Transaction ID, Beneficiary ID or Name..." value={search} onChange={e => setSearch(e.target.value)}
+                style={{
+                  width: '100%', padding: '8px 10px 8px 32px', border: '1.5px solid #e2e8f0', borderRadius: 9,
+                  fontSize: 13, color: '#1e293b', background: '#fff', outline: 'none', boxSizing: 'border-box',
+                }}
+              />
+              {search && (
+                <button onClick={() => setSearch('')} style={{
+                  position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
+                  background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8',
+                }}>
+                  <X size={13} />
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Table */}
@@ -166,13 +144,13 @@ export default function FundDistribution() {
                 width: 36, height: 36, borderRadius: '50%', margin: '0 auto 12px',
                 border: '3px solid #e2e8f0', borderTopColor: '#f59e0b', animation: 'spin 0.8s linear infinite',
               }} />
-              <div style={{ color: '#64748b', fontSize: 14 }}>Loading disbursements…</div>
+              <div style={{ color: '#64748b', fontSize: 14 }}>Loading payment history…</div>
               <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
             </div>
-          ) : disbursements.length === 0 ? (
+          ) : filtered.length === 0 ? (
             <div style={{ padding: 60, textAlign: 'center' }}>
-              <div style={{ fontSize: 56, marginBottom: 12 }}>💸</div>
-              <div style={{ fontSize: 16, fontWeight: 700, color: '#334155', marginBottom: 6 }}>No disbursements yet</div>
+              <div style={{ fontSize: 56, marginBottom: 12 }}>💳</div>
+              <div style={{ fontSize: 16, fontWeight: 700, color: '#334155', marginBottom: 6 }}>No transactions found</div>
             </div>
           ) : (
             <div style={{ overflowX: 'auto' }}>
@@ -180,98 +158,146 @@ export default function FundDistribution() {
                 <thead>
                   <tr>
                     <th style={thStyle}>Transaction ID</th>
-                    <th style={thStyle}>Beneficiary ID</th>
+                    <th style={thStyle}>Beneficiary</th>
                     <th style={thStyle}>Scheme</th>
                     <th style={thStyle}>Amount</th>
-                    <th style={thStyle}>Payment Mode</th>
-                    <th style={thStyle}>Status</th>
                     <th style={thStyle}>Date</th>
-                    <th style={thStyle}>Approved By</th>
+                    <th style={thStyle}>Status</th>
+                    <th style={{ ...thStyle, width: 120 }}>Receipt</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {disbursements.map(d => {
-                    const badge = getPaymentBadgeVariant(d.paymentStatus);
-                    return (
-                      <tr key={d.disbursementId} style={{ borderBottom: '1px solid #f1f5f9' }} onMouseEnter={e => e.currentTarget.style.background = '#f8fafc'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                        <td style={{ padding: '13px 14px', fontFamily: 'monospace', fontWeight: 700, color: '#3b82f6', fontSize: 12 }}>{d.transactionId}</td>
-                        <td style={{ padding: '13px 14px', fontFamily: 'monospace', fontSize: 12, color: '#64748b' }}>{d.beneficiaryId?.substring(0, 8)}...</td>
-                        <td style={{ padding: '13px 14px', color: '#1e293b', fontSize: 13, fontWeight: 600 }}>{schemes[d.schemeId] || d.schemeId?.substring(0, 8)}</td>
-                        <td style={{ padding: '13px 14px', fontWeight: 800, color: '#10b981', fontSize: 14 }}>{fmt(d.amount)}</td>
-                        <td style={{ padding: '13px 14px', fontWeight: 600, color: '#475569', fontSize: 12 }}>{d.paymentMode?.replace('_', ' ')}</td>
-                        <td style={{ padding: '13px 14px' }}>
-                          <span style={{
-                            display: 'inline-flex', alignItems: 'center', padding: '3px 9px', borderRadius: 20,
-                            background: badge.bg, color: badge.text, border: `1px solid ${badge.border}`, fontSize: 11, fontWeight: 700,
-                          }}>
-                            {d.paymentStatus}
-                          </span>
-                        </td>
-                        <td style={{ padding: '13px 14px', color: '#64748b', fontSize: 12, fontWeight: 500 }}>
-                          {d.disbursedDate ? new Date(d.disbursedDate).toLocaleDateString('en-IN') : '—'}
-                        </td>
-                        <td style={{ padding: '13px 14px', color: '#475569', fontSize: 13, fontWeight: 600 }}>{d.approvedBy || '—'}</td>
-                      </tr>
-                    );
-                  })}
+                  {filtered.map(p => (
+                    <tr key={p.beneficiaryId} style={{ borderBottom: '1px solid #f1f5f9' }} onMouseEnter={e => e.currentTarget.style.background = '#f8fafc'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                      <td style={{ padding: '13px 14px', fontFamily: 'monospace', fontWeight: 700, color: '#3b82f6', fontSize: 13 }}>
+                        {p.transactionId}
+                      </td>
+                      <td style={{ padding: '13px 14px' }}>
+                        <div style={{ fontWeight: 700, color: '#1e293b', fontSize: 13 }}>{p.applicantName}</div>
+                        <div style={{ fontSize: 11, color: '#64748b', fontFamily: 'monospace' }}>{p.beneficiaryCode}</div>
+                      </td>
+                      <td style={{ padding: '13px 14px', color: '#475569', fontSize: 13, fontWeight: 500 }}>
+                        {schemes[p.schemeId] || p.schemeId?.substring(0, 8)}
+                      </td>
+                      <td style={{ padding: '13px 14px', fontWeight: 800, color: '#059669', fontSize: 14 }}>
+                        ₹{Number(p.disbursedAmount || 0).toLocaleString('en-IN')}
+                      </td>
+                      <td style={{ padding: '13px 14px', color: '#64748b', fontSize: 13, fontWeight: 500 }}>
+                        {p.approvedDate ? new Date(p.approvedDate).toLocaleDateString('en-IN') : '—'}
+                      </td>
+                      <td style={{ padding: '13px 14px' }}>
+                        <span style={{
+                          display: 'inline-flex', alignItems: 'center', padding: '3px 9px', borderRadius: 20,
+                          background: '#f0fdf4', color: '#15803d', border: '1px solid #bbf7d0', fontSize: 11, fontWeight: 700,
+                        }}>
+                          {p.fundTransferStatus || 'SUCCESS'}
+                        </span>
+                      </td>
+                      <td style={{ padding: '13px 14px' }}>
+                        <button onClick={() => setReceiptModal(p)} style={{
+                          display: 'inline-flex', alignItems: 'center', gap: 5, padding: '6px 12px', borderRadius: 8,
+                          background: '#f1f5f9', color: '#1e293b', fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                          border: '1px solid #e2e8f0', transition: 'background 0.2s'
+                        }} onMouseEnter={e => e.currentTarget.style.background = '#e2e8f0'} onMouseLeave={e => e.currentTarget.style.background = '#f1f5f9'}>
+                          <Download size={13} /> Download
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
           )}
         </div>
 
-        {/* Disburse Modal */}
-        {showDisburseForm && (
+        {/* Digital Receipt Modal */}
+        {receiptModal && (
           <div style={{
             position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(15,23,42,0.6)', backdropFilter: 'blur(4px)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
           }}>
             <div style={{
-              background: '#fff', borderRadius: 16, width: '100%', maxWidth: 450,
-              display: 'flex', flexDirection: 'column', boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
+              background: '#f8fafc', borderRadius: 16, width: '100%', maxWidth: 500, maxHeight: '90vh',
+              display: 'flex', flexDirection: 'column', boxShadow: '0 20px 40px rgba(0,0,0,0.2)', overflow: 'hidden'
             }}>
-              <div style={{ padding: '20px 24px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: '#0f172a' }}>Disburse Funds</h3>
-                <button onClick={() => setShowDisburseForm(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}><X size={20} /></button>
+              
+              <div style={{ padding: '24px 32px', overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: 24, background: '#fff' }}>
+                
+                <div style={{ textAlign: 'center', borderBottom: '2px dashed #e2e8f0', paddingBottom: 20 }}>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 48, height: 48, borderRadius: '50%', background: '#f0fdf4', color: '#16a34a', marginBottom: 12 }}>
+                    <Landmark size={24} />
+                  </div>
+                  <h2 style={{ margin: 0, fontSize: 18, fontWeight: 900, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Government of India</h2>
+                  <div style={{ fontSize: 13, color: '#64748b', fontWeight: 600, marginTop: 4 }}>Direct Benefit Transfer Receipt</div>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12, fontSize: 13 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: 8, borderBottom: '1px solid #f1f5f9' }}>
+                    <span style={{ color: '#64748b', fontWeight: 600 }}>Transaction ID</span>
+                    <strong style={{ color: '#0f172a', fontFamily: 'monospace', fontSize: 14 }}>{receiptModal.transactionId}</strong>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: 8, borderBottom: '1px solid #f1f5f9' }}>
+                    <span style={{ color: '#64748b', fontWeight: 600 }}>Beneficiary ID</span>
+                    <strong style={{ color: '#0f172a', fontFamily: 'monospace' }}>{receiptModal.beneficiaryCode}</strong>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: 8, borderBottom: '1px solid #f1f5f9' }}>
+                    <span style={{ color: '#64748b', fontWeight: 600 }}>Beneficiary Name</span>
+                    <strong style={{ color: '#0f172a' }}>{receiptModal.applicantName}</strong>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: 8, borderBottom: '1px solid #f1f5f9' }}>
+                    <span style={{ color: '#64748b', fontWeight: 600 }}>Scheme</span>
+                    <strong style={{ color: '#0f172a', textAlign: 'right', maxWidth: 200 }}>{schemes[receiptModal.schemeId] || receiptModal.schemeId}</strong>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: 8, borderBottom: '1px solid #f1f5f9' }}>
+                    <span style={{ color: '#64748b', fontWeight: 600 }}>Department</span>
+                    <strong style={{ color: '#0f172a', textAlign: 'right', maxWidth: 200 }}>{receiptModal.assignedDepartment || 'Government Dept'}</strong>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: 8, borderBottom: '1px solid #f1f5f9' }}>
+                    <span style={{ color: '#64748b', fontWeight: 600 }}>Approved By</span>
+                    <strong style={{ color: '#0f172a' }}>Admin Official</strong>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: 8, borderBottom: '1px solid #f1f5f9' }}>
+                    <span style={{ color: '#64748b', fontWeight: 600 }}>Amount</span>
+                    <strong style={{ color: '#059669', fontSize: 16, fontWeight: 900 }}>₹{Number(receiptModal.disbursedAmount || 0).toLocaleString('en-IN')}</strong>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: 8, borderBottom: '1px solid #f1f5f9' }}>
+                    <span style={{ color: '#64748b', fontWeight: 600 }}>Transfer Date</span>
+                    <strong style={{ color: '#0f172a' }}>{receiptModal.approvedDate ? new Date(receiptModal.approvedDate).toLocaleString('en-IN') : '—'}</strong>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: 8, borderBottom: '1px solid #f1f5f9' }}>
+                    <span style={{ color: '#64748b', fontWeight: 600 }}>Reference Number</span>
+                    <strong style={{ color: '#0f172a', fontFamily: 'monospace' }}>{receiptModal.paymentReference || '—'}</strong>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: 8, borderBottom: '1px solid #f1f5f9', alignItems: 'center' }}>
+                    <span style={{ color: '#64748b', fontWeight: 600 }}>Status</span>
+                    <span style={{ background: '#f0fdf4', color: '#15803d', border: '1px solid #bbf7d0', padding: '2px 8px', borderRadius: 4, fontSize: 11, fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                      <Check size={12} /> {receiptModal.fundTransferStatus || 'SUCCESS'}
+                    </span>
+                  </div>
+                </div>
+
+                <div style={{ textAlign: 'center', color: '#94a3b8', fontSize: 11, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 8 }}>
+                  <ShieldCheck size={14} /> Digitally Generated Receipt
+                </div>
+
               </div>
               
-              <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#475569', marginBottom: 6 }}>Approved Beneficiary *</label>
-                  <select value={disburseForm.beneficiaryId} onChange={e => setDisburseForm(f => ({ ...f, beneficiaryId: e.target.value }))} style={{ width: '100%', padding: '10px 12px', border: '1.5px solid #cbd5e1', borderRadius: 8, fontSize: 14, color: '#1e293b', boxSizing: 'border-box', outline: 'none', background: '#fff' }}>
-                    <option value="" disabled>Select beneficiary...</option>
-                    {approvedBeneficiaries.map(b => (
-                      <option key={b.beneficiaryId} value={b.beneficiaryId}>{b.beneficiaryCode} — {b.applicantName}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#475569', marginBottom: 6 }}>Amount (₹) *</label>
-                  <input type="number" value={disburseForm.amount} onChange={e => setDisburseForm(f => ({ ...f, amount: e.target.value }))} style={{ width: '100%', padding: '10px 12px', border: '1.5px solid #cbd5e1', borderRadius: 8, fontSize: 14, color: '#1e293b', boxSizing: 'border-box', outline: 'none' }} />
-                </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#475569', marginBottom: 6 }}>Payment Mode *</label>
-                  <select value={disburseForm.paymentMode} onChange={e => setDisburseForm(f => ({ ...f, paymentMode: e.target.value }))} style={{ width: '100%', padding: '10px 12px', border: '1.5px solid #cbd5e1', borderRadius: 8, fontSize: 14, color: '#1e293b', boxSizing: 'border-box', outline: 'none', background: '#fff' }}>
-                    <option value="BANK_TRANSFER">Bank Transfer</option>
-                    <option value="CHEQUE">Cheque</option>
-                    <option value="CASH">Cash</option>
-                  </select>
-                </div>
-              </div>
-
-              <div style={{ padding: '16px 24px', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'flex-end', gap: 12, background: '#f8fafc', borderRadius: '0 0 16px 16px' }}>
-                <button onClick={() => setShowDisburseForm(false)} style={{
-                  padding: '8px 16px', borderRadius: 8, border: '1.5px solid #cbd5e1', background: '#fff', fontSize: 14, fontWeight: 600, color: '#475569', cursor: 'pointer'
-                }}>Cancel</button>
-                <button onClick={handleDisburse} disabled={disbursing || !disburseForm.beneficiaryId || !disburseForm.amount} style={{
-                  padding: '8px 16px', borderRadius: 8, border: 'none', background: '#10b981', fontSize: 14, fontWeight: 600, color: '#fff', cursor: 'pointer', opacity: (disbursing || !disburseForm.beneficiaryId || !disburseForm.amount) ? 0.7 : 1
+              <div style={{ padding: '16px 24px', background: '#f8fafc', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+                <button onClick={() => setReceiptModal(null)} style={{
+                  padding: '10px 20px', borderRadius: 8, background: '#fff', color: '#475569', border: '1px solid #cbd5e1',
+                  fontSize: 14, fontWeight: 700, cursor: 'pointer', flex: 1
+                }}>Close</button>
+                <button onClick={() => { window.print(); }} style={{
+                  padding: '10px 20px', borderRadius: 8, background: '#1e293b', color: '#fff', border: 'none',
+                  fontSize: 14, fontWeight: 700, cursor: 'pointer', flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8
                 }}>
-                  {disbursing ? 'Processing...' : 'Disburse'}
+                  <Download size={16} /> Save / Print
                 </button>
               </div>
             </div>
           </div>
         )}
+
       </div>
     </AppShell>
   );

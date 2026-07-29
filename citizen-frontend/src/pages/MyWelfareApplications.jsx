@@ -8,9 +8,11 @@ import { Badge } from '../components/Badge.jsx';
 import { Link } from 'react-router-dom';
 import { 
   FilePlus, CheckCircle2, Clock, 
-  ShieldCheck, AlertCircle, ChevronDown, ChevronUp, FileText, Download, Upload, ThumbsUp, FileQuestion, RefreshCw, Printer, User, Building2, Edit3, Trash2, XCircle
+  ShieldCheck, AlertCircle, ChevronDown, ChevronUp, FileText, Download, Upload, ThumbsUp, FileQuestion, RefreshCw, Printer, User, Building2, Edit3, Trash2, XCircle, Search, Filter, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { jsPDF } from "jspdf";
+import autoTable from "jspdf-autotable";
 
 function getStageIndex(status) {
   if (status === 'DRAFT') return 0;
@@ -51,6 +53,12 @@ export default function MyWelfareApplications() {
 
   // Resubmit Docs State
   const [resubmittingFile, setResubmittingFile] = useState({});
+
+  // Filtering, Sorting, Pagination
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState('newest');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
 
   const loadData = () => {
     if (!citizenId) return;
@@ -137,43 +145,126 @@ export default function MyWelfareApplications() {
 
   const handleDownloadReceipt = (app) => {
     const scheme = schemes[app.schemeId];
-    const receiptContent = `
-================================================================================
-          GOVERNMENT OF INDIA — DIRECT BENEFIT TRANSFER (DBT) RECEIPT
-================================================================================
-Receipt Number      : REC-${app.beneficiaryCode}
-Transaction ID      : ${app.transactionId || 'DBT-2026-000001'}
-Payment Reference   : ${app.paymentReference || 'REF-DBT-SUCCESS'}
-Beneficiary Code    : ${app.beneficiaryCode}
-Beneficiary Name    : ${app.applicantName}
-Aadhaar Number      : ${app.applicantAadhaar}
-Scheme Name         : ${scheme?.schemeName || 'Welfare Scheme'}
-Department          : ${app.assignedDepartment || scheme?.department || 'Government Department'}
-Disbursed Amount    : ₹${Number(app.disbursedAmount || 25000).toLocaleString('en-IN')}.00
-Bank Name           : ${app.bankName || 'State Bank of India'}
-Masked Account No   : **** **** ${(app.accountNumber || '12345678901').slice(-4)}
-IFSC Code           : ${app.ifscCode || 'SBIN0001234'}
-Date of Transfer    : ${app.approvedDate ? new Date(app.approvedDate).toLocaleString('en-IN') : new Date().toLocaleString('en-IN')}
-Status              : SUCCESSFUL (CREDITED VIA DBT)
-Assigned Officer    : ${app.assignedOfficer || 'Department Officer'}
-Approved By         : System Administrator
-================================================================================
-Verified & Certified by CivicPulse e-Governance Platform
-================================================================================
-`;
-    const element = document.createElement("a");
-    const file = new Blob([receiptContent], { type: 'text/plain' });
-    element.href = URL.createObjectURL(file);
-    element.download = `DBT_Payment_Receipt_${app.beneficiaryCode}.txt`;
-    document.body.appendChild(element);
-    element.click();
-    document.body.removeChild(element);
+    
+    const doc = new jsPDF({ format: 'a4', unit: 'mm' });
+    const pageWidth = doc.internal.pageSize.getWidth();
+    
+    // Page Border
+    doc.setDrawColor(22, 163, 74);
+    doc.setLineWidth(1);
+    doc.rect(5, 5, pageWidth - 10, doc.internal.pageSize.getHeight() - 10);
+    
+    // Header Banner Background (Green theme for successful disbursement)
+    doc.setFillColor(22, 163, 74); // Green-600
+    doc.rect(5, 5, pageWidth - 10, 40, 'F');
+    
+    // Header Text
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(26);
+    doc.setFont('helvetica', 'bold');
+    doc.text("GOVERNMENT OF INDIA", pageWidth / 2, 22, { align: 'center', charSpace: 1.5 });
+    
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'normal');
+    doc.text("DIRECT BENEFIT TRANSFER (DBT) OFFICIAL RECEIPT", pageWidth / 2, 32, { align: 'center', charSpace: 0.5 });
+    
+    // Watermark
+    doc.setTextColor(240, 253, 244); // Light green watermark
+    doc.setFontSize(65);
+    doc.text("SUCCESSFUL DBT", pageWidth / 2, 160, { align: 'center', angle: -45 });
+    
+    // Transaction Highlight Box
+    doc.setDrawColor(22, 163, 74);
+    doc.setFillColor(240, 253, 244);
+    doc.setLineWidth(0.5);
+    doc.rect(14, 55, pageWidth - 28, 28, 'FD');
+    
+    doc.setTextColor(21, 128, 61);
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.text("DBT TRANSACTION ID:", 20, 65);
+    
+    doc.setFontSize(17);
+    doc.setFont('courier', 'bold');
+    doc.text(app.transactionId || 'DBT-2026-000001', 20, 75);
+    
+    // Fix Rupee Symbol by using INR to avoid charset issues in standard jsPDF fonts
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(100, 116, 139);
+    doc.text("DISBURSED AMOUNT:", pageWidth - 20, 65, { align: 'right' });
+    
+    doc.setFontSize(17);
+    doc.setTextColor(22, 163, 74);
+    doc.text(`INR ${Number(app.disbursedAmount || 25000).toLocaleString('en-IN')}.00`, pageWidth - 20, 75, { align: 'right' });
+    
+    // Draw a fake barcode for premium feel
+    doc.setFillColor(15, 23, 42);
+    for(let i=0; i<30; i++) {
+        const width = Math.random() > 0.5 ? 1 : 2.5;
+        doc.rect(20 + (i*2.2), 90, width, 12, 'F');
+    }
+    doc.setFontSize(8);
+    doc.setFont('courier', 'normal');
+    doc.text(`*${app.beneficiaryCode}*`, 35, 106);
+    
+    // "CERTIFIED" Stamp
+    doc.setDrawColor(22, 163, 74);
+    doc.setTextColor(22, 163, 74);
+    doc.setLineWidth(1);
+    doc.circle(pageWidth - 35, 100, 12, 'S');
+    doc.circle(pageWidth - 35, 100, 11, 'S');
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    doc.text("CERTIFIED", pageWidth - 35, 101, { align: 'center' });
+
+    // AutoTable for Details
+    autoTable(doc, {
+      startY: 115,
+      theme: 'grid',
+      headStyles: { fillColor: [22, 163, 74], textColor: 255, fontStyle: 'bold', fontSize: 11 },
+      alternateRowStyles: { fillColor: [248, 250, 252] },
+      columnStyles: { 
+          0: { fontStyle: 'bold', cellWidth: 65, fillColor: [241, 245, 249], textColor: [15, 23, 42] },
+          1: { textColor: [51, 65, 85] }
+      },
+      body: [
+        ['Receipt Number', `REC-${app.beneficiaryCode}`],
+        ['Payment Reference', app.paymentReference || 'REF-DBT-SUCCESS'],
+        ['Beneficiary Name', app.applicantName],
+        ['Aadhaar Number', app.applicantAadhaar],
+        ['Scheme Name', scheme?.schemeName || 'Welfare Scheme'],
+        ['Department', app.assignedDepartment || scheme?.department || 'Government Department'],
+        ['Bank Name', app.bankName || 'State Bank of India'],
+        ['Masked Account No.', `**** **** ${(app.accountNumber || '12345678901').slice(-4)}`],
+        ['IFSC Code', app.ifscCode || 'SBIN0001234'],
+        ['Date of Transfer', app.approvedDate ? new Date(app.approvedDate).toLocaleString('en-IN') : new Date().toLocaleString('en-IN')],
+        ['Transaction Status', 'SUCCESSFUL (CREDITED VIA DBT)'],
+        ['Assigned Officer', app.assignedOfficer || 'Department Officer'],
+        ['Approved By', 'System Administrator']
+      ],
+    });
+    
+    // Footer
+    const finalY = doc.lastAutoTable.finalY || 200;
+    doc.setDrawColor(203, 213, 225);
+    doc.setLineWidth(0.5);
+    doc.line(14, finalY + 15, pageWidth - 14, finalY + 15);
+    
+    doc.setTextColor(100, 116, 139);
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'italic');
+    doc.text("Verified & Certified by CivicPulse e-Governance Platform.", pageWidth / 2, finalY + 25, { align: 'center' });
+    
+    doc.setFontSize(8);
+    doc.text("This is an electronically generated DBT payment receipt and does not require a physical signature.", pageWidth / 2, finalY + 31, { align: 'center' });
+    
+    doc.save(`DBT_Payment_Receipt_${app.beneficiaryCode}.pdf`);
     toast.success(`Downloaded Official Payment Receipt for ${app.beneficiaryCode}`);
   };
 
   const handlePrintReceipt = (app) => {
     handleDownloadReceipt(app);
-    window.print();
   };
 
   const getOfficerInfo = (dept) => {
@@ -182,6 +273,32 @@ Verified & Certified by CivicPulse e-Governance Platform
     if (dept === 'Health Department') return { name: 'John Smith', role: 'Health Assistance Officer', avatar: 'JS' };
     return { name: 'Department Officer', role: 'Welfare Verification Officer', avatar: 'DO' };
   };
+
+  const filteredApps = applications.filter(app => {
+    if (!searchQuery) return true;
+    const s = schemes[app.schemeId];
+    const name = s?.schemeName || '';
+    return name.toLowerCase().includes(searchQuery.toLowerCase());
+  });
+
+  const sortedApps = filteredApps.sort((a, b) => {
+    if (sortBy === 'newest') {
+      return new Date(b.appliedDate || 0) - new Date(a.appliedDate || 0);
+    } else if (sortBy === 'oldest') {
+      return new Date(a.appliedDate || 0) - new Date(b.appliedDate || 0);
+    } else if (sortBy === 'status') {
+      return (a.status || '').localeCompare(b.status || '');
+    }
+    return 0;
+  });
+
+  const totalPages = Math.ceil(sortedApps.length / itemsPerPage);
+  const paginatedApps = sortedApps.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  // Reset page when search or sort changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, sortBy]);
 
   return (
     <AppShell title="My Welfare Applications">
@@ -240,6 +357,35 @@ Verified & Certified by CivicPulse e-Governance Platform
           </div>
         </div>
 
+        {/* Filter and Search Bar */}
+        <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', background: '#fff', padding: '16px 24px', borderRadius: 16, border: '1.5px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: '1 1 300px' }}>
+            <div style={{ position: 'relative', flex: 1 }}>
+              <Search size={18} color="#64748b" style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)' }} />
+              <input 
+                type="text" 
+                placeholder="Search by Scheme Name..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={{ width: '100%', padding: '10px 14px 10px 40px', borderRadius: 10, border: '1.5px solid #cbd5e1', fontSize: 14, outline: 'none' }}
+              />
+            </div>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <Filter size={18} color="#64748b" />
+            <span style={{ fontSize: 14, fontWeight: 700, color: '#475569' }}>Sort by:</span>
+            <select 
+              value={sortBy} 
+              onChange={(e) => setSortBy(e.target.value)}
+              style={{ padding: '10px 14px', borderRadius: 10, border: '1.5px solid #cbd5e1', fontSize: 14, outline: 'none', background: '#fff', cursor: 'pointer', fontWeight: 600, color: '#0f172a' }}
+            >
+              <option value="newest">Newest First</option>
+              <option value="oldest">Oldest First</option>
+              <option value="status">Status</option>
+            </select>
+          </div>
+        </div>
+
         {loading ? <PageLoader message="Loading your welfare applications and DBT tracking status..." /> : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
             {applications.length === 0 && (
@@ -248,7 +394,7 @@ Verified & Certified by CivicPulse e-Governance Platform
                   <div style={{ fontSize: '48px', marginBottom: '16px' }}>📋</div>
                   <h3 style={{ margin: '0 0 8px 0', color: '#0f172a', fontWeight: 800 }}>No Welfare Applications Found</h3>
                   <p style={{ color: '#64748b', margin: '0 0 20px 0', fontSize: 14 }}>
-                    You haven't submitted any welfare scheme applications yet.
+                    You haven't submitted any welfare scheme applications yet (or none match your search).
                   </p>
                   <Link to="/welfare/apply" style={{
                     padding: '12px 24px', borderRadius: '10px', backgroundColor: '#2563eb',
@@ -258,7 +404,7 @@ Verified & Certified by CivicPulse e-Governance Platform
               </SectionCard>
             )}
 
-            {applications.map(app => {
+            {paginatedApps.map(app => {
               const scheme = schemes[app.schemeId];
               const historyList = histories[app.beneficiaryId] || [];
               const stageIdx = getStageIndex(app.status);
@@ -586,6 +732,28 @@ Verified & Certified by CivicPulse e-Governance Platform
                 </div>
               );
             })}
+
+            {totalPages > 1 && (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, marginTop: 10 }}>
+                <button 
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  style={{ background: '#fff', border: '1.5px solid #cbd5e1', borderRadius: 10, padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 6, cursor: currentPage === 1 ? 'not-allowed' : 'pointer', opacity: currentPage === 1 ? 0.5 : 1, fontWeight: 700 }}
+                >
+                  <ChevronLeft size={18} /> Prev
+                </button>
+                <div style={{ fontSize: 14, fontWeight: 800, color: '#475569' }}>
+                  Page {currentPage} of {totalPages}
+                </div>
+                <button 
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  style={{ background: '#fff', border: '1.5px solid #cbd5e1', borderRadius: 10, padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 6, cursor: currentPage === totalPages ? 'not-allowed' : 'pointer', opacity: currentPage === totalPages ? 0.5 : 1, fontWeight: 700 }}
+                >
+                  Next <ChevronRight size={18} />
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>

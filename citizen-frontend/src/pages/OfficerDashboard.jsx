@@ -110,11 +110,10 @@ function OfficerDashboard() {
     setIsLoading(true);
     setError(null);
     try {
-      const [statsRes, recentRes, complaintsRes, officersRes] = await Promise.allSettled([
+      const [statsRes, recentRes, complaintsRes] = await Promise.allSettled([
         api.get('/service-management-service/api/services/officer/stats'),
         api.get('/service-management-service/api/services/officer/recent'),
-        api.get('/grievance-service/api/complaints/officer?size=50'),
-        api.get('/service-management-service/api/officers')
+        api.get('/grievance-service/api/complaints/officer?size=50')
       ]);
       
       if (statsRes.status === 'fulfilled') setCertStats(statsRes.value.data);
@@ -124,13 +123,6 @@ function OfficerDashboard() {
       }
       
       let dept = keycloak.tokenParsed?.department || OFFICER_DEPT_MAP[username.toLowerCase()] || '';
-      if (officersRes.status === 'fulfilled') {
-        const officers = officersRes.value.data || [];
-        const me = officers.find(o => o.username?.toLowerCase() === username.toLowerCase());
-        if (me && me.department) {
-          dept = me.department;
-        }
-      }
       setOfficerDept(dept);
       
     } catch (err) {

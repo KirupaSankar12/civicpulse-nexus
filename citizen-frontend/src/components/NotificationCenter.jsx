@@ -45,7 +45,7 @@ function NotificationCenter() {
         .catch(() => setLoading(false));
     };
     fetch();
-    const t = setInterval(fetch, 10000);
+    const t = setInterval(fetch, 2000);
     
     const handleForceRefresh = () => setTimeout(fetch, 500);
     window.addEventListener('refresh-notifications', handleForceRefresh);

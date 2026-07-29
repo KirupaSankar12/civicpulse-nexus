@@ -327,7 +327,17 @@ export default function SchemeManagement() {
               <div style={{ padding: '24px', overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: 16 }}>
                 {[
                   ['schemeName', 'Scheme Name *', 'text'],
-                  ['department', 'Department *', 'text'],
+                  ['department', 'Department *', 'select', [
+                    'Education Department',
+                    'Health Department',
+                    'Social Welfare Department',
+                    'Revenue Department',
+                    'Municipal Corporation',
+                    'Water Department',
+                    'Roads Department',
+                    'Electricity Department',
+                    'Urban Planning Department'
+                  ]],
                   ['description', 'Description', 'text'],
                   ['eligibilityCriteria', 'Eligibility Criteria', 'text'],
                   ['budgetAllocated', 'Budget Allocated (₹) *', 'number'],
@@ -335,20 +345,37 @@ export default function SchemeManagement() {
                   ['maxIncome', 'Max Annual Income (₹)', 'number'],
                   ['minAge', 'Min Age', 'number'],
                   ['maxAge', 'Max Age', 'number'],
-                ].map(([field, label, type]) => (
+                ].map(([field, label, type, options]) => (
                   <div key={field}>
                     <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#475569', marginBottom: 6 }}>{label}</label>
-                    <input
-                      type={type}
-                      value={form[field]}
-                      onChange={e => setForm(f => ({ ...f, [field]: e.target.value }))}
-                      style={{
-                        width: '100%', padding: '10px 12px', border: '1.5px solid #cbd5e1', borderRadius: 8,
-                        fontSize: 14, color: '#1e293b', boxSizing: 'border-box', outline: 'none'
-                      }}
-                      onFocus={e => e.target.style.borderColor = '#3b82f6'}
-                      onBlur={e => e.target.style.borderColor = '#cbd5e1'}
-                    />
+                    {type === 'select' ? (
+                      <select
+                        value={form[field]}
+                        onChange={e => setForm(f => ({ ...f, [field]: e.target.value }))}
+                        style={{
+                          width: '100%', padding: '10px 12px', border: '1.5px solid #cbd5e1', borderRadius: 8,
+                          fontSize: 14, color: '#1e293b', boxSizing: 'border-box', outline: 'none', background: '#fff',
+                          cursor: 'pointer'
+                        }}
+                        onFocus={e => e.target.style.borderColor = '#3b82f6'}
+                        onBlur={e => e.target.style.borderColor = '#cbd5e1'}
+                      >
+                        <option value="" disabled>Select Department...</option>
+                        {options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                      </select>
+                    ) : (
+                      <input
+                        type={type}
+                        value={form[field]}
+                        onChange={e => setForm(f => ({ ...f, [field]: e.target.value }))}
+                        style={{
+                          width: '100%', padding: '10px 12px', border: '1.5px solid #cbd5e1', borderRadius: 8,
+                          fontSize: 14, color: '#1e293b', boxSizing: 'border-box', outline: 'none'
+                        }}
+                        onFocus={e => e.target.style.borderColor = '#3b82f6'}
+                        onBlur={e => e.target.style.borderColor = '#cbd5e1'}
+                      />
+                    )}
                   </div>
                 ))}
               </div>

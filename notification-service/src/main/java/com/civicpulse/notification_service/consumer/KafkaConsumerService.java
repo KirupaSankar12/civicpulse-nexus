@@ -217,6 +217,15 @@ public class KafkaConsumerService {
             
             saveNotification(event.getCitizenId(), title, text, 
                     event.getBeneficiaryId(), "WELFARE", "beneficiary-applied", "CITIZEN");
+
+            // Notify assigned officer/department
+            if (event.getDepartment() != null) {
+                notifyDepartmentOfficers(event.getDepartment(), "New Welfare Application Received", 
+                    "A new welfare application (Code: " + event.getBeneficiaryCode() + ") for " + 
+                    (event.getSchemeName() != null ? event.getSchemeName() : "Welfare Scheme") + " has been assigned to your department.", 
+                    event.getBeneficiaryId(), "WELFARE", "beneficiary-applied");
+            }
+
         } catch (Exception e) {
             System.err.println("Failed to process beneficiary-applied: " + e.getMessage());
         }
@@ -307,25 +316,20 @@ public class KafkaConsumerService {
 
     private void notifyDepartmentOfficers(String department, String title, String message, String relatedEntityId, String relatedEntityType, String eventType) {
         if (department == null || department.isBlank()) return;
-        try {
-            // Fetch officers from grievance-service
-            String url = "http://localhost:8083/api/officers/department/" + department;
-            ResponseEntity<List<Map<String, Object>>> response = restTemplate.exchange(
-                    url,
-                    HttpMethod.GET,
-                    null,
-                    new ParameterizedTypeReference<List<Map<String, Object>>>() {}
-            );
+        
+        String username = null;
+        if ("Education Department".equalsIgnoreCase(department)) {
+            username = "emily";
+        } else if ("Social Welfare Department".equalsIgnoreCase(department)) {
+            username = "david";
+        } else if ("Health Department".equalsIgnoreCase(department)) {
+            username = "john";
+        }
 
-            if (response.getBody() != null) {
-                for (Map<String, Object> officer : response.getBody()) {
-                    String username = (String) officer.get("username");
-                    saveNotification(username, title, message, relatedEntityId, relatedEntityType, eventType, "OFFICER");
-                }
-            }
-        } catch (Exception e) {
-            System.err.println("Error fetching officers for department " + department + ": " + e.getMessage());
-            // Fallback: Just notify the department "group" (might not appear on user dashboards but prevents data loss)
+        if (username != null) {
+            saveNotification(username, title, message, relatedEntityId, relatedEntityType, eventType, "OFFICER");
+        } else {
+            // Fallback: Just notify the department "group"
             saveNotification("department:" + department, title, message, relatedEntityId, relatedEntityType, eventType, "OFFICER");
         }
     }

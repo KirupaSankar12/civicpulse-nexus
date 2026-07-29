@@ -129,6 +129,12 @@ public class BeneficiaryController {
         return ResponseEntity.ok(beneficiaryService.getPending());
     }
 
+    // GET /api/welfare/beneficiaries/all
+    @GetMapping("/beneficiaries/all")
+    public ResponseEntity<List<Beneficiary>> getAll() {
+        return ResponseEntity.ok(beneficiaryService.getAll());
+    }
+
     // PUT /api/welfare/beneficiaries/{id}/recommend (Officer Action 1)
     @PutMapping("/beneficiaries/{id}/recommend")
     public ResponseEntity<Beneficiary> recommend(@PathVariable UUID id,

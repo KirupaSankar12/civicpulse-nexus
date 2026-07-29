@@ -49,12 +49,11 @@ const adminGroups = [
   {
     section: 'Welfare & Finance', dot: '#f472b6',
     links: [
-      { to: '/welfare/admin-dashboard', icon: Landmark,      label: 'Admin Financial Release', chip: 'emerald' },
       { to: '/welfare/dashboard',     icon: Heart,         label: 'Welfare Dashboard', chip: 'pink',    exact: true },
       { to: '/welfare/schemes',       icon: Layers,        label: 'Welfare Schemes',   chip: 'pink' },
-      { to: '/welfare/beneficiaries', icon: ClipboardList, label: 'Beneficiary DB',    chip: 'pink' },
-      { to: '/welfare/budgets',       icon: Wallet,        label: 'Budget Control',    chip: 'emerald' },
-      { to: '/welfare/disbursements', icon: Send,          label: 'Disbursements',     chip: 'emerald' },
+      { to: '/welfare/beneficiaries', icon: Users,         label: 'Beneficiaries',     chip: 'pink' },
+      { to: '/welfare/admin-dashboard', icon: Landmark,    label: 'Budget & Fund Approval', chip: 'emerald' },
+      { to: '/welfare/disbursements', icon: FileText,      label: 'Payment History',   chip: 'emerald' },
     ],
   },
   {
@@ -108,7 +107,7 @@ const officerGroups = [
     links: [
       { to: '/officer',                    icon: Inbox,        label: 'Assigned Complaints',   chip: 'orange' },
       { to: '/services/officer/dashboard', icon: CheckCircle2, label: 'Assigned Certificates', chip: 'emerald' },
-      { to: '/welfare/department-dashboard', icon: Building,   label: 'Department Welfare Portal', chip: 'pink' },
+      { to: '/welfare/department-dashboard', icon: Building,   label: 'Department Verification Dashboard', chip: 'pink' },
     ],
   },
 ];
@@ -215,15 +214,7 @@ export default function Sidebar({ collapsed = false, onToggleCollapse }) {
       if (dept) {
         setOfficerDept(dept);
       } else {
-        api.get('/service-management-service/api/officers')
-          .then(res => {
-            const officers = res.data || [];
-            const me = officers.find(o => o.username?.toLowerCase() === username.toLowerCase());
-            if (me && me.department) {
-              setOfficerDept(me.department);
-            }
-          })
-          .catch(() => {});
+        setOfficerDept('Department');
       }
     }
   }, [isOfficer, username]);

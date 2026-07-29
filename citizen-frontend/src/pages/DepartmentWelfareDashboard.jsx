@@ -8,7 +8,7 @@ import { Badge } from '../components/Badge.jsx';
 import { toast } from 'sonner';
 import { 
   Building2, Clock, CheckCircle2, AlertTriangle, Eye, X, ShieldCheck, FileText, 
-  ThumbsUp, ThumbsDown, FileQuestion, QrCode, CreditCard, Award, UserCheck, RefreshCw, Send, Check
+  ThumbsUp, ThumbsDown, FileQuestion, QrCode, CreditCard, Award, UserCheck, RefreshCw, Send, Check, Landmark
 } from 'lucide-react';
 
 const REJECTION_REASONS = [
@@ -31,8 +31,20 @@ function statusVariant(s) {
   return 'neutral';
 }
 
-function DocumentBodyPreview({ doc }) {
+function DocumentBodyPreview({ doc, appDetails }) {
   const docName = doc.docName.toLowerCase();
+  
+  // Use appDetails for more context if available
+  const name = appDetails?.applicantName || doc.applicantName || 'Applicant';
+  const age = appDetails?.age || doc.age || 25;
+  const aadhaar = appDetails?.applicantAadhaar || doc.aadhaar || '1234-5678-9123';
+  const income = appDetails?.annualIncome || doc.annualIncome || 0;
+  
+  // Bank details
+  const accName = appDetails?.accountHolderName || name;
+  const bankName = appDetails?.bankName || 'State Bank of India';
+  const accNumber = appDetails?.accountNumber || '12345678912';
+  const ifsc = appDetails?.ifscCode || 'SBIN0001234';
 
   if (docName.includes('aadhaar')) {
     return (
@@ -47,19 +59,19 @@ function DocumentBodyPreview({ doc }) {
         <div style={{ padding: '20px', display: 'flex', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap' }}>
           <div style={{ width: 80, height: 90, borderRadius: 10, border: '2px solid #cbd5e1', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <div style={{ width: 50, height: 50, borderRadius: '50%', background: '#2563eb', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, fontWeight: 800 }}>
-              {doc.applicantName ? doc.applicantName.charAt(0).toUpperCase() : 'K'}
+              {name.charAt(0).toUpperCase()}
             </div>
           </div>
           <div style={{ flex: 1, minWidth: 160, display: 'flex', flexDirection: 'column', gap: 4, fontSize: 12 }}>
-            <div><span style={{ fontSize: 10, color: '#64748b', fontWeight: 700 }}>NAME</span>: <strong style={{ fontSize: 14, color: '#0f172a' }}>{doc.applicantName}</strong></div>
-            <div><span style={{ fontSize: 10, color: '#64748b', fontWeight: 700 }}>AGE</span>: <strong>{doc.age ?? 25} Years</strong></div>
+            <div><span style={{ fontSize: 10, color: '#64748b', fontWeight: 700 }}>NAME</span>: <strong style={{ fontSize: 14, color: '#0f172a' }}>{name}</strong></div>
+            <div><span style={{ fontSize: 10, color: '#64748b', fontWeight: 700 }}>AGE</span>: <strong>{age} Years</strong></div>
             <div><span style={{ fontSize: 10, color: '#64748b', fontWeight: 700 }}>VERIFICATION</span>: <span style={{ color: '#16a34a', fontWeight: 800 }}>✓ VERIFIED AADHAAR VAULT</span></div>
           </div>
           <QrCode size={48} color="#0f172a" />
         </div>
         <div style={{ background: '#fef2f2', borderTop: '2px dashed #fca5a5', padding: '10px 16px', textAlign: 'center' }}>
           <div style={{ fontSize: 18, fontWeight: 900, color: '#b91c1c', fontFamily: 'monospace', letterSpacing: '0.15em' }}>
-            {doc.aadhaar || '1234-5678-9123'}
+            {aadhaar}
           </div>
         </div>
       </div>
@@ -68,15 +80,94 @@ function DocumentBodyPreview({ doc }) {
 
   if (docName.includes('income')) {
     return (
-      <div style={{ background: '#ffffff', borderRadius: 16, border: '2px solid #0284c7', padding: '20px 24px' }}>
-        <div style={{ textAlign: 'center', borderBottom: '2px solid #e0f2fe', paddingBottom: 12, marginBottom: 16 }}>
-          <div style={{ fontSize: 10, fontWeight: 900, color: '#0369a1' }}>REVENUE DEPARTMENT — INCOME CERTIFICATE</div>
-          <h3 style={{ margin: '2px 0', fontSize: 17, fontWeight: 900 }}>ANNUAL FAMILY INCOME</h3>
+      <div style={{ background: '#ffffff', borderRadius: 16, border: '2px solid #0284c7', padding: '20px 24px', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', top: -30, right: -30, opacity: 0.05, transform: 'rotate(-30deg)' }}>
+          <Award size={150} color="#0284c7" />
         </div>
-        <div style={{ background: '#f0f9ff', padding: '14px', borderRadius: 12, textAlign: 'center', border: '1px solid #bae6fd' }}>
-          <span style={{ fontSize: 10, fontWeight: 800, color: '#0369a1' }}>DECLARED ANNUAL INCOME</span>
-          <div style={{ fontSize: 22, color: '#0284c7', fontWeight: 900, fontFamily: 'monospace' }}>
-            ₹{Number(doc.annualIncome || 0).toLocaleString('en-IN')}
+        <div style={{ textAlign: 'center', borderBottom: '2px solid #e0f2fe', paddingBottom: 12, marginBottom: 16, position: 'relative', zIndex: 1 }}>
+          <div style={{ fontSize: 10, fontWeight: 900, color: '#0369a1' }}>REVENUE DEPARTMENT, GOVT OF INDIA</div>
+          <h3 style={{ margin: '2px 0', fontSize: 17, fontWeight: 900, color: '#0f172a' }}>INCOME CERTIFICATE</h3>
+          <div style={{ fontSize: 10, color: '#64748b', marginTop: 4 }}>Valid for the current financial year</div>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16, fontSize: 12 }}>
+          <div><span style={{ color: '#64748b', fontWeight: 700 }}>Certified Name:</span><br /><strong style={{ color: '#0f172a', fontSize: 14 }}>{name}</strong></div>
+          <div><span style={{ color: '#64748b', fontWeight: 700 }}>Certificate No:</span><br /><strong style={{ color: '#0f172a', fontFamily: 'monospace' }}>INC-{Math.floor(10000 + Math.random()*90000)}/2026</strong></div>
+        </div>
+        <div style={{ background: '#f0f9ff', padding: '16px', borderRadius: 12, textAlign: 'center', border: '1px solid #bae6fd' }}>
+          <span style={{ fontSize: 11, fontWeight: 800, color: '#0369a1' }}>DECLARED ANNUAL FAMILY INCOME</span>
+          <div style={{ fontSize: 24, color: '#0284c7', fontWeight: 900, fontFamily: 'monospace', margin: '4px 0' }}>
+            ₹{Number(income).toLocaleString('en-IN')}
+          </div>
+          <span style={{ fontSize: 10, color: '#16a34a', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+            <CheckCircle2 size={12} /> Digitally Signed by Tahsildar
+          </span>
+        </div>
+      </div>
+    );
+  }
+
+  if (docName.includes('passbook')) {
+    return (
+      <div style={{ background: '#ffffff', borderRadius: 16, border: '2px solid #1e40af', padding: 0, overflow: 'hidden' }}>
+        <div style={{ background: '#1e40af', padding: '16px 20px', color: '#fff', display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ background: '#fff', borderRadius: '50%', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Landmark size={20} color="#1e40af" />
+          </div>
+          <div>
+            <h3 style={{ margin: 0, fontSize: 16, fontWeight: 900, color: '#fff' }}>{bankName}</h3>
+            <div style={{ fontSize: 11, color: '#bfdbfe' }}>Official Bank Passbook First Page</div>
+          </div>
+        </div>
+        <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16, fontSize: 12 }}>
+            <div><span style={{ color: '#64748b', fontWeight: 700 }}>Account Name</span><br /><strong style={{ color: '#0f172a', fontSize: 14 }}>{accName}</strong></div>
+            <div><span style={{ color: '#64748b', fontWeight: 700 }}>Branch</span><br /><strong style={{ color: '#0f172a', fontSize: 13 }}>Main Branch</strong></div>
+            <div style={{ gridColumn: 'span 2', background: '#f8fafc', padding: 12, borderRadius: 8, border: '1px solid #e2e8f0' }}>
+              <span style={{ color: '#64748b', fontWeight: 700 }}>Account Number</span><br />
+              <strong style={{ color: '#1d4ed8', fontSize: 18, fontFamily: 'monospace', letterSpacing: '0.1em' }}>{accNumber}</strong>
+            </div>
+            <div style={{ gridColumn: 'span 2' }}>
+              <span style={{ color: '#64748b', fontWeight: 700 }}>IFSC Code</span><br />
+              <strong style={{ color: '#0f172a', fontSize: 16, fontFamily: 'monospace' }}>{ifsc}</strong>
+            </div>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#15803d', fontSize: 11, fontWeight: 800, background: '#dcfce7', padding: '8px 12px', borderRadius: 8 }}>
+            <ShieldCheck size={16} /> Bank Stamp & Signature Verified
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (docName.includes('photo')) {
+    return (
+      <div style={{ background: '#ffffff', borderRadius: 16, border: '2px solid #e2e8f0', padding: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+        <div style={{ fontSize: 13, fontWeight: 900, color: '#475569', letterSpacing: '0.05em' }}>PASSPORT SIZE PHOTOGRAPH</div>
+        <div style={{ width: 140, height: 180, borderRadius: 12, border: '4px solid #f8fafc', boxShadow: '0 8px 24px rgba(0,0,0,0.12)', background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 48, fontWeight: 900 }}>
+          {name.charAt(0).toUpperCase()}
+        </div>
+        <div style={{ fontSize: 12, color: '#64748b', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+          <CheckCircle2 size={14} color="#10b981" /> High Resolution Image Verified
+        </div>
+      </div>
+    );
+  }
+
+  if (docName.includes('residence') || docName.includes('domicile')) {
+    return (
+      <div style={{ background: '#fdfbf7', borderRadius: 16, border: '2px solid #d4d4d8', padding: '24px', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ textAlign: 'center', borderBottom: '2px solid #e4e4e7', paddingBottom: 16, marginBottom: 16 }}>
+          <Building2 size={32} color="#52525b" style={{ margin: '0 auto 8px' }} />
+          <h3 style={{ margin: 0, fontSize: 16, fontWeight: 900, color: '#27272a' }}>DOMICILE / RESIDENCE CERTIFICATE</h3>
+          <div style={{ fontSize: 11, color: '#71717a', marginTop: 4 }}>Issued by Local Municipal Authority</div>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, fontSize: 12, color: '#3f3f46' }}>
+          <p style={{ margin: 0, lineHeight: 1.6 }}>
+            This is to certify that <strong>{name}</strong> is a bonafide resident of the state and holds a permanent address within the municipal limits.
+          </p>
+          <div style={{ background: '#f4f4f5', padding: 12, borderRadius: 8, marginTop: 8 }}>
+            <span style={{ fontSize: 10, fontWeight: 700, color: '#71717a' }}>ADDRESS LINKED TO AADHAAR</span>
+            <div style={{ fontSize: 13, fontWeight: 800, marginTop: 4, fontFamily: 'monospace' }}>{aadhaar}</div>
           </div>
         </div>
       </div>
@@ -87,7 +178,7 @@ function DocumentBodyPreview({ doc }) {
     <div style={{ background: '#ffffff', borderRadius: 16, border: '2px solid #6366f1', padding: '20px 24px', textAlign: 'center' }}>
       <div style={{ fontSize: 11, fontWeight: 900, color: '#4f46e5', marginBottom: 12 }}>OFFICIAL DOCUMENT RECORD: {doc.docName.toUpperCase()}</div>
       <div style={{ background: '#f8fafc', padding: 16, borderRadius: 12, border: '1px solid #e2e8f0' }}>
-        <strong style={{ fontSize: 15, color: '#0f172a' }}>{doc.applicantName}</strong>
+        <strong style={{ fontSize: 15, color: '#0f172a' }}>{name}</strong>
         <div style={{ fontSize: 12, color: '#16a34a', fontWeight: 700, marginTop: 4 }}>✓ Digital Record Validated</div>
       </div>
     </div>
@@ -99,7 +190,7 @@ export default function DepartmentWelfareDashboard() {
   const [beneficiaries, setBeneficiaries] = useState([]);
   const [schemes, setSchemes] = useState({});
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('ALL');
+  const [activeTab, setActiveTab] = useState('PENDING');
   
   // Selected Application Modal State
   const [selectedApp, setSelectedApp] = useState(null);
@@ -244,18 +335,16 @@ export default function DepartmentWelfareDashboard() {
   };
 
   // Metrics
-  const pendingCount = beneficiaries.filter(b => b.status === 'APPLIED').length;
-  const reviewCount = beneficiaries.filter(b => b.status === 'UNDER_REVIEW').length;
+  const pendingCount = beneficiaries.filter(b => ['APPLIED', 'SUBMITTED', 'ASSIGNED_TO_DEPARTMENT'].includes(b.status)).length;
+  const reviewCount = beneficiaries.filter(b => ['UNDER_REVIEW', 'UNDER_DEPARTMENT_VERIFICATION'].includes(b.status)).length;
   const recommendedCount = beneficiaries.filter(b => b.status === 'RECOMMENDED').length;
   const rejectedCount = beneficiaries.filter(b => b.status === 'REJECTED').length;
   const docsRequestedCount = beneficiaries.filter(b => b.status === 'DOCUMENTS_REQUESTED').length;
 
   const filteredApps = beneficiaries.filter(b => {
-    if (activeTab === 'ALL') return true;
-    if (activeTab === 'PENDING') return b.status === 'APPLIED' || b.status === 'UNDER_REVIEW';
+    if (activeTab === 'PENDING') return ['APPLIED', 'SUBMITTED', 'ASSIGNED_TO_DEPARTMENT', 'UNDER_REVIEW', 'UNDER_DEPARTMENT_VERIFICATION', 'DOCUMENTS_REQUESTED'].includes(b.status);
     if (activeTab === 'RECOMMENDED') return b.status === 'RECOMMENDED';
     if (activeTab === 'REJECTED') return b.status === 'REJECTED';
-    if (activeTab === 'DOCS_REQUESTED') return b.status === 'DOCUMENTS_REQUESTED';
     return true;
   });
 
@@ -283,7 +372,7 @@ export default function DepartmentWelfareDashboard() {
   };
 
   return (
-    <AppShell title="Department Welfare Dashboard">
+    <AppShell title="Department Verification Dashboard">
       <div style={{ display: 'flex', flexDirection: 'column', gap: 24, paddingBottom: 60 }}>
         
         {/* Header Bar */}
@@ -360,11 +449,9 @@ export default function DepartmentWelfareDashboard() {
         {/* Tab Filters */}
         <div style={{ display: 'flex', gap: 8, borderBottom: '2px solid #e2e8f0', paddingBottom: 8, overflowX: 'auto' }}>
           {[
-            { id: 'ALL', label: `All Applications (${beneficiaries.length})` },
-            { id: 'PENDING', label: `Pending Officer Action (${pendingCount + reviewCount})` },
+            { id: 'PENDING', label: `Pending Verification (${pendingCount + reviewCount + docsRequestedCount})` },
             { id: 'RECOMMENDED', label: `Recommended (${recommendedCount})` },
             { id: 'REJECTED', label: `Rejected (${rejectedCount})` },
-            { id: 'DOCS_REQUESTED', label: `Docs Requested (${docsRequestedCount})` },
           ].map(tab => (
             <button
               key={tab.id}
@@ -447,7 +534,7 @@ export default function DepartmentWelfareDashboard() {
                           boxShadow: '0 4px 12px rgba(37,99,235,0.25)', display: 'flex', alignItems: 'center', gap: 8
                         }}
                       >
-                        <Eye size={16} /> Inspect & Verify Application
+                        <Eye size={16} /> {['APPLIED', 'SUBMITTED', 'ASSIGNED_TO_DEPARTMENT', 'UNDER_REVIEW', 'UNDER_DEPARTMENT_VERIFICATION', 'DOCUMENTS_REQUESTED'].includes(b.status) ? 'Review Application' : 'View Details'}
                       </button>
                     </div>
                   </div>
@@ -458,7 +545,10 @@ export default function DepartmentWelfareDashboard() {
         )}
 
         {/* ── APPLICATION DETAILS & OFFICER ACTION DRAWER / MODAL ── */}
-        {selectedApp && (
+        {selectedApp && (() => {
+          const isPendingApp = ['APPLIED', 'SUBMITTED', 'ASSIGNED_TO_DEPARTMENT', 'UNDER_REVIEW', 'UNDER_DEPARTMENT_VERIFICATION', 'DOCUMENTS_REQUESTED'].includes(selectedApp.status);
+          
+          return (
           <div style={{
             position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
             background: 'rgba(15, 23, 42, 0.75)', backdropFilter: 'blur(4px)',
@@ -528,30 +618,32 @@ export default function DepartmentWelfareDashboard() {
                   </div>
 
                   <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-                    <button
-                      type="button"
-                      onClick={async () => {
-                        try {
-                          const username = keycloak.tokenParsed?.preferred_username || 'officer';
-                          const res = await api.put(`/welfare-service/api/welfare/beneficiaries/${selectedApp.beneficiaryId}/bank-verify`, {
-                            matches: true,
-                            officerUsername: username,
-                            remarks: 'Form bank account details match uploaded Bank Passbook document.'
-                          });
-                          setSelectedApp(res.data);
-                          toast.success('Bank account details verified and matched with uploaded Bank Passbook!');
-                        } catch (e) {
-                          toast.error('Bank verification failed');
-                        }
-                      }}
-                      style={{
-                        padding: '8px 14px', borderRadius: 8, background: selectedApp.bankVerified ? '#dcfce7' : '#2563eb',
-                        color: selectedApp.bankVerified ? '#15803d' : '#ffffff', border: 'none', fontWeight: 800, fontSize: 12, cursor: 'pointer',
-                        display: 'flex', alignItems: 'center', gap: 6
-                      }}
-                    >
-                      <CheckCircle2 size={14} /> {selectedApp.bankVerified ? 'Bank Account Match Verified' : 'Verify & Mark Bank Match'}
-                    </button>
+                    {isPendingApp && (
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          try {
+                            const username = keycloak.tokenParsed?.preferred_username || 'officer';
+                            const res = await api.put(`/welfare-service/api/welfare/beneficiaries/${selectedApp.beneficiaryId}/bank-verify`, {
+                              matches: true,
+                              officerUsername: username,
+                              remarks: 'Form bank account details match uploaded Bank Passbook document.'
+                            });
+                            setSelectedApp(res.data);
+                            toast.success('Bank account details verified and matched with uploaded Bank Passbook!');
+                          } catch (e) {
+                            toast.error('Bank verification failed');
+                          }
+                        }}
+                        style={{
+                          padding: '8px 14px', borderRadius: 8, background: selectedApp.bankVerified ? '#dcfce7' : '#2563eb',
+                          color: selectedApp.bankVerified ? '#15803d' : '#ffffff', border: 'none', fontWeight: 800, fontSize: 12, cursor: 'pointer',
+                          display: 'flex', alignItems: 'center', gap: 6
+                        }}
+                      >
+                        <CheckCircle2 size={14} /> {selectedApp.bankVerified ? 'Bank Account Match Verified' : 'Verify & Mark Bank Match'}
+                      </button>
+                    )}
                   </div>
                 </div>
 
@@ -589,7 +681,9 @@ export default function DepartmentWelfareDashboard() {
                 </div>
 
                 {/* Action Choice Selection */}
-                <div style={{ borderTop: '2px solid #e2e8f0', paddingTop: 18 }}>
+                {isPendingApp ? (
+                  <>
+                    <div style={{ borderTop: '2px solid #e2e8f0', paddingTop: 18 }}>
                   <div style={{ fontSize: 13, fontWeight: 800, color: '#0f172a', marginBottom: 12 }}>
                     SELECT OFFICER DECISION ACTION:
                   </div>
@@ -722,11 +816,20 @@ export default function DepartmentWelfareDashboard() {
                     </button>
                   </div>
                 )}
+                  </>
+                ) : (
+                  <div style={{ borderTop: '2px solid #e2e8f0', paddingTop: 18, display: 'flex', justifyContent: 'center' }}>
+                    <div style={{ padding: '12px 24px', borderRadius: 12, background: selectedApp.status === 'RECOMMENDED' ? '#fffbeb' : '#f8fafc', color: selectedApp.status === 'RECOMMENDED' ? '#b45309' : '#64748b', fontWeight: 800, fontSize: 14, border: selectedApp.status === 'RECOMMENDED' ? '1.5px solid #fde68a' : '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: 8 }}>
+                      {selectedApp.status === 'RECOMMENDED' ? <><Clock size={18} /> Waiting for Admin Approval</> : <><CheckCircle2 size={18} /> Application Verification Completed</>}
+                    </div>
+                  </div>
+                )}
 
               </div>
             </div>
           </div>
-        )}
+          );
+        })()}
 
         {/* ── Document Preview Modal Popup ── */}
         {previewDocModal && (
@@ -737,7 +840,7 @@ export default function DepartmentWelfareDashboard() {
                 <button onClick={() => setPreviewDocModal(null)} style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer' }}><X size={18} /></button>
               </div>
               <div style={{ padding: 24 }}>
-                <DocumentBodyPreview doc={previewDocModal} />
+                <DocumentBodyPreview doc={previewDocModal} appDetails={selectedApp} />
               </div>
             </div>
           </div>
