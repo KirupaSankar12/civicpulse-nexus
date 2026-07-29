@@ -48,7 +48,7 @@ const helpItems = [
 ];
 
 function LandingPage() {
-  const [isDark, setIsDark] = useState(true);
+  const [isDark, setIsDark] = useState(false);
 
   // Dynamic Theme Palette
   const theme = {
@@ -205,15 +205,8 @@ function LandingPage() {
             <h1 style={{ margin: 0, fontSize: 44, fontWeight: 900, lineHeight: 1.15, letterSpacing: '-0.03em', color: theme.heading }}>
               Your Gateway to <br />
               <span style={{
-                color: isDark ? '#38bdf8' : '#0284c7',
-                background: isDark 
-                  ? 'linear-gradient(135deg, #38bdf8, #60a5fa)'
-                  : 'linear-gradient(135deg, #0284c7, #2563eb)',
-                WebkitBackgroundClip: 'text',
-                backgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
+                color: isDark ? '#38bdf8' : '#2563eb',
                 display: 'inline-block',
-                textShadow: isDark ? '0 0 30px rgba(56,189,248,0.3)' : 'none',
                 fontWeight: 900
               }}>
                 Smart Governance

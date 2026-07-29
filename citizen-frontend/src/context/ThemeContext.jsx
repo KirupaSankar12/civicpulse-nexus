@@ -4,31 +4,22 @@ const ThemeContext = createContext();
 
 export function ThemeProvider({ children }) {
   const [theme, setThemeState] = useState(() => {
-    return localStorage.getItem('civicpulse_theme') || 'system';
+    const saved = localStorage.getItem('civicpulse_theme');
+    return saved === 'dark' ? 'dark' : 'light';
   });
 
-  const [effectiveTheme, setEffectiveTheme] = useState('light');
-
   const applyTheme = (t) => {
-    let isDark = false;
-    if (t === 'dark') {
-      isDark = true;
-    } else if (t === 'light') {
-      isDark = false;
-    } else {
-      // system
-      isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    }
-
+    const isDark = t === 'dark';
     const root = document.documentElement;
+
     if (isDark) {
+      root.classList.add('dark');
       root.setAttribute('data-theme', 'dark');
       document.body.classList.add('dark-mode');
-      setEffectiveTheme('dark');
     } else {
+      root.classList.remove('dark');
       root.setAttribute('data-theme', 'light');
       document.body.classList.remove('dark-mode');
-      setEffectiveTheme('light');
     }
   };
 
@@ -37,24 +28,16 @@ export function ThemeProvider({ children }) {
     localStorage.setItem('civicpulse_theme', theme);
   }, [theme]);
 
-  // Listen to system preference changes if theme === 'system'
-  useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    const handleChange = () => {
-      if (theme === 'system') {
-        applyTheme('system');
-      }
-    };
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
-  }, [theme]);
-
   const setTheme = (newTheme) => {
-    setThemeState(newTheme);
+    setThemeState(newTheme === 'dark' ? 'dark' : 'light');
+  };
+
+  const toggleTheme = () => {
+    setThemeState((prev) => (prev === 'dark' ? 'light' : 'dark'));
   };
 
   return (
-    <ThemeContext.Provider value={{ theme, setTheme, effectiveTheme }}>
+    <ThemeContext.Provider value={{ theme, setTheme, toggleTheme, effectiveTheme: theme }}>
       {children}
     </ThemeContext.Provider>
   );
@@ -66,8 +49,10 @@ export function useTheme() {
     return {
       theme: 'light',
       setTheme: () => {},
+      toggleTheme: () => {},
       effectiveTheme: 'light',
     };
   }
   return context;
 }
+

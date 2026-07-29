@@ -34,7 +34,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<Map<String, Object>> handleIllegalState(IllegalStateException ex) {
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of(
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
                 "error", ex.getMessage(),
                 "timestamp", LocalDateTime.now().toString()
         ));
@@ -53,7 +53,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of(
                 "error", "Duplicate Application",
                 "message", ex.getMessage(),
-                "existingApplication", ex.getExistingApplication(),
+                "existingApplication", ex.getExistingApplication() != null ? ex.getExistingApplication() : Map.of(),
                 "timestamp", LocalDateTime.now().toString()
         ));
     }

@@ -3,7 +3,6 @@ package com.civicpulse.welfare_service.entity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -28,8 +27,6 @@ public class Beneficiary {
     @NotBlank(message = "applicantName is required")
     private String applicantName;
 
-    @NotBlank(message = "applicantAadhaar is required")
-    @Pattern(regexp = "^\\d{4}-\\d{4}-\\d{4}$", message = "Aadhaar must be in format XXXX-XXXX-XXXX")
     private String applicantAadhaar;
 
     private BigDecimal annualIncome;
@@ -37,6 +34,22 @@ public class Beneficiary {
 
     @Column(columnDefinition = "TEXT")
     private String familyStatus;
+
+    // ── Dedicated Bank Details Fields ───────────────────────────────────────
+    private String accountHolderName;
+    private String bankName;
+    private String accountNumber;
+    private String ifscCode;
+    private String branchName;
+    private Boolean bankVerified = false;
+    private String verifiedByOfficer;
+
+    // ── Uploaded Document Reference Fields ──────────────────────────────────
+    private String aadhaarDocument;
+    private String incomeCertificate;
+    private String bankPassbook;
+    private String addressProof;
+    private String photograph;
 
     @Column(columnDefinition = "TEXT")
     private String documentsSubmitted;
@@ -47,17 +60,36 @@ public class Beneficiary {
     @Enumerated(EnumType.STRING)
     private BeneficiaryStatus status;
 
+    private String assignedDepartment;
+    private String assignedOfficer;
+
+    private String recommendationStatus;
+    
+    @Column(columnDefinition = "TEXT")
+    private String recommendationRemarks;
+
     @Column(columnDefinition = "TEXT")
     private String rejectionReason;
+
+    private String adminDecision;
+    private String fundTransferStatus;
+
+    // ── Processing Officer & DBT Fields ────────────────────────────────────
+    private LocalDateTime verificationStartedAt;
+    private LocalDateTime expectedCompletionDate;
+    private String transactionId;
+    private String paymentReference;
+    private BigDecimal disbursedAmount;
 
     private LocalDateTime appliedDate;
     private LocalDateTime approvedDate;
 
     @PrePersist
     public void prePersist() {
-        if (this.status == null) this.status = BeneficiaryStatus.APPLIED;
+        if (this.status == null) this.status = BeneficiaryStatus.DRAFT;
         if (this.eligibilityStatus == null) this.eligibilityStatus = EligibilityStatus.PENDING_CHECK;
         if (this.appliedDate == null) this.appliedDate = LocalDateTime.now();
+        if (this.bankVerified == null) this.bankVerified = false;
     }
 
     public Beneficiary() {}
@@ -89,6 +121,42 @@ public class Beneficiary {
     public String getFamilyStatus() { return familyStatus; }
     public void setFamilyStatus(String familyStatus) { this.familyStatus = familyStatus; }
 
+    public String getAccountHolderName() { return accountHolderName; }
+    public void setAccountHolderName(String accountHolderName) { this.accountHolderName = accountHolderName; }
+
+    public String getBankName() { return bankName; }
+    public void setBankName(String bankName) { this.bankName = bankName; }
+
+    public String getAccountNumber() { return accountNumber; }
+    public void setAccountNumber(String accountNumber) { this.accountNumber = accountNumber; }
+
+    public String getIfscCode() { return ifscCode; }
+    public void setIfscCode(String ifscCode) { this.ifscCode = ifscCode; }
+
+    public String getBranchName() { return branchName; }
+    public void setBranchName(String branchName) { this.branchName = branchName; }
+
+    public Boolean getBankVerified() { return bankVerified; }
+    public void setBankVerified(Boolean bankVerified) { this.bankVerified = bankVerified; }
+
+    public String getVerifiedByOfficer() { return verifiedByOfficer; }
+    public void setVerifiedByOfficer(String verifiedByOfficer) { this.verifiedByOfficer = verifiedByOfficer; }
+
+    public String getAadhaarDocument() { return aadhaarDocument; }
+    public void setAadhaarDocument(String aadhaarDocument) { this.aadhaarDocument = aadhaarDocument; }
+
+    public String getIncomeCertificate() { return incomeCertificate; }
+    public void setIncomeCertificate(String incomeCertificate) { this.incomeCertificate = incomeCertificate; }
+
+    public String getBankPassbook() { return bankPassbook; }
+    public void setBankPassbook(String bankPassbook) { this.bankPassbook = bankPassbook; }
+
+    public String getAddressProof() { return addressProof; }
+    public void setAddressProof(String addressProof) { this.addressProof = addressProof; }
+
+    public String getPhotograph() { return photograph; }
+    public void setPhotograph(String photograph) { this.photograph = photograph; }
+
     public String getDocumentsSubmitted() { return documentsSubmitted; }
     public void setDocumentsSubmitted(String documentsSubmitted) { this.documentsSubmitted = documentsSubmitted; }
 
@@ -98,8 +166,41 @@ public class Beneficiary {
     public BeneficiaryStatus getStatus() { return status; }
     public void setStatus(BeneficiaryStatus status) { this.status = status; }
 
+    public String getAssignedDepartment() { return assignedDepartment; }
+    public void setAssignedDepartment(String assignedDepartment) { this.assignedDepartment = assignedDepartment; }
+
+    public String getAssignedOfficer() { return assignedOfficer; }
+    public void setAssignedOfficer(String assignedOfficer) { this.assignedOfficer = assignedOfficer; }
+
+    public String getRecommendationStatus() { return recommendationStatus; }
+    public void setRecommendationStatus(String recommendationStatus) { this.recommendationStatus = recommendationStatus; }
+
+    public String getRecommendationRemarks() { return recommendationRemarks; }
+    public void setRecommendationRemarks(String recommendationRemarks) { this.recommendationRemarks = recommendationRemarks; }
+
     public String getRejectionReason() { return rejectionReason; }
     public void setRejectionReason(String rejectionReason) { this.rejectionReason = rejectionReason; }
+
+    public String getAdminDecision() { return adminDecision; }
+    public void setAdminDecision(String adminDecision) { this.adminDecision = adminDecision; }
+
+    public String getFundTransferStatus() { return fundTransferStatus; }
+    public void setFundTransferStatus(String fundTransferStatus) { this.fundTransferStatus = fundTransferStatus; }
+
+    public LocalDateTime getVerificationStartedAt() { return verificationStartedAt; }
+    public void setVerificationStartedAt(LocalDateTime verificationStartedAt) { this.verificationStartedAt = verificationStartedAt; }
+
+    public LocalDateTime getExpectedCompletionDate() { return expectedCompletionDate; }
+    public void setExpectedCompletionDate(LocalDateTime expectedCompletionDate) { this.expectedCompletionDate = expectedCompletionDate; }
+
+    public String getTransactionId() { return transactionId; }
+    public void setTransactionId(String transactionId) { this.transactionId = transactionId; }
+
+    public String getPaymentReference() { return paymentReference; }
+    public void setPaymentReference(String paymentReference) { this.paymentReference = paymentReference; }
+
+    public BigDecimal getDisbursedAmount() { return disbursedAmount; }
+    public void setDisbursedAmount(BigDecimal disbursedAmount) { this.disbursedAmount = disbursedAmount; }
 
     public LocalDateTime getAppliedDate() { return appliedDate; }
     public void setAppliedDate(LocalDateTime appliedDate) { this.appliedDate = appliedDate; }

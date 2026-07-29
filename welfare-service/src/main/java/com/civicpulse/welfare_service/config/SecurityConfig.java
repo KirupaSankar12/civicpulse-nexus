@@ -34,13 +34,22 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/welfare/schemes/**").authenticated()
                 .requestMatchers(HttpMethod.GET, "/api/welfare/schemes").authenticated()
 
-                // ── Beneficiary Management ────────────────────────────────
+                // ── Beneficiary Management & Officer Actions ─────────────
                 .requestMatchers(HttpMethod.POST, "/api/welfare/schemes/*/apply").hasAnyRole("CITIZEN", "ADMIN")
                 .requestMatchers(HttpMethod.GET, "/api/welfare/beneficiaries/citizen/**").hasAnyRole("CITIZEN", "ADMIN")
+                .requestMatchers(HttpMethod.GET, "/api/welfare/beneficiaries/department/**").hasAnyRole("OFFICER", "DEPARTMENT_OFFICER", "APPROVER", "AUTHORITY", "ADMIN")
                 .requestMatchers(HttpMethod.GET, "/api/welfare/beneficiaries/pending").hasAnyRole("OFFICER", "DEPARTMENT_OFFICER", "APPROVER", "AUTHORITY", "ADMIN")
+                .requestMatchers(HttpMethod.GET, "/api/welfare/beneficiaries/recommended").hasAnyRole("OFFICER", "DEPARTMENT_OFFICER", "APPROVER", "AUTHORITY", "ADMIN")
                 .requestMatchers(HttpMethod.PUT, "/api/welfare/beneficiaries/*/review").hasAnyRole("OFFICER", "DEPARTMENT_OFFICER", "APPROVER", "AUTHORITY", "ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/welfare/beneficiaries/*/start-verification").hasAnyRole("OFFICER", "DEPARTMENT_OFFICER", "APPROVER", "AUTHORITY", "ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/welfare/beneficiaries/*/bank-verify").hasAnyRole("OFFICER", "DEPARTMENT_OFFICER", "APPROVER", "AUTHORITY", "ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/welfare/beneficiaries/*/recommend").hasAnyRole("OFFICER", "DEPARTMENT_OFFICER", "APPROVER", "AUTHORITY", "ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/welfare/beneficiaries/*/reject").hasAnyRole("OFFICER", "DEPARTMENT_OFFICER", "APPROVER", "AUTHORITY", "ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/welfare/beneficiaries/*/request-docs").hasAnyRole("OFFICER", "DEPARTMENT_OFFICER", "APPROVER", "AUTHORITY", "ADMIN")
                 .requestMatchers(HttpMethod.PUT, "/api/welfare/beneficiaries/*/approve").hasAnyRole("APPROVER", "AUTHORITY", "ADMIN")
-                .requestMatchers(HttpMethod.PUT, "/api/welfare/beneficiaries/*/reject").hasAnyRole("APPROVER", "AUTHORITY", "ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/welfare/beneficiaries/*/execute-dbt").hasAnyRole("ADMIN", "APPROVER", "FINANCE_OFFICER")
+                .requestMatchers(HttpMethod.POST, "/api/welfare/beneficiaries/*/resubmit-docs").hasAnyRole("CITIZEN", "ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/welfare/beneficiaries/**").authenticated()
                 .requestMatchers(HttpMethod.GET, "/api/welfare/beneficiaries/*/history").authenticated()
 
                 // ── Budget Management ─────────────────────────────────────

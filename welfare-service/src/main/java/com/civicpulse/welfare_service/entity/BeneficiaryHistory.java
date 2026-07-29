@@ -20,6 +20,9 @@ public class BeneficiaryHistory {
     @Enumerated(EnumType.STRING)
     private BeneficiaryStatus newStatus;
 
+    private String actionTitle;
+    private String actorName;
+
     @Column(columnDefinition = "TEXT")
     private String remarks;
 
@@ -41,6 +44,17 @@ public class BeneficiaryHistory {
         this.timestamp = LocalDateTime.now();
     }
 
+    public BeneficiaryHistory(UUID beneficiaryId, BeneficiaryStatus previousStatus,
+                               BeneficiaryStatus newStatus, String actionTitle, String actorName, String remarks) {
+        this.beneficiaryId = beneficiaryId;
+        this.previousStatus = previousStatus;
+        this.newStatus = newStatus;
+        this.actionTitle = actionTitle;
+        this.actorName = actorName;
+        this.remarks = remarks;
+        this.timestamp = LocalDateTime.now();
+    }
+
     public UUID getHistoryId() { return historyId; }
     public void setHistoryId(UUID historyId) { this.historyId = historyId; }
 
@@ -52,6 +66,12 @@ public class BeneficiaryHistory {
 
     public BeneficiaryStatus getNewStatus() { return newStatus; }
     public void setNewStatus(BeneficiaryStatus newStatus) { this.newStatus = newStatus; }
+
+    public String getActionTitle() { return actionTitle; }
+    public void setActionTitle(String actionTitle) { this.actionTitle = actionTitle; }
+
+    public String getActorName() { return actorName; }
+    public void setActorName(String actorName) { this.actorName = actorName; }
 
     public String getRemarks() { return remarks; }
     public void setRemarks(String remarks) { this.remarks = remarks; }

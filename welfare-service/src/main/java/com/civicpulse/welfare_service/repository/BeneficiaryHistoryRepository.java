@@ -9,4 +9,5 @@ import java.util.UUID;
 @Repository
 public interface BeneficiaryHistoryRepository extends JpaRepository<BeneficiaryHistory, UUID> {
     List<BeneficiaryHistory> findByBeneficiaryIdOrderByTimestampAsc(UUID beneficiaryId);
+    void deleteByBeneficiaryId(UUID beneficiaryId);
 }

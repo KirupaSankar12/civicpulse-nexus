@@ -442,8 +442,9 @@ function LoginPage() {
                       { user: 'chris', dept: 'Water' },
                       { user: 'ethan', dept: 'Roads' },
                       { user: 'jack', dept: 'Electricity' },
-                      { user: 'david', dept: 'Sanitation' },
+                      { user: 'david', dept: 'Social Welfare' },
                       { user: 'will', dept: 'Urban' },
+                      { user: 'emily', dept: 'Education' },
                     ].map(o => (
                       <button
                         key={o.user}

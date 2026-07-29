@@ -2,6 +2,7 @@ package com.civicpulse.notification_service.consumer;
 
 import com.civicpulse.notification_service.dto.ApplicationEvent;
 import com.civicpulse.notification_service.dto.ComplaintEvent;
+import com.civicpulse.notification_service.dto.WelfareEvent;
 import com.civicpulse.notification_service.entity.Notification;
 import com.civicpulse.notification_service.repository.NotificationRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -198,6 +199,87 @@ public class KafkaConsumerService {
                     event.getComplaintId(), "COMPLAINT", "complaint-resolved", "CITIZEN");
         } catch (Exception e) {
             System.err.println("Failed to process complaint-resolved: " + e.getMessage());
+        }
+    }
+
+
+    // ────────────────────────────────────────────────────────────────────────
+    // WELFARE EVENTS (Milestone 3)
+    // ────────────────────────────────────────────────────────────────────────
+
+    @KafkaListener(topics = "beneficiary-applied", groupId = "notification-group")
+    public void consumeBeneficiaryApplied(String message) {
+        try {
+            WelfareEvent event = objectMapper.readValue(message, WelfareEvent.class);
+            String title = "Welfare Application Submitted";
+            String text = "Your application for " + (event.getSchemeName() != null ? event.getSchemeName() : "Welfare Scheme") + 
+                          " (Code: " + event.getBeneficiaryCode() + ") has been submitted successfully and is pending officer verification.";
+            
+            saveNotification(event.getCitizenId(), title, text, 
+                    event.getBeneficiaryId(), "WELFARE", "beneficiary-applied", "CITIZEN");
+        } catch (Exception e) {
+            System.err.println("Failed to process beneficiary-applied: " + e.getMessage());
+        }
+    }
+
+    @KafkaListener(topics = "beneficiary-verified", groupId = "notification-group")
+    public void consumeBeneficiaryVerified(String message) {
+        try {
+            WelfareEvent event = objectMapper.readValue(message, WelfareEvent.class);
+            String title = "Welfare Application Verified";
+            String text = "Your application for " + (event.getSchemeName() != null ? event.getSchemeName() : "Welfare Scheme") + 
+                          " (Code: " + event.getBeneficiaryCode() + ") has been verified by the department officer and forwarded for final sanction.";
+            
+            saveNotification(event.getCitizenId(), title, text, 
+                    event.getBeneficiaryId(), "WELFARE", "beneficiary-verified", "CITIZEN");
+        } catch (Exception e) {
+            System.err.println("Failed to process beneficiary-verified: " + e.getMessage());
+        }
+    }
+
+    @KafkaListener(topics = "beneficiary-approved", groupId = "notification-group")
+    public void consumeBeneficiaryApproved(String message) {
+        try {
+            WelfareEvent event = objectMapper.readValue(message, WelfareEvent.class);
+            String title = "Welfare Application Approved";
+            String text = "Congratulations! Your welfare application for " + (event.getSchemeName() != null ? event.getSchemeName() : "Welfare Scheme") + 
+                          " (Code: " + event.getBeneficiaryCode() + ") has received final sanction for fund disbursement.";
+            
+            saveNotification(event.getCitizenId(), title, text, 
+                    event.getBeneficiaryId(), "WELFARE", "beneficiary-approved", "CITIZEN");
+        } catch (Exception e) {
+            System.err.println("Failed to process beneficiary-approved: " + e.getMessage());
+        }
+    }
+
+    @KafkaListener(topics = "beneficiary-rejected", groupId = "notification-group")
+    public void consumeBeneficiaryRejected(String message) {
+        try {
+            WelfareEvent event = objectMapper.readValue(message, WelfareEvent.class);
+            String title = "Welfare Application Update";
+            String text = "Your application for " + (event.getSchemeName() != null ? event.getSchemeName() : "Welfare Scheme") + 
+                          " (Code: " + event.getBeneficiaryCode() + ") was rejected. Reason: " + (event.getRemarks() != null ? event.getRemarks() : "Criteria not met");
+            
+            saveNotification(event.getCitizenId(), title, text, 
+                    event.getBeneficiaryId(), "WELFARE", "beneficiary-rejected", "CITIZEN");
+        } catch (Exception e) {
+            System.err.println("Failed to process beneficiary-rejected: " + e.getMessage());
+        }
+    }
+
+    @KafkaListener(topics = {"funds-disbursed", "fund-disbursed"}, groupId = "notification-group")
+    public void consumeFundsDisbursed(String message) {
+        try {
+            WelfareEvent event = objectMapper.readValue(message, WelfareEvent.class);
+            String title = "Direct Benefit Transfer (DBT) Disbursed";
+            String text = "Welfare benefit funds for " + (event.getSchemeName() != null ? event.getSchemeName() : "Welfare Scheme") + 
+                          " (Code: " + event.getBeneficiaryCode() + ") have been successfully transferred to your bank account." + 
+                          (event.getTransactionId() != null ? " TXN ID: " + event.getTransactionId() : "");
+            
+            saveNotification(event.getCitizenId(), title, text, 
+                    event.getBeneficiaryId(), "WELFARE", "funds-disbursed", "CITIZEN");
+        } catch (Exception e) {
+            System.err.println("Failed to process funds-disbursed: " + e.getMessage());
         }
     }
 

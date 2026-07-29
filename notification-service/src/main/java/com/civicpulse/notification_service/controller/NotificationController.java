@@ -5,6 +5,7 @@ import com.civicpulse.notification_service.repository.NotificationRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -20,7 +21,15 @@ public class NotificationController {
 
     @GetMapping("/recipient/{recipient}")
     public ResponseEntity<List<Notification>> getNotifications(@PathVariable String recipient) {
-        return ResponseEntity.ok(notificationRepository.findByRecipientOrderByCreatedAtDesc(recipient));
+        try {
+            if (recipient == null || recipient.isBlank()) {
+                return ResponseEntity.ok(Collections.emptyList());
+            }
+            List<Notification> list = notificationRepository.findByRecipientOrderByCreatedAtDesc(recipient);
+            return ResponseEntity.ok(list != null ? list : Collections.emptyList());
+        } catch (Exception e) {
+            return ResponseEntity.ok(Collections.emptyList());
+        }
     }
 
     @PutMapping("/{id}/read")

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import api from '../api.js';
+import { toast } from 'sonner';
 import AppShell from '../components/AppShell.jsx';
 import PageLoader from '../components/PageLoader.jsx';
 import { SectionCard } from '../components/SectionCard.jsx';
@@ -41,18 +42,20 @@ export default function ApprovalScreen() {
     setActioning(id + '_approve');
     try {
       await api.put(`/welfare-service/api/welfare/beneficiaries/${id}/approve`, { remarks: remarks[id] });
+      toast.success('Application approved successfully!');
       load();
-    } catch (e) { alert(e.response?.data?.error || 'Approve failed'); }
+    } catch (e) { toast.error(e.response?.data?.error || 'Approve failed'); }
     setActioning(null);
   };
 
   const handleReject = async (id) => {
-    if (!rejectReason[id]?.trim()) { alert('Please enter a rejection reason'); return; }
+    if (!rejectReason[id]?.trim()) { toast.error('Please enter a rejection reason'); return; }
     setActioning(id + '_reject');
     try {
       await api.put(`/welfare-service/api/welfare/beneficiaries/${id}/reject`, { reason: rejectReason[id] });
+      toast.success('Application rejected.');
       load();
-    } catch (e) { alert(e.response?.data?.error || 'Reject failed'); }
+    } catch (e) { toast.error(e.response?.data?.error || 'Reject failed'); }
     setActioning(null);
   };
 

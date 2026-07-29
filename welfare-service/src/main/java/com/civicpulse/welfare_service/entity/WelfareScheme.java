@@ -33,6 +33,8 @@ public class WelfareScheme {
     private Integer minAge;
     private Integer maxAge;
 
+    private BigDecimal benefitAmount;
+
     @NotNull(message = "budgetAllocated is required")
     private BigDecimal budgetAllocated;
 
@@ -48,6 +50,7 @@ public class WelfareScheme {
     public void prePersist() {
         if (this.status == null) this.status = SchemeStatus.ACTIVE;
         if (this.budgetSpent == null) this.budgetSpent = BigDecimal.ZERO;
+        if (this.benefitAmount == null) this.benefitAmount = new BigDecimal("25000.00");
         if (this.createdAt == null) this.createdAt = LocalDateTime.now();
     }
 
@@ -79,6 +82,9 @@ public class WelfareScheme {
 
     public Integer getMaxAge() { return maxAge; }
     public void setMaxAge(Integer maxAge) { this.maxAge = maxAge; }
+
+    public BigDecimal getBenefitAmount() { return benefitAmount; }
+    public void setBenefitAmount(BigDecimal benefitAmount) { this.benefitAmount = benefitAmount; }
 
     public BigDecimal getBudgetAllocated() { return budgetAllocated; }
     public void setBudgetAllocated(BigDecimal budgetAllocated) { this.budgetAllocated = budgetAllocated; }

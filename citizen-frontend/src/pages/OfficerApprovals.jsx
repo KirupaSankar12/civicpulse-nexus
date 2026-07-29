@@ -5,6 +5,8 @@ import AppShell from '../components/AppShell.jsx';
 import PageLoader from '../components/PageLoader.jsx';
 import EmptyState from '../components/EmptyState.jsx';
 
+import { toast } from 'sonner';
+
 function OfficerApprovals() {
   const [submittedApps, setSubmittedApps] = useState([]);
   const [verifiedApps, setVerifiedApps] = useState([]);
@@ -41,10 +43,11 @@ function OfficerApprovals() {
         verified: isApprove,
         remarks: remarks
       });
+      toast.success(isApprove ? 'Application verified successfully!' : 'Application verification rejected');
       fetchAllData();
     } catch (err) {
       console.error(err);
-      alert(err.response?.data?.error || err.response?.data?.message || 'Failed to verify application');
+      toast.error(err.response?.data?.error || err.response?.data?.message || 'Failed to verify application');
     }
   };
 
@@ -52,10 +55,11 @@ function OfficerApprovals() {
     if (!confirm('Are you sure you want to approve this application and issue the certificate?')) return;
     try {
       await api.put(`/service-management-service/api/services/approve/${id}`);
+      toast.success('Application approved and certificate issued!');
       fetchAllData();
     } catch (err) {
       console.error(err);
-      alert(err.response?.data?.error || err.response?.data?.message || 'Failed to approve application');
+      toast.error(err.response?.data?.error || err.response?.data?.message || 'Failed to approve application');
     }
   };
 
@@ -66,10 +70,11 @@ function OfficerApprovals() {
       await api.put(`/service-management-service/api/services/reject/${id}`, {
         reason: reason
       });
+      toast.success('Application rejected');
       fetchAllData();
     } catch (err) {
       console.error(err);
-      alert(err.response?.data?.error || err.response?.data?.message || 'Failed to reject application');
+      toast.error(err.response?.data?.error || err.response?.data?.message || 'Failed to reject application');
     }
   };
 

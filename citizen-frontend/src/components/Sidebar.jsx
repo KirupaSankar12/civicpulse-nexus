@@ -49,6 +49,7 @@ const adminGroups = [
   {
     section: 'Welfare & Finance', dot: '#f472b6',
     links: [
+      { to: '/welfare/admin-dashboard', icon: Landmark,      label: 'Admin Financial Release', chip: 'emerald' },
       { to: '/welfare/dashboard',     icon: Heart,         label: 'Welfare Dashboard', chip: 'pink',    exact: true },
       { to: '/welfare/schemes',       icon: Layers,        label: 'Welfare Schemes',   chip: 'pink' },
       { to: '/welfare/beneficiaries', icon: ClipboardList, label: 'Beneficiary DB',    chip: 'pink' },
@@ -107,7 +108,7 @@ const officerGroups = [
     links: [
       { to: '/officer',                    icon: Inbox,        label: 'Assigned Complaints',   chip: 'orange' },
       { to: '/services/officer/dashboard', icon: CheckCircle2, label: 'Assigned Certificates', chip: 'emerald' },
-      { to: '/welfare/verify',             icon: ShieldCheck,  label: 'Welfare Verification',  chip: 'pink' },
+      { to: '/welfare/department-dashboard', icon: Building,   label: 'Department Welfare Portal', chip: 'pink' },
     ],
   },
 ];
@@ -205,22 +206,25 @@ export default function Sidebar({ collapsed = false, onToggleCollapse }) {
         chris: 'Water Department',
         ethan: 'Roads Department',
         jack: 'Electricity Department',
-        david: 'Sanitation Department',
-        will: 'Urban Planning Department'
+        david: 'Social Welfare Department',
+        will: 'Urban Planning Department',
+        emily: 'Education Department'
       };
       
       let dept = keycloak.tokenParsed?.department || OFFICER_DEPT_MAP[username.toLowerCase()] || '';
-      if (dept) setOfficerDept(dept);
-
-      api.get('/service-management-service/api/officers')
-        .then(res => {
-          const officers = res.data || [];
-          const me = officers.find(o => o.username?.toLowerCase() === username.toLowerCase());
-          if (me && me.department) {
-            setOfficerDept(me.department);
-          }
-        })
-        .catch(e => console.error('Failed to fetch officer dept for sidebar', e));
+      if (dept) {
+        setOfficerDept(dept);
+      } else {
+        api.get('/service-management-service/api/officers')
+          .then(res => {
+            const officers = res.data || [];
+            const me = officers.find(o => o.username?.toLowerCase() === username.toLowerCase());
+            if (me && me.department) {
+              setOfficerDept(me.department);
+            }
+          })
+          .catch(() => {});
+      }
     }
   }, [isOfficer, username]);
 

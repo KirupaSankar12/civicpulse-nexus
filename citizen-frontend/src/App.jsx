@@ -38,6 +38,8 @@ import ApprovalScreen from './pages/ApprovalScreen.jsx';
 import FundDisbursementScreen from './pages/FundDisbursementScreen.jsx';
 import PaymentSuccessScreen from './pages/PaymentSuccessScreen.jsx';
 import MyWelfareApplications from './pages/MyWelfareApplications.jsx';
+import DepartmentWelfareDashboard from './pages/DepartmentWelfareDashboard.jsx';
+import AdminWelfareDashboard from './pages/AdminWelfareDashboard.jsx';
 
 // Guard: redirects to /login if not authenticated
 function Protected({ children }) {
@@ -172,6 +174,12 @@ function App({ authenticated }) {
         } />
         <Route path="/welfare/disburse" element={
           <Protected><FundDisbursementScreen /></Protected>
+        } />
+        <Route path="/welfare/department-dashboard" element={
+          <Protected><DepartmentWelfareDashboard /></Protected>
+        } />
+        <Route path="/welfare/admin-dashboard" element={
+          <Protected><AdminWelfareDashboard /></Protected>
         } />
         <Route path="/welfare/payment-success" element={
           <Protected><PaymentSuccessScreen /></Protected>
