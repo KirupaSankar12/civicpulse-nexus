@@ -335,16 +335,7 @@ export default function MyWelfareApplications() {
             >
               <RefreshCw size={15} /> Refresh
             </button>
-            <button
-              onClick={handleResetAll}
-              style={{
-                background: '#7f1d1d', color: '#fecaca', border: '1px solid #991b1b', padding: '12px 18px',
-                borderRadius: 12, fontWeight: 800, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6
-              }}
-              title="Delete all welfare applications from database to start fresh"
-            >
-              <Trash2 size={15} /> Delete All (Reset)
-            </button>
+
             <Link to="/welfare/apply" style={{ textDecoration: 'none' }}>
               <button style={{
                 background: 'linear-gradient(135deg, #2563eb, #1d4ed8)', color: '#ffffff', border: 'none', padding: '12px 24px',

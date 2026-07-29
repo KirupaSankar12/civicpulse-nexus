@@ -247,7 +247,14 @@ export default function SchemeApplicationForm() {
         accountNumber: form.accountNumber,
         ifscCode: form.ifscCode,
         branchName: form.branchName,
-        documentsSubmitted: checkedDocs.join(', '),
+        documentsSubmitted: JSON.stringify(checkedDocs.reduce((acc, doc) => {
+          if (uploadedFiles[doc] && uploadedFiles[doc].dataUrl) {
+            acc[doc] = { name: uploadedFiles[doc].name, dataUrl: uploadedFiles[doc].dataUrl };
+          } else {
+            acc[doc] = { name: uploadedFiles[doc] ? uploadedFiles[doc].name : `${doc}.pdf` };
+          }
+          return acc;
+        }, {})),
         status: 'DRAFT'
       };
       if (form.schemeId) {
@@ -281,14 +288,18 @@ export default function SchemeApplicationForm() {
       ? (file.size / (1024 * 1024)).toFixed(2) + ' MB'
       : (file.size / 1024).toFixed(1) + ' KB';
 
-    setUploadedFiles(prev => ({
-      ...prev,
-      [doc]: { name: file.name, size: fileSizeStr }
-    }));
-    if (!checkedDocs.includes(doc)) {
-      setCheckedDocs(prev => [...prev, doc]);
-    }
-    toast.success(`Attached ${doc} (${file.name})`);
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setUploadedFiles(prev => ({
+        ...prev,
+        [doc]: { name: file.name, size: fileSizeStr, dataUrl: e.target.result }
+      }));
+      if (!checkedDocs.includes(doc)) {
+        setCheckedDocs(prev => [...prev, doc]);
+      }
+      toast.success(`Attached ${doc} (${file.name})`);
+    };
+    reader.readAsDataURL(file);
   };
 
   const removeFile = (doc) => {
@@ -361,20 +372,27 @@ export default function SchemeApplicationForm() {
     setSubmitting(true);
     try {
       const payload = {
-        citizenId: form.citizenId || citizenId || 'CIT-001',
-        schemeId: form.schemeId,
-        applicantName: form.applicantName,
-        applicantAadhaar: form.applicantAadhaar,
-        annualIncome: Number(form.annualIncome),
-        age: Number(form.age),
-        familyStatus: form.familyStatus,
-        accountHolderName: form.accountHolderName || form.applicantName,
-        bankName: form.bankName || 'State Bank of India',
-        accountNumber: form.accountNumber || '12345678901',
-        ifscCode: form.ifscCode || 'SBIN0001234',
-        branchName: form.branchName || 'Main Branch',
-        documentsSubmitted: checkedDocs.join(', ')
-      };
+      citizenId: form.citizenId || citizenId || 'CIT-001',
+      schemeId: form.schemeId,
+      applicantName: form.applicantName,
+      applicantAadhaar: form.applicantAadhaar,
+      annualIncome: Number(form.annualIncome),
+      age: Number(form.age),
+      familyStatus: form.familyStatus,
+      accountHolderName: form.accountHolderName,
+      bankName: form.bankName,
+      accountNumber: form.accountNumber,
+      ifscCode: form.ifscCode,
+      branchName: form.branchName,
+      documentsSubmitted: JSON.stringify(checkedDocs.reduce((acc, doc) => {
+        if (uploadedFiles[doc] && uploadedFiles[doc].dataUrl) {
+          acc[doc] = { name: uploadedFiles[doc].name, dataUrl: uploadedFiles[doc].dataUrl };
+        } else {
+          acc[doc] = { name: uploadedFiles[doc] ? uploadedFiles[doc].name : `${doc}.pdf` };
+        }
+        return acc;
+      }, {}))
+    };
 
       let res;
       try {

@@ -204,28 +204,27 @@ public class KafkaConsumerService {
 
 
     // ────────────────────────────────────────────────────────────────────────
-    // WELFARE EVENTS (Milestone 3)
+    // WELFARE EVENTS (Milestone 3 - 10 Core Notifications)
     // ────────────────────────────────────────────────────────────────────────
 
     @KafkaListener(topics = "beneficiary-applied", groupId = "notification-group")
     public void consumeBeneficiaryApplied(String message) {
         try {
             WelfareEvent event = objectMapper.readValue(message, WelfareEvent.class);
-            String title = "Welfare Application Submitted";
-            String text = "Your application for " + (event.getSchemeName() != null ? event.getSchemeName() : "Welfare Scheme") + 
-                          " (Code: " + event.getBeneficiaryCode() + ") has been submitted successfully and is pending officer verification.";
-            
-            saveNotification(event.getCitizenId(), title, text, 
-                    event.getBeneficiaryId(), "WELFARE", "beneficiary-applied", "CITIZEN");
+            if ("BENEFICIARY_RESUBMITTED".equals(event.getEventType())) {
+                notifyDepartmentOfficers(event.getDepartment(), "Documents Resubmitted", 
+                    "Applicant has uploaded the requested documents.\n\nPlease review the application again.", 
+                    event.getBeneficiaryId(), "WELFARE", "beneficiary-resubmitted");
+            } else {
+                String citizenText = "Your application " + event.getBeneficiaryCode() + " for " + event.getSchemeName() + 
+                                     " has been submitted successfully and assigned to the " + event.getDepartment() + " for verification.";
+                saveNotification(event.getCitizenId(), "Application Submitted", citizenText, 
+                        event.getBeneficiaryId(), "WELFARE", "beneficiary-applied", "CITIZEN");
 
-            // Notify assigned officer/department
-            if (event.getDepartment() != null) {
-                notifyDepartmentOfficers(event.getDepartment(), "New Welfare Application Received", 
-                    "A new welfare application (Code: " + event.getBeneficiaryCode() + ") for " + 
-                    (event.getSchemeName() != null ? event.getSchemeName() : "Welfare Scheme") + " has been assigned to your department.", 
+                notifyDepartmentOfficers(event.getDepartment(), "New Application Assigned", 
+                    "A new welfare application has been assigned to your department.\n\nApplication:\n" + event.getBeneficiaryCode(), 
                     event.getBeneficiaryId(), "WELFARE", "beneficiary-applied");
             }
-
         } catch (Exception e) {
             System.err.println("Failed to process beneficiary-applied: " + e.getMessage());
         }
@@ -235,12 +234,24 @@ public class KafkaConsumerService {
     public void consumeBeneficiaryVerified(String message) {
         try {
             WelfareEvent event = objectMapper.readValue(message, WelfareEvent.class);
-            String title = "Welfare Application Verified";
-            String text = "Your application for " + (event.getSchemeName() != null ? event.getSchemeName() : "Welfare Scheme") + 
-                          " (Code: " + event.getBeneficiaryCode() + ") has been verified by the department officer and forwarded for final sanction.";
             
-            saveNotification(event.getCitizenId(), title, text, 
-                    event.getBeneficiaryId(), "WELFARE", "beneficiary-verified", "CITIZEN");
+            if ("VERIFICATION_STARTED".equals(event.getEventType())) {
+                saveNotification(event.getCitizenId(), "Under Verification", 
+                    "Your application " + event.getBeneficiaryCode() + " is currently under department verification.", 
+                    event.getBeneficiaryId(), "WELFARE", "verification-started", "CITIZEN");
+            } else if ("ADDITIONAL_DOCS_REQUESTED".equals(event.getEventType())) {
+                saveNotification(event.getCitizenId(), "Additional Documents Requested", 
+                    "Additional documents have been requested for your application. Please upload the requested documents within 7 days.", 
+                    event.getBeneficiaryId(), "WELFARE", "additional-docs-requested", "CITIZEN");
+            } else if ("BENEFICIARY_RECOMMENDED".equals(event.getEventType())) {
+                saveNotification(event.getCitizenId(), "Application Recommended", 
+                    "Your application has successfully passed department verification and is awaiting administrative approval.", 
+                    event.getBeneficiaryId(), "WELFARE", "beneficiary-recommended", "CITIZEN");
+                
+                saveNotification("admin", "New Recommendation Received", 
+                    "A recommended application is awaiting financial approval.", 
+                    event.getBeneficiaryId(), "WELFARE", "beneficiary-recommended", "ADMIN");
+            }
         } catch (Exception e) {
             System.err.println("Failed to process beneficiary-verified: " + e.getMessage());
         }
@@ -250,12 +261,9 @@ public class KafkaConsumerService {
     public void consumeBeneficiaryApproved(String message) {
         try {
             WelfareEvent event = objectMapper.readValue(message, WelfareEvent.class);
-            String title = "Welfare Application Approved";
-            String text = "Congratulations! Your welfare application for " + (event.getSchemeName() != null ? event.getSchemeName() : "Welfare Scheme") + 
-                          " (Code: " + event.getBeneficiaryCode() + ") has received final sanction for fund disbursement.";
-            
-            saveNotification(event.getCitizenId(), title, text, 
-                    event.getBeneficiaryId(), "WELFARE", "beneficiary-approved", "CITIZEN");
+            saveNotification(event.getCitizenId(), "Application Approved", 
+                "Your welfare application has been approved. Fund transfer will be processed shortly.", 
+                event.getBeneficiaryId(), "WELFARE", "beneficiary-approved", "CITIZEN");
         } catch (Exception e) {
             System.err.println("Failed to process beneficiary-approved: " + e.getMessage());
         }
@@ -265,12 +273,9 @@ public class KafkaConsumerService {
     public void consumeBeneficiaryRejected(String message) {
         try {
             WelfareEvent event = objectMapper.readValue(message, WelfareEvent.class);
-            String title = "Welfare Application Update";
-            String text = "Your application for " + (event.getSchemeName() != null ? event.getSchemeName() : "Welfare Scheme") + 
-                          " (Code: " + event.getBeneficiaryCode() + ") was rejected. Reason: " + (event.getRemarks() != null ? event.getRemarks() : "Criteria not met");
-            
-            saveNotification(event.getCitizenId(), title, text, 
-                    event.getBeneficiaryId(), "WELFARE", "beneficiary-rejected", "CITIZEN");
+            saveNotification(event.getCitizenId(), "Application Rejected", 
+                "Your application has been rejected.\n\nReason:\n" + (event.getRemarks() != null ? event.getRemarks() : "Criteria not met"), 
+                event.getBeneficiaryId(), "WELFARE", "beneficiary-rejected", "CITIZEN");
         } catch (Exception e) {
             System.err.println("Failed to process beneficiary-rejected: " + e.getMessage());
         }
@@ -280,13 +285,16 @@ public class KafkaConsumerService {
     public void consumeFundsDisbursed(String message) {
         try {
             WelfareEvent event = objectMapper.readValue(message, WelfareEvent.class);
-            String title = "Direct Benefit Transfer (DBT) Disbursed";
-            String text = "Welfare benefit funds for " + (event.getSchemeName() != null ? event.getSchemeName() : "Welfare Scheme") + 
-                          " (Code: " + event.getBeneficiaryCode() + ") have been successfully transferred to your bank account." + 
-                          (event.getTransactionId() != null ? " TXN ID: " + event.getTransactionId() : "");
             
-            saveNotification(event.getCitizenId(), title, text, 
+            String citizenText = "Your welfare benefit has been credited to your registered bank account.\n\nTransaction ID:\n" + 
+                                 (event.getTransactionId() != null ? event.getTransactionId() : "Pending");
+            saveNotification(event.getCitizenId(), "Funds Credited", citizenText, 
                     event.getBeneficiaryId(), "WELFARE", "funds-disbursed", "CITIZEN");
+            
+            String adminText = "Direct Benefit Transfer completed successfully.\n\nTransaction:\n" + 
+                               (event.getTransactionId() != null ? event.getTransactionId() : "Pending");
+            saveNotification("admin", "Payment Completed", adminText, 
+                    event.getBeneficiaryId(), "WELFARE", "funds-disbursed", "ADMIN");
         } catch (Exception e) {
             System.err.println("Failed to process funds-disbursed: " + e.getMessage());
         }

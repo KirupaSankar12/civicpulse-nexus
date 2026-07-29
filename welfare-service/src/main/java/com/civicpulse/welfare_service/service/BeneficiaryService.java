@@ -392,7 +392,8 @@ public class BeneficiaryService {
         addAudit(saved, BeneficiaryStatus.ADMIN_APPROVED, BeneficiaryStatus.FUNDS_DISBURSED, "Direct Benefit Transfer (DBT) Executed", "DBT Payment Gateway", "Transferred " + amount + " to " + b.getBankName() + " (" + b.getAccountNumber() + "). TxnId: " + txnId);
         addAudit(saved, BeneficiaryStatus.FUNDS_DISBURSED, BeneficiaryStatus.COMPLETED, "Payment Receipt Generated", "System", "Government DBT Payment Receipt issued.");
 
-        safePublish(() -> eventPublisher.publishApproved(toEvent("FUNDS_DISBURSED", saved, scheme.getSchemeName(), "DBT Executed: " + txnId)));
+        safePublish(() -> eventPublisher.publishApproved(toEvent("BENEFICIARY_APPROVED", saved, scheme.getSchemeName(), "Admin Approved")));
+        safePublish(() -> eventPublisher.publishDisbursed(toEvent("FUNDS_DISBURSED", saved, scheme.getSchemeName(), "DBT Executed: " + txnId)));
         return saved;
     }
 

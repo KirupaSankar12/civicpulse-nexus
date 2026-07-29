@@ -46,6 +46,20 @@ function DocumentBodyPreview({ doc, appDetails }) {
   const accNumber = appDetails?.accountNumber || '12345678912';
   const ifsc = appDetails?.ifscCode || 'SBIN0001234';
 
+  if (doc.dataUrl) {
+    if (doc.dataUrl.startsWith('data:image')) {
+      return (
+        <div style={{ display: 'flex', justifyContent: 'center', background: '#f1f5f9', borderRadius: 16, padding: 16 }}>
+          <img src={doc.dataUrl} style={{ maxWidth: '100%', maxHeight: '600px', borderRadius: 8, objectFit: 'contain' }} alt={doc.fileName || doc.docName} />
+        </div>
+      );
+    } else if (doc.dataUrl.startsWith('data:application/pdf')) {
+      return (
+        <iframe src={doc.dataUrl} width="100%" height="500px" style={{ border: 'none', borderRadius: 8 }} title={doc.fileName || doc.docName} />
+      );
+    }
+  }
+
   if (docName.includes('aadhaar')) {
     return (
       <div style={{ background: '#ffffff', borderRadius: 16, border: '2px solid #ea580c', boxShadow: '0 8px 24px rgba(234, 88, 12, 0.12)', overflow: 'hidden' }}>
@@ -653,13 +667,23 @@ export default function DepartmentWelfareDashboard() {
                     Attached Documents (Click to view full preview)
                   </div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                    {selectedApp.documentsSubmitted ? (
-                      selectedApp.documentsSubmitted.split(',').map(doc => (
+                    {selectedApp.documentsSubmitted ? (() => {
+                      let parsedDocs = {};
+                      try {
+                        parsedDocs = JSON.parse(selectedApp.documentsSubmitted);
+                      } catch (e) {
+                        selectedApp.documentsSubmitted.split(',').forEach(doc => {
+                          parsedDocs[doc.trim()] = { name: `${doc.trim().toLowerCase().replace(/\s+/g, '_')}.pdf` };
+                        });
+                      }
+                      return Object.keys(parsedDocs).map(doc => (
                         <button
                           key={doc}
                           type="button"
                           onClick={() => setPreviewDocModal({
-                            docName: doc.trim(),
+                            docName: doc,
+                            fileName: parsedDocs[doc].name,
+                            dataUrl: parsedDocs[doc].dataUrl,
                             applicantName: selectedApp.applicantName,
                             aadhaar: selectedApp.applicantAadhaar,
                             annualIncome: selectedApp.annualIncome,
@@ -671,10 +695,10 @@ export default function DepartmentWelfareDashboard() {
                             display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer'
                           }}
                         >
-                          <CheckCircle2 size={15} /> {doc.trim()} <Eye size={13} style={{ opacity: 0.8 }} />
+                          <CheckCircle2 size={15} /> {doc} <Eye size={13} style={{ opacity: 0.8 }} />
                         </button>
-                      ))
-                    ) : (
+                      ));
+                    })() : (
                       <span style={{ fontSize: 13, color: '#94a3b8' }}>No documents attached</span>
                     )}
                   </div>
@@ -836,7 +860,10 @@ export default function DepartmentWelfareDashboard() {
           <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
             <div style={{ background: '#fff', borderRadius: 20, maxWidth: 540, width: '100%', overflow: 'hidden' }}>
               <div style={{ background: '#0f172a', color: '#fff', padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <strong style={{ fontSize: 15 }}>Preview: {previewDocModal.docName}</strong>
+                <div>
+                  <strong style={{ fontSize: 15 }}>Preview: {previewDocModal.docName}</strong>
+                  {previewDocModal.fileName && <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2 }}>Original File: {previewDocModal.fileName}</div>}
+                </div>
                 <button onClick={() => setPreviewDocModal(null)} style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer' }}><X size={18} /></button>
               </div>
               <div style={{ padding: 24 }}>

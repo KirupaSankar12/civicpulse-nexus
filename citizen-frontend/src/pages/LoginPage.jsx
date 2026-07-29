@@ -133,166 +133,174 @@ function LoginPage() {
 
   return (
     <div style={{
-      minHeight: '100vh', display: 'flex', background: '#f8fafc',
+      minHeight: '100vh', display: 'flex', background: '#f4f7f9',
       fontFamily: 'Inter, system-ui, sans-serif', color: '#0f172a'
     }}>
       
-      {/* ── Left Hero Panel (Light Blue & White Premium Design) ── */}
+      {/* ── Left Hero Panel (Premium Abstract Dark/Gradient Mesh) ── */}
       <div style={{
         flex: '1 1 45%',
-        background: 'linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 50%, #ffffff 100%)',
-        borderRight: '1px solid #bae6fd',
-        padding: '60px 48px', color: '#0f172a', display: 'flex', flexDirection: 'column',
-        justifyContent: 'space-between', position: 'relative', overflow: 'hidden'
+        background: '#090e17',
+        backgroundImage: 'radial-gradient(circle at 15% 50%, rgba(37,99,235,0.15) 0%, transparent 50%), radial-gradient(circle at 85% 30%, rgba(124,58,237,0.15) 0%, transparent 50%)',
+        position: 'relative', overflow: 'hidden',
+        padding: '60px 48px', color: '#ffffff', display: 'flex', flexDirection: 'column',
+        justifyContent: 'space-between',
+        boxShadow: '10px 0 30px rgba(0,0,0,0.1)'
       }}>
         {/* Glow Spheres */}
-        <div style={{ position: 'absolute', top: -100, left: -100, width: 400, height: 400, background: '#38bdf8', opacity: 0.15, borderRadius: '50%', filter: 'blur(100px)', pointerEvents: 'none' }} />
-        <div style={{ position: 'absolute', bottom: -100, right: -100, width: 350, height: 350, background: '#60a5fa', opacity: 0.12, borderRadius: '50%', filter: 'blur(90px)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', top: '-10%', left: '-10%', width: '50%', height: '50%', background: '#3b82f6', opacity: 0.1, borderRadius: '50%', filter: 'blur(100px)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', bottom: '-10%', right: '-10%', width: '60%', height: '60%', background: '#8b5cf6', opacity: 0.1, borderRadius: '50%', filter: 'blur(120px)', pointerEvents: 'none' }} />
 
         {/* Top Brand Logo */}
-        <Link to="/" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 14, zIndex: 2 }}>
+        <Link to="/" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 16, zIndex: 2 }}>
           <div style={{
-            width: 46, height: 46, borderRadius: 12,
-            background: 'linear-gradient(135deg, #2563eb, #1d4ed8)',
+            width: 52, height: 52, borderRadius: 14,
+            background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 4px 14px rgba(37,99,235,0.3)', border: '1.5px solid rgba(255,255,255,0.4)'
+            boxShadow: '0 8px 24px rgba(37,99,235,0.4)', border: '1px solid rgba(255,255,255,0.2)'
           }}>
-            <Landmark size={24} color="#ffffff" />
+            <Landmark size={26} color="#ffffff" />
           </div>
           <div>
-            <div style={{ fontSize: 22, fontWeight: 900, color: '#0f172a', letterSpacing: '-0.02em', lineHeight: 1 }}>
-              CivicPulse <span style={{ color: '#0284c7' }}>Nexus</span>
+            <div style={{ fontSize: 26, fontWeight: 900, color: '#ffffff', letterSpacing: '-0.02em', lineHeight: 1 }}>
+              CivicPulse <span style={{ color: '#38bdf8' }}>Nexus</span>
             </div>
-            <div style={{ fontSize: 11, fontWeight: 800, color: '#0284c7', letterSpacing: '0.06em', textTransform: 'uppercase', marginTop: 4 }}>
+            <div style={{ fontSize: 12, fontWeight: 800, color: '#94a3b8', letterSpacing: '0.08em', textTransform: 'uppercase', marginTop: 6 }}>
               Smart Governance Platform
             </div>
           </div>
         </Link>
 
         {/* Hero Middle Content */}
-        <div style={{ zIndex: 2, margin: '60px 0', display: 'flex', flexDirection: 'column', gap: 24, maxWidth: 480 }}>
-          <span style={{
-            background: '#fffbeb', color: '#b45309', border: '1px solid #fde68a',
-            padding: '6px 16px', borderRadius: 20, fontSize: 12, fontWeight: 800, letterSpacing: '0.08em', display: 'inline-flex', alignItems: 'center', gap: 6, alignSelf: 'flex-start', boxShadow: '0 2px 6px rgba(180,83,9,0.05)'
+        <div style={{ zIndex: 2, margin: '60px 0', display: 'flex', flexDirection: 'column', gap: 28, maxWidth: 500 }}>
+          <div style={{
+            background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255,255,255,0.1)',
+            padding: '8px 18px', borderRadius: 30, fontSize: 12, fontWeight: 800, letterSpacing: '0.08em', display: 'inline-flex', alignItems: 'center', gap: 8, alignSelf: 'flex-start', color: '#e2e8f0', backdropFilter: 'blur(10px)'
           }}>
             🇮🇳 Government of India — Digital Portal
-          </span>
+          </div>
 
-          <h1 style={{ margin: 0, fontSize: 38, fontWeight: 900, lineHeight: 1.2, letterSpacing: '-0.03em', color: '#0f172a' }}>
+          <h1 style={{ margin: 0, fontSize: 42, fontWeight: 900, lineHeight: 1.15, letterSpacing: '-0.03em', color: '#ffffff' }}>
             Unified Access to <br />
-            <span style={{ color: '#1d4ed8', fontWeight: 900, display: 'inline-block' }}>
+            <span style={{ color: '#60a5fa', fontWeight: 900, display: 'inline-block' }}>
               Public Governance Services
             </span>
           </h1>
 
-          <p style={{ margin: 0, fontSize: 15, color: '#334155', lineHeight: 1.6, fontWeight: 500 }}>
+          <p style={{ margin: 0, fontSize: 16, color: '#94a3b8', lineHeight: 1.6, fontWeight: 500 }}>
             File grievances, track real-time SLA officer deadlines, apply for birth & residence certificates, and access government welfare schemes from one secure platform.
           </p>
 
-          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', paddingTop: 8 }}>
-            <div style={{ background: '#ffffff', border: '1px solid #bae6fd', padding: '8px 14px', borderRadius: 10, fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6, color: '#0369a1', boxShadow: '0 2px 6px rgba(2,132,199,0.06)' }}>
-              <ShieldCheck size={14} className="text-emerald-600" /> 256-bit SSL Encrypted
+          <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', paddingTop: 12 }}>
+            <div style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', padding: '10px 16px', borderRadius: 12, fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8, color: '#e2e8f0', backdropFilter: 'blur(10px)' }}>
+              <ShieldCheck size={16} color="#34d399" /> 256-bit SSL Encrypted
             </div>
-            <div style={{ background: '#ffffff', border: '1px solid #bae6fd', padding: '8px 14px', borderRadius: 10, fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6, color: '#0369a1', boxShadow: '0 2px 6px rgba(2,132,199,0.06)' }}>
-              <KeyRound size={14} className="text-sky-600" /> Keycloak SSO Secured
+            <div style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', padding: '10px 16px', borderRadius: 12, fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8, color: '#e2e8f0', backdropFilter: 'blur(10px)' }}>
+              <KeyRound size={16} color="#38bdf8" /> Keycloak SSO Secured
             </div>
           </div>
         </div>
 
         {/* Footer info */}
-        <div style={{ zIndex: 2, fontSize: 12, color: '#64748b', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ zIndex: 2, fontSize: 13, color: '#64748b', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 500 }}>
           <span>© 2026 CivicPulse Nexus</span>
-          <Link to="/" style={{ color: '#0284c7', textDecoration: 'none', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
-            ← Back to Home
+          <Link to="/" style={{ color: '#94a3b8', textDecoration: 'none', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6, transition: 'color 0.2s' }} onMouseOver={e => e.target.style.color = '#fff'} onMouseOut={e => e.target.style.color = '#94a3b8'}>
+            <ArrowLeft size={14} /> Back to Home
           </Link>
         </div>
       </div>
 
-      {/* ── Right Form Container (Clean Elevated White Form Card) ── */}
+      {/* ── Right Form Container (True Split-Screen) ── */}
       <div style={{
-        flex: '1 1 55%', padding: '48px 36px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-        background: '#f8fafc'
+        flex: '1 1 55%', padding: '60px 10%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+        background: '#ffffff', position: 'relative'
       }}>
         <div style={{
-          width: '100%', maxWidth: 480, background: '#ffffff', borderRadius: 20, padding: 36,
-          border: '1.5px solid #e2e8f0', boxShadow: '0 20px 40px rgba(15,23,42,0.08)',
-          display: 'flex', flexDirection: 'column', gap: 24
+          width: '100%', maxWidth: 800,
+          display: 'flex', flexDirection: 'column', gap: 32, zIndex: 1, position: 'relative'
         }}>
           
-          <div>
-            <h2 style={{ margin: '0 0 6px', fontSize: 28, fontWeight: 900, color: '#0f172a', letterSpacing: '-0.02em' }}>
+          <div style={{ textAlign: 'left', marginBottom: 16 }}>
+            <h2 style={{ margin: '0 0 16px', fontSize: 38, fontWeight: 900, color: '#0f172a', letterSpacing: '-0.02em' }}>
               Sign In to Your Account
             </h2>
-            <p style={{ margin: 0, fontSize: 14, color: '#64748b', lineHeight: 1.5 }}>
+            <p style={{ margin: 0, fontSize: 17, color: '#64748b', lineHeight: 1.5, fontWeight: 500 }}>
               Choose your portal role below and enter your credentials.
             </p>
           </div>
 
           {/* Portal Selector Cards */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
             <button
               type="button"
               onClick={() => setLoginRole('citizen')}
               style={{
-                padding: '14px 16px', borderRadius: 14, textAlign: 'left', cursor: 'pointer',
+                padding: '16px', borderRadius: 16, textAlign: 'left', cursor: 'pointer',
                 background: loginRole === 'citizen' ? '#eff6ff' : '#ffffff',
-                border: loginRole === 'citizen' ? '2px solid #2563eb' : '1.5px solid #e2e8f0',
-                boxShadow: loginRole === 'citizen' ? '0 4px 12px rgba(37,99,235,0.15)' : 'none',
-                transition: 'all 0.2s'
+                border: loginRole === 'citizen' ? '2px solid #3b82f6' : '1.5px solid #cbd5e1',
+                boxShadow: loginRole === 'citizen' ? '0 4px 20px rgba(59,130,246,0.15)' : '0 2px 4px rgba(0,0,0,0.02)',
+                transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                outline: 'none'
               }}
+              onMouseOver={e => { if(loginRole !== 'citizen') e.currentTarget.style.borderColor = '#93c5fd' }}
+              onMouseOut={e => { if(loginRole !== 'citizen') e.currentTarget.style.borderColor = '#cbd5e1' }}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                <div style={{ width: 32, height: 32, borderRadius: 8, background: loginRole === 'citizen' ? '#2563eb' : '#f1f5f9', color: loginRole === 'citizen' ? '#fff' : '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <User size={18} />
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                <div style={{ width: 36, height: 36, borderRadius: 10, background: loginRole === 'citizen' ? '#3b82f6' : '#f1f5f9', color: loginRole === 'citizen' ? '#fff' : '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}>
+                  <User size={20} />
                 </div>
-                {loginRole === 'citizen' && <span style={{ fontSize: 10, fontWeight: 800, color: '#15803d', background: '#f0fdf4', padding: '2px 8px', borderRadius: 10, border: '1px solid #bbf7d0' }}>Active</span>}
+                {loginRole === 'citizen' && <span style={{ fontSize: 11, fontWeight: 800, color: '#15803d', background: '#dcfce7', padding: '3px 10px', borderRadius: 12, border: '1px solid #86efac' }}>Active</span>}
               </div>
-              <div style={{ fontSize: 14, fontWeight: 800, color: loginRole === 'citizen' ? '#1e40af' : '#334155' }}>Citizen Portal</div>
-              <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>File complaints & apply</div>
+              <div style={{ fontSize: 15, fontWeight: 800, color: loginRole === 'citizen' ? '#1e40af' : '#334155' }}>Citizen Portal</div>
+              <div style={{ fontSize: 12, color: '#64748b', marginTop: 4, fontWeight: 500 }}>File complaints & apply</div>
             </button>
 
             <button
               type="button"
               onClick={() => setLoginRole('officer')}
               style={{
-                padding: '14px 16px', borderRadius: 14, textAlign: 'left', cursor: 'pointer',
+                padding: '16px', borderRadius: 16, textAlign: 'left', cursor: 'pointer',
                 background: loginRole === 'officer' ? '#f5f3ff' : '#ffffff',
-                border: loginRole === 'officer' ? '2px solid #7c3aed' : '1.5px solid #e2e8f0',
-                boxShadow: loginRole === 'officer' ? '0 4px 12px rgba(124,58,237,0.15)' : 'none',
-                transition: 'all 0.2s'
+                border: loginRole === 'officer' ? '2px solid #8b5cf6' : '1.5px solid #cbd5e1',
+                boxShadow: loginRole === 'officer' ? '0 4px 20px rgba(139,92,246,0.15)' : '0 2px 4px rgba(0,0,0,0.02)',
+                transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                outline: 'none'
               }}
+              onMouseOver={e => { if(loginRole !== 'officer') e.currentTarget.style.borderColor = '#c4b5fd' }}
+              onMouseOut={e => { if(loginRole !== 'officer') e.currentTarget.style.borderColor = '#cbd5e1' }}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                <div style={{ width: 32, height: 32, borderRadius: 8, background: loginRole === 'officer' ? '#7c3aed' : '#f1f5f9', color: loginRole === 'officer' ? '#fff' : '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Briefcase size={18} />
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                <div style={{ width: 36, height: 36, borderRadius: 10, background: loginRole === 'officer' ? '#8b5cf6' : '#f1f5f9', color: loginRole === 'officer' ? '#fff' : '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}>
+                  <Briefcase size={20} />
                 </div>
-                {loginRole === 'officer' && <span style={{ fontSize: 10, fontWeight: 800, color: '#6d28d9', background: '#f5f3ff', padding: '2px 8px', borderRadius: 10, border: '1px solid #ddd6fe' }}>Active</span>}
+                {loginRole === 'officer' && <span style={{ fontSize: 11, fontWeight: 800, color: '#6d28d9', background: '#ede9fe', padding: '3px 10px', borderRadius: 12, border: '1px solid #c4b5fd' }}>Active</span>}
               </div>
-              <div style={{ fontSize: 14, fontWeight: 800, color: loginRole === 'officer' ? '#5b21b6' : '#334155' }}>Officer Portal</div>
-              <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>Verify & approve apps</div>
+              <div style={{ fontSize: 15, fontWeight: 800, color: loginRole === 'officer' ? '#5b21b6' : '#334155' }}>Officer Portal</div>
+              <div style={{ fontSize: 12, color: '#64748b', marginTop: 4, fontWeight: 500 }}>Verify & approve apps</div>
             </button>
           </div>
 
           {/* Alert Message */}
           {error && (
             <div style={{
-              background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 12, padding: '14px 16px',
-              color: '#dc2626', fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'flex-start', gap: 10
+              background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 14, padding: '16px 20px',
+              color: '#dc2626', fontSize: 14, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 12,
+              animation: 'shake 0.4s ease-in-out'
             }}>
-              <ShieldAlert size={18} className="flex-shrink-0" style={{ marginTop: 2 }} />
-              <div>{error}</div>
+              <ShieldAlert size={20} className="flex-shrink-0" />
+              <div style={{ lineHeight: 1.4 }}>{error}</div>
             </div>
           )}
 
           {/* Main Login Form */}
-          <form onSubmit={handleCustomLogin} style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+          <form onSubmit={handleCustomLogin} style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
             
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <label htmlFor="login-email" style={{ fontSize: 13, fontWeight: 700, color: '#334155' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <label htmlFor="login-email" style={{ fontSize: 14, fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                 Username or Email Address <span style={{ color: '#ef4444' }}>*</span>
               </label>
               <div style={{ position: 'relative' }}>
-                <User size={18} style={{ position: 'absolute', left: 14, top: 13, color: '#94a3b8' }} />
+                <User size={22} style={{ position: 'absolute', left: 18, top: 16, color: '#94a3b8' }} />
                 <input
                   id="login-email"
                   type="text"
@@ -300,30 +308,35 @@ function LoginPage() {
                   onChange={(e) => { setEmail(e.target.value); setFieldErrors({ ...fieldErrors, email: null }); }}
                   placeholder={loginRole === 'citizen' ? 'citizen1@gmail.com' : 'john or mark'}
                   style={{
-                    width: '100%', height: 46, paddingLeft: 42, paddingRight: 14, borderRadius: 10,
-                    border: fieldErrors.email ? '1.5px solid #ef4444' : '1.5px solid #cbd5e1',
-                    fontSize: 14, color: '#0f172a', boxSizing: 'border-box', outline: 'none'
+                    width: '100%', height: 56, paddingLeft: 52, paddingRight: 16, borderRadius: 14,
+                    border: fieldErrors.email ? '2px solid #ef4444' : '2px solid #e2e8f0',
+                    fontSize: 16, color: '#0f172a', boxSizing: 'border-box', outline: 'none',
+                    transition: 'all 0.2s', background: '#f8fafc'
                   }}
+                  onFocus={e => { if(!fieldErrors.email) e.target.style.borderColor = loginRole === 'citizen' ? '#3b82f6' : '#8b5cf6'; e.target.style.background = '#fff'; }}
+                  onBlur={e => { if(!fieldErrors.email) e.target.style.borderColor = '#e2e8f0'; e.target.style.background = '#f8fafc'; }}
                 />
               </div>
-              {fieldErrors.email && <div style={{ fontSize: 12, color: '#ef4444', fontWeight: 600 }}>{fieldErrors.email}</div>}
+              {fieldErrors.email && <div style={{ fontSize: 13, color: '#ef4444', fontWeight: 600 }}>{fieldErrors.email}</div>}
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <label htmlFor="login-password" style={{ fontSize: 13, fontWeight: 700, color: '#334155' }}>
+                <label htmlFor="login-password" style={{ fontSize: 14, fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                   Password <span style={{ color: '#ef4444' }}>*</span>
                 </label>
                 <a
                   href="#forgot"
                   onClick={(e) => { e.preventDefault(); alert('Contact municipal admin to reset credentials or use Keycloak Admin Console.'); }}
-                  style={{ fontSize: 12, color: '#2563eb', textDecoration: 'none', fontWeight: 700 }}
+                  style={{ fontSize: 14, color: loginRole === 'citizen' ? '#2563eb' : '#7c3aed', textDecoration: 'none', fontWeight: 700, transition: 'opacity 0.2s' }}
+                  onMouseOver={e => e.target.style.opacity = '0.8'}
+                  onMouseOut={e => e.target.style.opacity = '1'}
                 >
                   Forgot Password?
                 </a>
               </div>
               <div style={{ position: 'relative' }}>
-                <Lock size={18} style={{ position: 'absolute', left: 14, top: 13, color: '#94a3b8' }} />
+                <Lock size={22} style={{ position: 'absolute', left: 18, top: 16, color: '#94a3b8' }} />
                 <input
                   id="login-password"
                   type={showPassword ? 'text' : 'password'}
@@ -331,31 +344,34 @@ function LoginPage() {
                   onChange={(e) => { setPassword(e.target.value); setFieldErrors({ ...fieldErrors, password: null }); }}
                   placeholder="••••••••"
                   style={{
-                    width: '100%', height: 46, paddingLeft: 42, paddingRight: 42, borderRadius: 10,
-                    border: fieldErrors.password ? '1.5px solid #ef4444' : '1.5px solid #cbd5e1',
-                    fontSize: 14, color: '#0f172a', boxSizing: 'border-box', outline: 'none'
+                    width: '100%', height: 56, paddingLeft: 52, paddingRight: 52, borderRadius: 14,
+                    border: fieldErrors.password ? '2px solid #ef4444' : '2px solid #e2e8f0',
+                    fontSize: 16, color: '#0f172a', boxSizing: 'border-box', outline: 'none',
+                    transition: 'all 0.2s', background: '#f8fafc'
                   }}
+                  onFocus={e => { if(!fieldErrors.password) e.target.style.borderColor = loginRole === 'citizen' ? '#3b82f6' : '#8b5cf6'; e.target.style.background = '#fff'; }}
+                  onBlur={e => { if(!fieldErrors.password) e.target.style.borderColor = '#e2e8f0'; e.target.style.background = '#f8fafc'; }}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  style={{ position: 'absolute', right: 12, top: 12, background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}
+                  style={{ position: 'absolute', right: 16, top: 18, background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', display: 'flex' }}
                 >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  {showPassword ? <EyeOff size={22} /> : <Eye size={22} />}
                 </button>
               </div>
-              {fieldErrors.password && <div style={{ fontSize: 12, color: '#ef4444', fontWeight: 600 }}>{fieldErrors.password}</div>}
+              {fieldErrors.password && <div style={{ fontSize: 13, color: '#ef4444', fontWeight: 600 }}>{fieldErrors.password}</div>}
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 4 }}>
               <input
                 type="checkbox"
                 id="rememberMe"
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
-                style={{ width: 16, height: 16, cursor: 'pointer', accentColor: '#2563eb' }}
+                style={{ width: 18, height: 18, cursor: 'pointer', accentColor: loginRole === 'citizen' ? '#2563eb' : '#7c3aed', borderRadius: 4 }}
               />
-              <label htmlFor="rememberMe" style={{ fontSize: 13, color: '#64748b', cursor: 'pointer', fontWeight: 600 }}>
+              <label htmlFor="rememberMe" style={{ fontSize: 14, color: '#475569', cursor: 'pointer', fontWeight: 600, userSelect: 'none' }}>
                 Remember my username
               </label>
             </div>
@@ -364,67 +380,87 @@ function LoginPage() {
               type="submit"
               disabled={loading}
               style={{
-                height: 48, borderRadius: 12, border: 'none',
+                height: 56, borderRadius: 14, border: 'none',
                 background: loginRole === 'citizen' ? 'linear-gradient(135deg, #2563eb, #1d4ed8)' : 'linear-gradient(135deg, #7c3aed, #6d28d9)',
-                color: '#ffffff', fontWeight: 800, fontSize: 15, cursor: 'pointer',
-                boxShadow: '0 4px 14px rgba(37,99,235,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8
+                color: '#ffffff', fontWeight: 800, fontSize: 17, cursor: loading ? 'not-allowed' : 'pointer',
+                boxShadow: loginRole === 'citizen' ? '0 8px 24px rgba(37,99,235,0.3)' : '0 8px 24px rgba(124,58,237,0.3)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+                marginTop: 8, transition: 'transform 0.1s, box-shadow 0.2s',
+                opacity: loading ? 0.8 : 1
               }}
+              onMouseOver={e => { if(!loading) e.currentTarget.style.transform = 'translateY(-2px)' }}
+              onMouseOut={e => { if(!loading) e.currentTarget.style.transform = 'none' }}
+              onMouseDown={e => { if(!loading) e.currentTarget.style.transform = 'scale(0.98)' }}
+              onMouseUp={e => { if(!loading) e.currentTarget.style.transform = 'translateY(-2px)' }}
             >
               {loading ? (
                 <>Authenticating...</>
               ) : (
-                <>🔐 Sign In as {loginRole === 'citizen' ? 'Citizen' : 'Department Officer'} <ArrowRight size={16} /></>
+                <>🔐 Sign In as {loginRole === 'citizen' ? 'Citizen' : 'Department Officer'} <ArrowRight size={20} /></>
               )}
             </button>
           </form>
 
           {/* Divider */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '4px 0' }}>
-            <div style={{ flex: 1, height: 1, background: '#e2e8f0' }} />
-            <span style={{ fontSize: 12, color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase' }}>or</span>
-            <div style={{ flex: 1, height: 1, background: '#e2e8f0' }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16, margin: '12px 0' }}>
+            <div style={{ flex: 1, height: 2, background: '#e2e8f0', borderRadius: 2 }} />
+            <span style={{ fontSize: 13, color: '#94a3b8', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em' }}>or</span>
+            <div style={{ flex: 1, height: 2, background: '#e2e8f0', borderRadius: 2 }} />
           </div>
 
           <button
             type="button"
             onClick={handleKeycloakSSORedirect}
             style={{
-              height: 44, borderRadius: 10, background: '#ffffff', color: '#334155',
-              border: '1.5px solid #cbd5e1', fontWeight: 700, fontSize: 14, cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: '0 2px 6px rgba(0,0,0,0.03)'
+              height: 56, borderRadius: 14, background: '#ffffff', color: '#334155',
+              border: '2px solid #cbd5e1', fontWeight: 800, fontSize: 16, cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+              boxShadow: '0 4px 12px rgba(0,0,0,0.03)', transition: 'all 0.2s'
             }}
+            onMouseOver={e => { e.currentTarget.style.background = '#f8fafc'; e.currentTarget.style.borderColor = '#94a3b8' }}
+            onMouseOut={e => { e.currentTarget.style.background = '#ffffff'; e.currentTarget.style.borderColor = '#cbd5e1' }}
           >
-            <Globe size={18} className="text-sky-600" /> Single Sign-On (Keycloak SSO)
+            <Globe size={22} className="text-sky-600" /> Use Keycloak Single Sign-On (SSO)
           </button>
 
           {/* Quick-Fill Test Credentials Panel */}
-          <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 12, overflow: 'hidden' }}>
+          <div style={{ background: '#f8fafc', border: '2px solid #e2e8f0', borderRadius: 16, overflow: 'hidden', marginTop: 12 }}>
             <button
               type="button"
               onClick={() => setShowTestCreds(!showTestCreds)}
               style={{
-                width: '100%', padding: '12px 16px', background: 'none', border: 'none',
+                width: '100%', padding: '16px 20px', background: 'none', border: 'none',
                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                cursor: 'pointer', color: '#2563eb', fontWeight: 800, fontSize: 13
+                cursor: 'pointer', color: '#334155', fontWeight: 800, fontSize: 14,
+                transition: 'background 0.2s'
               }}
+              onMouseOver={e => e.currentTarget.style.background = '#f1f5f9'}
+              onMouseOut={e => e.currentTarget.style.background = 'none'}
             >
-              <span>📋 Quick-Fill Test Credentials</span>
-              {showTestCreds ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <Sparkles size={18} color="#0ea5e9" />
+                <span>Quick-Fill Test Credentials</span>
+              </div>
+              {showTestCreds ? <ChevronUp size={18} color="#94a3b8" /> : <ChevronDown size={18} color="#94a3b8" />}
             </button>
 
             {showTestCreds && (
-              <div style={{ padding: '0 16px 16px', display: 'flex', flexDirection: 'column', gap: 12, borderTop: '1px solid #e2e8f0', paddingTop: 12 }}>
-                <p style={{ margin: 0, fontSize: 12, color: '#64748b' }}>Click any account below to auto-fill (Password: <strong>Password123</strong>):</p>
+              <div style={{ padding: '0 20px 20px', display: 'flex', flexDirection: 'column', gap: 16, borderTop: '2px solid #e2e8f0', paddingTop: 16 }}>
+                <p style={{ margin: 0, fontSize: 13, color: '#64748b', lineHeight: 1.5 }}>Click any account below to auto-fill the login form (Password: <strong style={{ color: '#0f172a' }}>Password123</strong>):</p>
                 
-                <div>
-                  <div style={{ fontSize: 11, fontWeight: 800, color: '#1e40af', textTransform: 'uppercase', marginBottom: 6 }}>👤 Citizens</div>
-                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                <div style={{ background: '#ffffff', padding: 14, borderRadius: 12, border: '1px solid #e2e8f0' }}>
+                  <div style={{ fontSize: 12, fontWeight: 900, color: '#1e40af', textTransform: 'uppercase', marginBottom: 10, letterSpacing: '0.04em', display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <User size={14} /> Citizens
+                  </div>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                     {['citizen1@gmail.com', 'citizen2@gmail.com', 'citizen3@gmail.com'].map(u => (
                       <button
                         key={u}
                         type="button"
                         onClick={() => autofillCredentials(u, 'citizen')}
-                        style={{ background: '#ffffff', border: '1px solid #cbd5e1', padding: '4px 10px', borderRadius: 6, fontSize: 12, fontFamily: 'monospace', cursor: 'pointer', fontWeight: 600, color: '#0f172a' }}
+                        style={{ background: '#f8fafc', border: '1px solid #cbd5e1', padding: '6px 12px', borderRadius: 8, fontSize: 13, fontFamily: 'monospace', cursor: 'pointer', fontWeight: 700, color: '#334155', transition: 'all 0.15s' }}
+                        onMouseOver={e => { e.currentTarget.style.borderColor = '#3b82f6'; e.currentTarget.style.color = '#1e40af' }}
+                        onMouseOut={e => { e.currentTarget.style.borderColor = '#cbd5e1'; e.currentTarget.style.color = '#334155' }}
                       >
                         {u}
                       </button>
@@ -432,9 +468,11 @@ function LoginPage() {
                   </div>
                 </div>
 
-                <div>
-                  <div style={{ fontSize: 11, fontWeight: 800, color: '#6d28d9', textTransform: 'uppercase', marginBottom: 6 }}>🧑‍💼 Officers</div>
-                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                <div style={{ background: '#ffffff', padding: 14, borderRadius: 12, border: '1px solid #e2e8f0' }}>
+                  <div style={{ fontSize: 12, fontWeight: 900, color: '#6d28d9', textTransform: 'uppercase', marginBottom: 10, letterSpacing: '0.04em', display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <Briefcase size={14} /> Department Officers
+                  </div>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                     {[
                       { user: 'john', dept: 'Health' },
                       { user: 'mark', dept: 'Revenue' },
@@ -450,9 +488,11 @@ function LoginPage() {
                         key={o.user}
                         type="button"
                         onClick={() => autofillCredentials(o.user, 'officer')}
-                        style={{ background: '#ffffff', border: '1px solid #cbd5e1', padding: '4px 10px', borderRadius: 6, fontSize: 12, fontFamily: 'monospace', cursor: 'pointer', fontWeight: 600, color: '#0f172a' }}
+                        style={{ background: '#f8fafc', border: '1px solid #cbd5e1', padding: '6px 12px', borderRadius: 8, fontSize: 13, fontFamily: 'monospace', cursor: 'pointer', fontWeight: 700, color: '#334155', transition: 'all 0.15s' }}
+                        onMouseOver={e => { e.currentTarget.style.borderColor = '#8b5cf6'; e.currentTarget.style.color = '#5b21b6' }}
+                        onMouseOut={e => { e.currentTarget.style.borderColor = '#cbd5e1'; e.currentTarget.style.color = '#334155' }}
                       >
-                        {o.user} ({o.dept})
+                        {o.user} <span style={{ color: '#94a3b8', fontSize: 11 }}>({o.dept})</span>
                       </button>
                     ))}
                   </div>
@@ -461,16 +501,10 @@ function LoginPage() {
             )}
           </div>
 
-          <div style={{ textAlign: 'center', fontSize: 14 }}>
-            <span style={{ color: '#64748b' }}>Don't have an account? </span>
-            <Link to="/register" style={{ color: '#2563eb', fontWeight: 800, textDecoration: 'none' }}>
+          <div style={{ textAlign: 'left', fontSize: 15, marginTop: 8 }}>
+            <span style={{ color: '#64748b', fontWeight: 500 }}>Don't have an account? </span>
+            <Link to="/register" style={{ color: '#2563eb', fontWeight: 800, textDecoration: 'none', borderBottom: '2px solid transparent', transition: 'border-color 0.2s' }} onMouseOver={e => e.target.style.borderColor = '#2563eb'} onMouseOut={e => e.target.style.borderColor = 'transparent'}>
               Register as Citizen
-            </Link>
-          </div>
-
-          <div style={{ textAlign: 'center' }}>
-            <Link to="/" style={{ color: '#64748b', fontSize: 13, textDecoration: 'none', fontWeight: 600 }}>
-              ← Back to Home
             </Link>
           </div>
 

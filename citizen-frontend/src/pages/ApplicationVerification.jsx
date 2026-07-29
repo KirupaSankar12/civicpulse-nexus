@@ -22,6 +22,20 @@ function statusVariant(s) {
 }
 
 function DocumentBodyPreview({ doc }) {
+  if (doc.dataUrl) {
+    if (doc.dataUrl.startsWith('data:image')) {
+      return (
+        <div style={{ display: 'flex', justifyContent: 'center', background: '#f1f5f9', borderRadius: 16, padding: 16 }}>
+          <img src={doc.dataUrl} style={{ maxWidth: '100%', maxHeight: '600px', borderRadius: 8, objectFit: 'contain' }} alt={doc.fileName || doc.docName} />
+        </div>
+      );
+    } else if (doc.dataUrl.startsWith('data:application/pdf')) {
+      return (
+        <iframe src={doc.dataUrl} width="100%" height="500px" style={{ border: 'none', borderRadius: 8 }} title={doc.fileName || doc.docName} />
+      );
+    }
+  }
+
   const docName = doc.docName.toLowerCase();
 
   // 1. Aadhaar Card Preview
@@ -237,9 +251,11 @@ export default function ApplicationVerification() {
     setActioning(null);
   };
 
-  const openPreview = (docName, beneficiary, scheme) => {
+  const openPreview = (docName, beneficiary, scheme, fileName, dataUrl) => {
     setPreviewDoc({
-      docName: docName.trim(),
+      docName: docName,
+      fileName: fileName,
+      dataUrl: dataUrl,
       applicantName: beneficiary.applicantName,
       beneficiaryCode: beneficiary.beneficiaryCode,
       aadhaar: beneficiary.applicantAadhaar,
@@ -316,31 +332,41 @@ export default function ApplicationVerification() {
                         <div style={{ fontWeight: 700, color: '#0f172a', fontSize: 14 }}>{b.appliedDate ? new Date(b.appliedDate).toLocaleDateString('en-IN') : '—'}</div></div>
                     </div>
 
-                    {b.documentsSubmitted && (
-                      <div>
-                        <div style={{ fontSize: '12px', fontWeight: 800, color: '#475569', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                          ATTACHED DOCUMENTS (CLICK TO PREVIEW & VERIFY)
+                    {b.documentsSubmitted && (() => {
+                      let parsedDocs = {};
+                      try {
+                        parsedDocs = JSON.parse(b.documentsSubmitted);
+                      } catch (e) {
+                        b.documentsSubmitted.split(',').forEach(doc => {
+                          parsedDocs[doc.trim()] = { name: `${doc.trim().toLowerCase().replace(/\s+/g, '_')}.pdf` };
+                        });
+                      }
+                      return (
+                        <div>
+                          <div style={{ fontSize: '12px', fontWeight: 800, color: '#475569', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                            ATTACHED DOCUMENTS (CLICK TO PREVIEW & VERIFY)
+                          </div>
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                            {Object.keys(parsedDocs).map(doc => (
+                              <button
+                                key={doc}
+                                type="button"
+                                onClick={() => openPreview(doc, b, scheme, parsedDocs[doc].name, parsedDocs[doc].dataUrl)}
+                                style={{
+                                  padding: '6px 14px', borderRadius: '10px', backgroundColor: '#f0fdf4',
+                                  color: '#15803d', border: '1.5px solid #86efac', fontSize: '13px', fontWeight: 700,
+                                  display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', transition: 'all 0.15s ease',
+                                  boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
+                                }}
+                                title={`Preview ${doc}`}
+                              >
+                                <CheckCircle2 size={14} /> {doc} <Eye size={13} style={{ marginLeft: 2, opacity: 0.8 }} />
+                              </button>
+                            ))}
+                          </div>
                         </div>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                          {b.documentsSubmitted.split(',').map(doc => (
-                            <button
-                              key={doc}
-                              type="button"
-                              onClick={() => openPreview(doc, b, scheme)}
-                              style={{
-                                padding: '6px 14px', borderRadius: '10px', backgroundColor: '#f0fdf4',
-                                color: '#15803d', border: '1.5px solid #86efac', fontSize: '13px', fontWeight: 700,
-                                display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', transition: 'all 0.15s ease',
-                                boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
-                              }}
-                              title={`Preview ${doc.trim()}`}
-                            >
-                              <CheckCircle2 size={14} /> {doc.trim()} <Eye size={13} style={{ marginLeft: 2, opacity: 0.8 }} />
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
+                      );
+                    })()}
 
                     <div>
                       <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '6px', textTransform: 'uppercase' }}>
@@ -391,6 +417,7 @@ export default function ApplicationVerification() {
                     <h3 style={{ margin: 0, fontSize: 17, fontWeight: 800, color: '#ffffff' }}>
                       Document Preview: {previewDoc.docName}
                     </h3>
+                    {previewDoc.fileName && <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>Original File: {previewDoc.fileName}</div>}
                     <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>
                       Applicant: {previewDoc.applicantName} ({previewDoc.beneficiaryCode})
                     </div>
