@@ -238,8 +238,15 @@ public class BeneficiaryService {
     @Transactional
     public Beneficiary startVerification(UUID id, String officerUsername) {
         Beneficiary b = getById(id);
-        if (b.getStatus() == BeneficiaryStatus.UNDER_DEPARTMENT_VERIFICATION) {
-            return b; // Already in verification
+        List<BeneficiaryStatus> validPriorStates = Arrays.asList(
+            BeneficiaryStatus.APPLIED,
+            BeneficiaryStatus.SUBMITTED, 
+            BeneficiaryStatus.ASSIGNED_TO_DEPARTMENT,
+            BeneficiaryStatus.UNDER_REVIEW,
+            BeneficiaryStatus.DOCUMENTS_REQUESTED
+        );
+        if (!validPriorStates.contains(b.getStatus())) {
+            return b; // Do not transition if already past this stage
         }
         BeneficiaryStatus prev = b.getStatus();
         b.setStatus(BeneficiaryStatus.UNDER_DEPARTMENT_VERIFICATION);
