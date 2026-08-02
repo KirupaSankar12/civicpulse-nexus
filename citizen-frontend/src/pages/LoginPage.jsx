@@ -57,7 +57,13 @@ function LoginPage() {
       const params = new URLSearchParams();
       params.append('grant_type', 'password');
       params.append('client_id', 'civicpulse-frontend');
-      params.append('username', email);
+      
+      let finalUsername = email.trim();
+      if (finalUsername === 'citizen4') {
+        finalUsername = 'citizen4@gmail.com';
+      }
+      
+      params.append('username', finalUsername);
       params.append('password', password);
 
       const response = await axios.post(
@@ -453,7 +459,7 @@ function LoginPage() {
                     <User size={14} /> Citizens
                   </div>
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                    {['citizen1@gmail.com', 'citizen2@gmail.com', 'citizen3@gmail.com'].map(u => (
+                    {['citizen1@gmail.com', 'citizen2@gmail.com', 'citizen3@gmail.com', 'citizen4@gmail.com'].map(u => (
                       <button
                         key={u}
                         type="button"

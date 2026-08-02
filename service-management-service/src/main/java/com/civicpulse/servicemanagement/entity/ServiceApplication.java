@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import org.hibernate.annotations.CreationTimestamp;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -63,6 +64,12 @@ public class ServiceApplication {
 
     private int downloadCount = 0;
 
+    // Revenue tracking fields
+    private BigDecimal feeAmount = BigDecimal.ZERO;
+    
+    @Column(name = "fee_collected")
+    private Boolean feeCollected = false;
+
     // Helper compatibility getter for React frontend using id
     public UUID getId() {
         return applicationId;
@@ -79,7 +86,7 @@ public class ServiceApplication {
                               ApplicationStatus status, String department, String rejectionReason, String officerRemarks, String certificateNumber,
                               String digitallySignedBy, String verifiedBy, String approvedBy, String digitalSignature,
                               LocalDateTime appliedDate, LocalDateTime verifiedDate, LocalDateTime approvedDate,
-                              int downloadCount) {
+                              int downloadCount, BigDecimal feeAmount, boolean feeCollected) {
         this.applicationId = applicationId;
         this.applicationNumber = applicationNumber;
         this.citizenId = citizenId;
@@ -103,6 +110,8 @@ public class ServiceApplication {
         this.verifiedDate = verifiedDate;
         this.approvedDate = approvedDate;
         this.downloadCount = downloadCount;
+        this.feeAmount = feeAmount != null ? feeAmount : BigDecimal.ZERO;
+        this.feeCollected = feeCollected;
     }
 
     @PrePersist
@@ -299,6 +308,26 @@ public class ServiceApplication {
         this.downloadCount = downloadCount;
     }
 
+    public BigDecimal getFeeAmount() {
+        return feeAmount;
+    }
+
+    public void setFeeAmount(BigDecimal feeAmount) {
+        this.feeAmount = feeAmount != null ? feeAmount : BigDecimal.ZERO;
+    }
+
+    public boolean isFeeCollected() {
+        return Boolean.TRUE.equals(feeCollected);
+    }
+
+    public Boolean getFeeCollected() {
+        return Boolean.TRUE.equals(feeCollected);
+    }
+
+    public void setFeeCollected(Boolean feeCollected) {
+        this.feeCollected = feeCollected != null ? feeCollected : false;
+    }
+
     public static Builder builder() {
         return new Builder();
     }
@@ -327,6 +356,8 @@ public class ServiceApplication {
         private LocalDateTime verifiedDate;
         private LocalDateTime approvedDate;
         private int downloadCount = 0;
+        private BigDecimal feeAmount = BigDecimal.ZERO;
+        private boolean feeCollected = false;
 
         public Builder applicationId(UUID applicationId) { this.applicationId = applicationId; return this; }
         public Builder applicationNumber(String applicationNumber) { this.applicationNumber = applicationNumber; return this; }
@@ -351,11 +382,14 @@ public class ServiceApplication {
         public Builder verifiedDate(LocalDateTime verifiedDate) { this.verifiedDate = verifiedDate; return this; }
         public Builder approvedDate(LocalDateTime approvedDate) { this.approvedDate = approvedDate; return this; }
         public Builder downloadCount(int downloadCount) { this.downloadCount = downloadCount; return this; }
+        public Builder feeAmount(BigDecimal feeAmount) { this.feeAmount = feeAmount; return this; }
+        public Builder feeCollected(boolean feeCollected) { this.feeCollected = feeCollected; return this; }
 
         public ServiceApplication build() {
             return new ServiceApplication(applicationId, applicationNumber, citizenId, serviceType, applicantName,
                     aadhaarNumber, relationship, applicantDateOfBirth, documentsSubmitted, dynamicData, status, department, rejectionReason, officerRemarks, certificateNumber, digitallySignedBy,
-                    verifiedBy, approvedBy, digitalSignature, appliedDate, verifiedDate, approvedDate, downloadCount);
+                    verifiedBy, approvedBy, digitalSignature, appliedDate, verifiedDate, approvedDate, downloadCount,
+                    feeAmount, feeCollected);
         }
     }
 }

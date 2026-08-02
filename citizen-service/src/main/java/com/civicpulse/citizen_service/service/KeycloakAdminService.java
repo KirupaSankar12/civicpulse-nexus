@@ -69,20 +69,14 @@ public class KeycloakAdminService {
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setBearerAuth(adminToken);
 
-        // Build user representation
-        Map<String, Object> credential = new HashMap<>();
-        credential.put("type", "password");
-        credential.put("value", password);
-        credential.put("temporary", false);
-
         Map<String, Object> userRep = new HashMap<>();
         userRep.put("username", email);
         userRep.put("email", email);
         userRep.put("firstName", name.contains(" ") ? name.substring(0, name.indexOf(' ')) : name);
-        userRep.put("lastName", name.contains(" ") ? name.substring(name.indexOf(' ') + 1) : "");
+        userRep.put("lastName", name.contains(" ") ? name.substring(name.indexOf(' ') + 1) : "Citizen");
         userRep.put("enabled", true);
         userRep.put("emailVerified", true);
-        userRep.put("credentials", List.of(credential));
+        userRep.put("requiredActions", List.of());
 
         HttpEntity<Map<String, Object>> request = new HttpEntity<>(userRep, headers);
 
@@ -97,7 +91,18 @@ public class KeycloakAdminService {
         if (location == null) {
             throw new RuntimeException("Keycloak did not return user ID in Location header");
         }
-        return location.substring(location.lastIndexOf('/') + 1);
+        String userId = location.substring(location.lastIndexOf('/') + 1);
+
+        // Explicitly set the password
+        String resetPasswordUrl = serverUrl + "/admin/realms/" + realm + "/users/" + userId + "/reset-password";
+        Map<String, Object> credential = new HashMap<>();
+        credential.put("type", "password");
+        credential.put("value", password);
+        credential.put("temporary", false);
+
+        restTemplate.exchange(resetPasswordUrl, HttpMethod.PUT, new HttpEntity<>(credential, headers), Void.class);
+
+        return userId;
     }
 
     /**

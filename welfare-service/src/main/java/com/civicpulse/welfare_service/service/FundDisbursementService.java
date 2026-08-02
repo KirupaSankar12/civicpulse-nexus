@@ -159,7 +159,7 @@ public class FundDisbursementService {
         WelfareEvent event = new WelfareEvent("FUNDS_DISBURSED", beneficiaryId,
                 beneficiary.getBeneficiaryCode(), beneficiary.getCitizenId(),
                 beneficiary.getApplicantName(), beneficiary.getSchemeId(), scheme.getSchemeName(),
-                BeneficiaryStatus.FUNDS_DISBURSED.name(), null, saved.getTransactionId());
+                BeneficiaryStatus.FUNDS_DISBURSED.name(), null, saved.getTransactionId(), scheme.getDepartment());
         eventPublisher.publishDisbursed(event);
         eventPublisher.publishPaymentCompleted(event);
 

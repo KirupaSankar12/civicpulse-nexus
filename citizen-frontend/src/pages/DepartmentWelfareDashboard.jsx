@@ -8,7 +8,7 @@ import { Badge } from '../components/Badge.jsx';
 import { toast } from 'sonner';
 import { 
   Building2, Clock, CheckCircle2, AlertTriangle, Eye, X, ShieldCheck, FileText, 
-  ThumbsUp, ThumbsDown, FileQuestion, QrCode, CreditCard, Award, UserCheck, RefreshCw, Send, Check, Landmark
+  ThumbsUp, ThumbsDown, FileQuestion, QrCode, CreditCard, Award, UserCheck, RefreshCw, Send, Check, Landmark, Inbox
 } from 'lucide-react';
 
 const REJECTION_REASONS = [
@@ -218,27 +218,53 @@ export default function DepartmentWelfareDashboard() {
 
   // Auto detect officer's department from Keycloak username
   useEffect(() => {
-    const username = keycloak.tokenParsed?.preferred_username || keycloak.tokenParsed?.username;
-    if (username) {
-      if (username === 'emily') setSelectedDept('Education Department');
-      else if (username === 'david') setSelectedDept('Social Welfare Department');
-      else if (username === 'john') setSelectedDept('Health Department');
+    const username = (keycloak.tokenParsed?.preferred_username || keycloak.tokenParsed?.username || '').toLowerCase();
+    const dept = keycloak.tokenParsed?.department;
+    if (dept) {
+      setSelectedDept(dept);
+    } else if (username.includes('david')) {
+      setSelectedDept('Social Welfare Department');
+    } else if (username.includes('john')) {
+      setSelectedDept('Health Department');
+    } else if (username.includes('emily')) {
+      setSelectedDept('Education Department');
     }
   }, []);
 
   const loadData = async () => {
     setLoading(true);
     try {
-      const [bRes, sRes] = await Promise.all([
-        api.get(`/welfare-service/api/welfare/beneficiaries/department/${encodeURIComponent(selectedDept)}`),
-        api.get('/welfare-service/api/welfare/schemes'),
-      ]);
+      let bData = [];
+      const endpoint = selectedDept === 'All Departments'
+        ? '/welfare-service/api/welfare/beneficiaries/all'
+        : `/welfare-service/api/welfare/beneficiaries/department/${encodeURIComponent(selectedDept)}`;
+
+      try {
+        const bRes = await api.get(endpoint);
+        bData = bRes.data || [];
+      } catch (err1) {
+        const fallbackEndpoint = selectedDept === 'All Departments'
+          ? '/api/welfare/beneficiaries/all'
+          : `/api/welfare/beneficiaries/department/${encodeURIComponent(selectedDept)}`;
+        const bRes = await api.get(fallbackEndpoint);
+        bData = bRes.data || [];
+      }
+
+      let sData = [];
+      try {
+        const sRes = await api.get('/welfare-service/api/welfare/schemes');
+        sData = sRes.data || [];
+      } catch (err2) {
+        const sRes = await api.get('/api/welfare/schemes');
+        sData = sRes.data || [];
+      }
+
       const map = {};
-      (sRes.data || []).forEach(s => { map[s.schemeId] = s; });
+      sData.forEach(s => { map[s.schemeId] = s; });
       setSchemes(map);
-      setBeneficiaries(bRes.data || []);
+      setBeneficiaries(bData);
     } catch (e) {
-      console.error(e);
+      console.error("Dashboard data load error:", e);
     }
     setLoading(false);
   };
@@ -408,6 +434,24 @@ export default function DepartmentWelfareDashboard() {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#1e293b', padding: '6px 12px', borderRadius: 10, border: '1px solid #475569' }}>
+              <span style={{ fontSize: 12, color: '#94a3b8', fontWeight: 600 }}>Filter Dept:</span>
+              <select
+                value={selectedDept}
+                onChange={e => setSelectedDept(e.target.value)}
+                style={{
+                  background: '#0f172a', color: '#38bdf8', border: '1px solid #0284c7',
+                  borderRadius: 8, padding: '6px 10px', fontSize: 13, fontWeight: 700,
+                  cursor: 'pointer', outline: 'none'
+                }}
+              >
+                <option value="Social Welfare Department">Social Welfare Department</option>
+                <option value="Health Department">Health Department</option>
+                <option value="Education Department">Education Department</option>
+                <option value="All Departments">All Departments</option>
+              </select>
+            </div>
+
             <button
               onClick={loadData}
               style={{ background: '#334155', color: '#fff', border: 'none', borderRadius: 10, padding: '8px 14px', cursor: 'pointer', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}
@@ -486,11 +530,41 @@ export default function DepartmentWelfareDashboard() {
         {loading ? <PageLoader message="Loading department applications..." /> : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             {filteredApps.length === 0 && (
-              <SectionCard title="">
-                <p style={{ textAlign: 'center', color: '#64748b', padding: '36px', margin: 0, fontWeight: 600 }}>
-                  No welfare applications found for <strong>{selectedDept}</strong> under tab "{activeTab}".
+              <div style={{
+                background: '#ffffff', borderRadius: 16, border: '1.5px solid #e2e8f0',
+                padding: '48px 24px', textAlign: 'center', boxShadow: '0 2px 8px rgba(15,23,42,0.04)'
+              }}>
+                <div style={{ width: 60, height: 60, borderRadius: 18, background: '#eff6ff', border: '1px solid #bfdbfe', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+                  <Inbox size={30} />
+                </div>
+                <h3 style={{ fontSize: 17, fontWeight: 800, color: '#0f172a', margin: '0 0 6px' }}>No Pending Applications</h3>
+                <p style={{ fontSize: 13, color: '#64748b', maxWidth: 460, margin: '0 auto 20px', lineHeight: 1.5 }}>
+                  No welfare applications found for <strong>{selectedDept}</strong> under tab <strong>"{activeTab}"</strong>. Applications submitted by citizens for this department will automatically appear here for verification.
                 </p>
-              </SectionCard>
+                <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+                  {selectedDept !== 'All Departments' && (
+                    <button
+                      onClick={() => setSelectedDept('All Departments')}
+                      style={{
+                        background: '#f1f5f9', color: '#334155', border: '1px solid #cbd5e1',
+                        padding: '9px 18px', borderRadius: 10, fontWeight: 700, fontSize: 12, cursor: 'pointer'
+                      }}
+                    >
+                      View All Departments
+                    </button>
+                  )}
+                  <button
+                    onClick={loadData}
+                    style={{
+                      background: 'linear-gradient(135deg, #2563eb, #1d4ed8)', color: '#ffffff',
+                      border: 'none', padding: '9px 18px', borderRadius: 10, fontWeight: 800, fontSize: 12, cursor: 'pointer',
+                      boxShadow: '0 4px 12px rgba(37,99,235,0.25)', display: 'flex', alignItems: 'center', gap: 6
+                    }}
+                  >
+                    <RefreshCw size={14} /> Refresh Queue
+                  </button>
+                </div>
+              </div>
             )}
 
             {filteredApps.map(b => {

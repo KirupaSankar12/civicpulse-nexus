@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import api from '../api.js';
 import keycloak from '../keycloak.js';
 import AppShell from '../components/AppShell.jsx';
+import { FeedbackCard } from '../components/StarRating.jsx';
 
 import { SectionCard } from '../components/SectionCard.jsx';
 import { Badge } from '../components/Badge.jsx';
@@ -235,8 +236,20 @@ function ComplaintTimeline() {
             )}
           </div>
         </SectionCard>
+
+        {/* Feedback Widget for Resolved / Closed Complaints */}
+        {complaint && (complaint.status === 'RESOLVED' || complaint.status === 'CLOSED') && (
+          <div style={{ marginTop: 24 }}>
+            <FeedbackCard
+              referenceType="COMPLAINT"
+              referenceId={complaint.complaintId || id}
+              title="Rate your complaint resolution experience"
+            />
+          </div>
+        )}
       </div>
     </AppShell>
+
   );
 }
 

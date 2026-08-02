@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.Optional;
+import java.math.BigDecimal;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -63,6 +64,9 @@ public class ApplicationService {
 
     private static final Map<ServiceType, List<String>> REQUIRED_DOCS = new EnumMap<>(ServiceType.class);
 
+    // Fee schedule (in INR) — 0 for free certificates, non-zero for paid services
+    private static final Map<ServiceType, BigDecimal> FEE_SCHEDULE = new EnumMap<>(ServiceType.class);
+
     static {
         REQUIRED_DOCS.put(ServiceType.BIRTH_CERTIFICATE, Arrays.asList("Hospital Birth Record", "Parent Aadhaar Card", "Address Proof"));
         REQUIRED_DOCS.put(ServiceType.DEATH_CERTIFICATE, Arrays.asList("Hospital Death Certificate", "Applicant Aadhaar", "Address Proof"));
@@ -70,6 +74,20 @@ public class ApplicationService {
         REQUIRED_DOCS.put(ServiceType.RESIDENCE_CERTIFICATE, Arrays.asList("Aadhaar Card", "Electricity Bill", "Rental Agreement OR Property Tax Receipt"));
         REQUIRED_DOCS.put(ServiceType.TRADE_LICENSE, Arrays.asList("GST Certificate", "Shop Photograph", "Owner Aadhaar", "Address Proof"));
         REQUIRED_DOCS.put(ServiceType.PERMIT_APPROVAL, Arrays.asList("Aadhaar Card", "Property/Location Proof"));
+
+        // Fee schedule matching frontend config
+        FEE_SCHEDULE.put(ServiceType.BIRTH_CERTIFICATE,   BigDecimal.ZERO);
+        FEE_SCHEDULE.put(ServiceType.DEATH_CERTIFICATE,   BigDecimal.ZERO);
+        FEE_SCHEDULE.put(ServiceType.INCOME_CERTIFICATE,  new BigDecimal("20"));
+        FEE_SCHEDULE.put(ServiceType.RESIDENCE_CERTIFICATE, new BigDecimal("20"));
+        FEE_SCHEDULE.put(ServiceType.TRADE_LICENSE,       new BigDecimal("500"));
+        FEE_SCHEDULE.put(ServiceType.PERMIT_APPROVAL,     BigDecimal.ZERO);
+        FEE_SCHEDULE.put(ServiceType.COMMUNITY_CERTIFICATE, BigDecimal.ZERO);
+        FEE_SCHEDULE.put(ServiceType.BUILDING_PERMIT,     BigDecimal.ZERO);
+        FEE_SCHEDULE.put(ServiceType.ROAD_CUTTING_PERMIT, BigDecimal.ZERO);
+        FEE_SCHEDULE.put(ServiceType.WATER_CONNECTION_PERMIT, BigDecimal.ZERO);
+        FEE_SCHEDULE.put(ServiceType.ELECTRICITY_CONNECTION_PERMIT, BigDecimal.ZERO);
+        FEE_SCHEDULE.put(ServiceType.PUBLIC_EVENT_PERMIT, BigDecimal.ZERO);
     }
 
     public ApplicationService(ApplicationRepository repo,
@@ -158,6 +176,8 @@ public class ApplicationService {
             .status(ApplicationStatus.SUBMITTED)
             .department(getDepartmentForServiceType(request.getServiceType()))
             .downloadCount(0)
+            .feeAmount(FEE_SCHEDULE.getOrDefault(request.getServiceType(), BigDecimal.ZERO))
+            .feeCollected(false)
             .build();
 
         ServiceApplication saved = repo.save(app);
@@ -281,6 +301,8 @@ public class ApplicationService {
         app.setCertificateNumber(certNumber);
         app.setStatus(ApplicationStatus.CERTIFICATE_GENERATED);
         app.setDigitallySignedBy("Officer: " + officerUsername + ", Municipal Authority");
+        // Mark fee as collected at point of certificate issuance (simulates payment)
+        app.setFeeCollected(true);
 
         app.setDigitalSignature(
             "Digitally Signed by Municipal Officer — " + officerUsername +
@@ -435,6 +457,76 @@ public class ApplicationService {
             .certificatesIssued(0)
             .downloaded(0)
             .build();
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // REVENUE SUMMARY — aggregate fee data for ADMIN/COMMISSIONER/FINANCE_OFFICER
+    // ─────────────────────────────────────────────────────────────────────────
+    public RevenueSummaryResponse getRevenueSummary() {
+        List<ServiceApplication> collected = repo.findByFeeCollectedTrue();
+        BigDecimal total = collected.stream()
+                .map(app -> app.getFeeAmount() != null ? app.getFeeAmount() : BigDecimal.ZERO)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        Map<String, BigDecimal> byType = new java.util.LinkedHashMap<>();
+        for (ServiceApplication app : collected) {
+            String type = app.getServiceType().name();
+            byType.merge(type, app.getFeeAmount() != null ? app.getFeeAmount() : BigDecimal.ZERO, BigDecimal::add);
+        }
+
+        return new RevenueSummaryResponse(total, byType, collected.size());
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // DASHBOARD STATS — mirrors grievance-service pattern for reporting-service
+    // ─────────────────────────────────────────────────────────────────────────
+    public Map<String, Object> getServiceDashboardStats() {
+        List<ServiceApplication> all = repo.findAll();
+        long total = all.size();
+        long pending = all.stream().filter(a -> a.getStatus() == ApplicationStatus.SUBMITTED || a.getStatus() == ApplicationStatus.RESUBMITTED).count();
+        long underVerification = all.stream().filter(a -> a.getStatus() == ApplicationStatus.UNDER_VERIFICATION).count();
+        long approved = all.stream().filter(a -> a.getStatus() == ApplicationStatus.APPROVED).count();
+        long certGenerated = all.stream().filter(a -> a.getStatus() == ApplicationStatus.CERTIFICATE_GENERATED).count();
+        long downloaded = all.stream().filter(a -> a.getStatus() == ApplicationStatus.DOWNLOADED).count();
+        long rejected = all.stream().filter(a -> a.getStatus() == ApplicationStatus.REJECTED).count();
+        long completed = certGenerated + downloaded;
+        double resolutionRate = total == 0 ? 0.0 : (double) completed / total * 100;
+
+        // Group by service type
+        Map<String, Long> byType = new java.util.LinkedHashMap<>();
+        for (ServiceType st : ServiceType.values()) {
+            long count = all.stream().filter(a -> a.getServiceType() == st).count();
+            if (count > 0) byType.put(st.name(), count);
+        }
+
+        // Group by status
+        Map<String, Long> byStatus = Map.of(
+            "SUBMITTED", pending,
+            "UNDER_VERIFICATION", underVerification,
+            "APPROVED", approved,
+            "CERTIFICATE_GENERATED", certGenerated,
+            "DOWNLOADED", downloaded,
+            "REJECTED", rejected
+        );
+
+        // Group by department
+        Map<String, Long> byDepartment = new java.util.LinkedHashMap<>();
+        all.forEach(a -> {
+            if (a.getDepartment() != null) {
+                byDepartment.merge(a.getDepartment(), 1L, Long::sum);
+            }
+        });
+
+        Map<String, Object> stats = new java.util.LinkedHashMap<>();
+        stats.put("totalApplications", total);
+        stats.put("certificatesIssued", completed);
+        stats.put("pending", pending);
+        stats.put("rejected", rejected);
+        stats.put("resolutionRate", Math.round(resolutionRate * 100.0) / 100.0);
+        stats.put("byServiceType", byType);
+        stats.put("byStatus", byStatus);
+        stats.put("byDepartment", byDepartment);
+        return stats;
     }
 
     // ─────────────────────────────────────────────────────────────────────────

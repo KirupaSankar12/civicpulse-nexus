@@ -435,26 +435,26 @@ function ServiceApplicationForm() {
         {!serviceType && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
             
-            {/* Page Header (Overview-style Banner matching Track Applications) */}
+            {/* ── Page Header (Executive Navy/Emerald Theme matching Civic Services) ── */}
             <div style={{
-              background: 'linear-gradient(135deg, #0f172a, #334155)',
-              borderRadius: 16, padding: '24px 32px', color: '#fff',
+              background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #065f46 100%)',
+              borderRadius: 20, padding: '28px 32px', color: '#ffffff',
               display: 'flex', flexWrap: 'wrap', gap: 16, alignItems: 'center', justifyContent: 'space-between',
-              boxShadow: '0 10px 25px rgba(15,23,42,0.3)',
-              marginBottom: 8, position: 'relative', overflow: 'hidden'
+              boxShadow: '0 12px 36px rgba(15,23,42,0.25)', border: '1px solid #334155',
+              marginBottom: 16, position: 'relative', overflow: 'hidden'
             }}>
-              <div style={{ position: 'absolute', top: -50, right: -50, width: 200, height: 200, background: '#fff', opacity: 0.03, borderRadius: '50%', filter: 'blur(30px)' }} />
+              <div style={{ position: 'absolute', top: -40, right: -40, width: 220, height: 220, background: 'rgba(16,185,129,0.15)', borderRadius: '50%', filter: 'blur(40px)' }} />
               <div style={{ position: 'relative', zIndex: 1 }}>
                 <span style={{
-                  background: 'rgba(255,255,255,0.1)', color: '#38bdf8', border: '1px solid rgba(56,189,248,0.3)',
-                  padding: '4px 12px', borderRadius: 20, fontSize: 11, fontWeight: 800, letterSpacing: '0.08em', display: 'inline-block', marginBottom: 10
+                  background: 'rgba(255,255,255,0.1)', color: '#34d399', border: '1px solid rgba(52,211,153,0.3)',
+                  padding: '4px 12px', borderRadius: 20, fontSize: 11, fontWeight: 800, letterSpacing: '0.08em', display: 'inline-block', marginBottom: 8
                 }}>
                   CIVIC SERVICES
                 </span>
-                <h2 style={{ margin: '0 0 6px', fontSize: 26, fontWeight: 800, color: '#ffffff', letterSpacing: '-0.02em' }}>
+                <h2 style={{ margin: '0 0 6px', fontSize: 26, fontWeight: 900, color: '#ffffff', letterSpacing: '-0.02em' }}>
                   Apply for Government Certificates
                 </h2>
-                <p style={{ margin: 0, color: '#cbd5e1', maxWidth: 540, fontSize: 14, lineHeight: 1.5 }}>
+                <p style={{ margin: 0, color: '#94a3b8', maxWidth: 540, fontSize: 14, lineHeight: 1.5 }}>
                   Choose from digitally verifiable municipal certificate services to start your official application.
                 </p>
               </div>
@@ -462,7 +462,7 @@ function ServiceApplicationForm() {
                 <Link to="/services/tracker" style={{ textDecoration: 'none' }}>
                   <button style={{
                     background: '#ffffff', color: '#0f172a', border: 'none', padding: '10px 22px',
-                    borderRadius: 12, fontWeight: 800, fontSize: 14, cursor: 'pointer',
+                    borderRadius: 12, fontWeight: 800, fontSize: 13, cursor: 'pointer',
                     display: 'flex', alignItems: 'center', gap: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
                   }}>
                     <Search size={16} /> Track My Applications

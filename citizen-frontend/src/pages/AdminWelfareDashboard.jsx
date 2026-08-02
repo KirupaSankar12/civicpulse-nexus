@@ -45,19 +45,53 @@ export default function AdminWelfareDashboard() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [rRes, allRes, sRes, bRes] = await Promise.all([
-        api.get('/welfare-service/api/welfare/beneficiaries/recommended'),
-        api.get('/welfare-service/api/welfare/beneficiaries/all'),
-        api.get('/welfare-service/api/welfare/schemes'),
-        api.get('/welfare-service/api/welfare/budgets'),
-      ]);
-      setRecommendedApps(rRes.data || []);
-      setAllApps(allRes.data || []);
+      let rData = [];
+      let allData = [];
+      let sData = [];
+      let bData = [];
+
+      try {
+        const [rRes, allRes, sRes, bRes] = await Promise.all([
+          api.get('/welfare-service/api/welfare/beneficiaries/recommended'),
+          api.get('/welfare-service/api/welfare/beneficiaries/all'),
+          api.get('/welfare-service/api/welfare/schemes'),
+          api.get('/welfare-service/api/welfare/budgets'),
+        ]);
+        rData = rRes.data || [];
+        allData = allRes.data || [];
+        sData = sRes.data || [];
+        bData = bRes.data || [];
+      } catch (err1) {
+        try {
+          const [rRes, allRes, sRes, bRes] = await Promise.all([
+            api.get('/api/welfare/beneficiaries/recommended'),
+            api.get('/api/welfare/beneficiaries/all'),
+            api.get('/api/welfare/schemes'),
+            api.get('/api/welfare/budgets'),
+          ]);
+          rData = rRes.data || [];
+          allData = allRes.data || [];
+          sData = sRes.data || [];
+          bData = bRes.data || [];
+        } catch (err2) {
+          console.error("Admin dashboard fetch error:", err2);
+        }
+      }
+
+      // If rData is empty, extract RECOMMENDED & ADMIN_APPROVED from allData
+      if (!rData || rData.length === 0) {
+        rData = allData.filter(b => ['RECOMMENDED', 'ADMIN_APPROVED'].includes(b.status));
+      }
+
+      setRecommendedApps(rData);
+      setAllApps(allData);
+
       const sMap = {};
-      (sRes.data || []).forEach(s => { sMap[s.schemeId] = s; });
+      sData.forEach(s => { sMap[s.schemeId] = s; });
       setSchemes(sMap);
+
       const bMap = {};
-      (bRes.data || []).forEach(b => { bMap[b.department] = b; });
+      bData.forEach(b => { bMap[b.department] = b; });
       setBudgets(bMap);
     } catch (e) {
       console.error(e);

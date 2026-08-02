@@ -149,26 +149,26 @@ function ComplaintForm() {
     <AppShell title="Raise Complaint">
       <div style={{ paddingBottom: '100px' }}>
         
-        {/* ── Welcome Banner ── */}
+        {/* ── Welcome Banner (Executive Navy/Emerald Theme matching Civic Services) ── */}
         <div style={{
-          background: 'linear-gradient(135deg, #7f1d1d, #ef4444)',
-          borderRadius: 16, padding: '32px', color: '#fff',
+          background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #065f46 100%)',
+          borderRadius: 20, padding: '28px 32px', color: '#ffffff',
           display: 'flex', flexWrap: 'wrap', gap: 20, alignItems: 'center', justifyContent: 'space-between',
-          boxShadow: '0 10px 25px rgba(239, 68, 68, 0.3)',
+          boxShadow: '0 12px 36px rgba(15,23,42,0.25)', border: '1px solid #334155',
           marginBottom: 30, position: 'relative', overflow: 'hidden'
         }}>
-          <div style={{ position: 'absolute', top: -100, right: -50, width: 300, height: 300, background: '#fca5a5', opacity: 0.2, borderRadius: '50%', filter: 'blur(50px)' }} />
+          <div style={{ position: 'absolute', top: -40, right: -40, width: 220, height: 220, background: 'rgba(16,185,129,0.15)', borderRadius: '50%', filter: 'blur(40px)' }} />
           <div style={{ position: 'relative', zIndex: 1 }}>
             <span style={{ 
-              background: 'rgba(255,255,255,0.15)', color: '#fee2e2', border: '1px solid rgba(255,255,255,0.2)',
-              padding: '6px 14px', borderRadius: 20, fontSize: 11, fontWeight: 800, letterSpacing: '0.08em', display: 'inline-block' 
+              background: 'rgba(255,255,255,0.1)', color: '#34d399', border: '1px solid rgba(52,211,153,0.3)',
+              padding: '4px 12px', borderRadius: 20, fontSize: 11, fontWeight: 800, letterSpacing: '0.08em', display: 'inline-block', marginBottom: 8
             }}>
               GRIEVANCE REDRESSAL
             </span>
-            <h2 style={{ margin: '14px 0 8px', fontSize: 32, fontWeight: 800, color: '#ffffff', letterSpacing: '-0.02em' }}>
+            <h2 style={{ margin: '0 0 6px', fontSize: 26, fontWeight: 900, color: '#ffffff', letterSpacing: '-0.02em' }}>
               Raise a Complaint
             </h2>
-            <p style={{ margin: 0, color: '#fca5a5', maxWidth: 600, fontSize: 15, lineHeight: 1.6 }}>
+            <p style={{ margin: 0, color: '#94a3b8', maxWidth: 600, fontSize: 14, lineHeight: 1.5 }}>
               Report a civic issue directly to the municipal corporation. Provide accurate details and attach photos for faster resolution by the field officers.
             </p>
           </div>

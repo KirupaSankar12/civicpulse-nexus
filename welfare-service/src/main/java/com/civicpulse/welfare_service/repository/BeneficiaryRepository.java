@@ -19,6 +19,7 @@ public interface BeneficiaryRepository extends JpaRepository<Beneficiary, UUID> 
     List<Beneficiary> findByStatusIn(List<BeneficiaryStatus> statuses);
     
     List<Beneficiary> findByAssignedDepartment(String assignedDepartment);
+    List<Beneficiary> findByAssignedDepartmentIgnoreCase(String assignedDepartment);
     List<Beneficiary> findByAssignedDepartmentAndStatus(String assignedDepartment, BeneficiaryStatus status);
     List<Beneficiary> findByAssignedOfficer(String assignedOfficer);
     

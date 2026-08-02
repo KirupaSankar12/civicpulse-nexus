@@ -7,10 +7,12 @@ import com.civicpulse.servicemanagement.entity.ApplicationStatus;
 import com.civicpulse.servicemanagement.service.*;
 import jakarta.validation.Valid;
 import org.springframework.http.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -152,5 +154,18 @@ public class ApplicationController {
     @GetMapping("/stats")
     public ResponseEntity<AdminStatsResponse> getStats() {
         return ResponseEntity.ok(applicationService.getStats());
+    }
+
+    // ─── REVENUE (ADMIN/COMMISSIONER/FINANCE_OFFICER) ──────────────────────────
+    @GetMapping("/revenue/summary")
+    @PreAuthorize("hasAnyRole('ADMIN','FINANCE_OFFICER')")
+    public ResponseEntity<RevenueSummaryResponse> getRevenueSummary() {
+        return ResponseEntity.ok(applicationService.getRevenueSummary());
+    }
+
+    // ─── DASHBOARD STATS (for reporting-service aggregation) ─────────────────
+    @GetMapping("/dashboard/stats")
+    public ResponseEntity<Map<String, Object>> getDashboardStats() {
+        return ResponseEntity.ok(applicationService.getServiceDashboardStats());
     }
 }

@@ -24,15 +24,44 @@ export default function ApprovalScreen() {
   const load = async () => {
     setLoading(true);
     try {
-      const [bRes, sRes] = await Promise.all([
-        api.get('/welfare-service/api/welfare/beneficiaries/pending'),
-        api.get('/welfare-service/api/welfare/schemes'),
-      ]);
+      let bData = [];
+      try {
+        const rRes = await api.get('/welfare-service/api/welfare/beneficiaries/recommended');
+        bData = rRes.data || [];
+      } catch {
+        const rRes = await api.get('/api/welfare/beneficiaries/recommended');
+        bData = rRes.data || [];
+      }
+
+      if (!bData.length) {
+        try {
+          const pRes = await api.get('/welfare-service/api/welfare/beneficiaries/pending');
+          bData = pRes.data || [];
+        } catch {
+          const pRes = await api.get('/api/welfare/beneficiaries/pending');
+          bData = pRes.data || [];
+        }
+      }
+
+      let sData = [];
+      try {
+        const sRes = await api.get('/welfare-service/api/welfare/schemes');
+        sData = sRes.data || [];
+      } catch {
+        const sRes = await api.get('/api/welfare/schemes');
+        sData = sRes.data || [];
+      }
+
       const map = {};
-      (sRes.data || []).forEach(s => { map[s.schemeId] = s; });
+      sData.forEach(s => { map[s.schemeId] = s; });
       setSchemes(map);
-      setBeneficiaries((bRes.data || []).filter(b => b.status === 'UNDER_REVIEW'));
-    } catch { }
+
+      // Include RECOMMENDED, UNDER_REVIEW, ADMIN_APPROVED, ASSIGNED_TO_DEPARTMENT
+      const approvalStatuses = ['RECOMMENDED', 'UNDER_REVIEW', 'ADMIN_APPROVED', 'ASSIGNED_TO_DEPARTMENT', 'UNDER_DEPARTMENT_VERIFICATION'];
+      setBeneficiaries(bData.filter(b => approvalStatuses.includes(b.status)));
+    } catch (e) {
+      console.error("ApprovalScreen load error:", e);
+    }
     setLoading(false);
   };
 

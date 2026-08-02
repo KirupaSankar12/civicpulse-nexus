@@ -17,4 +17,7 @@ public interface ApplicationRepository extends JpaRepository<ServiceApplication,
 
     List<ServiceApplication> findByDepartment(String department);
     List<ServiceApplication> findByDepartmentOrderByAppliedDateDesc(String department);
+
+    // Revenue queries
+    List<ServiceApplication> findByFeeCollectedTrue();
 }

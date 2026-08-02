@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 const publicApi = axios.create({
-  baseURL: 'http://localhost:8082', // Direct to citizen-service (bypasses auth gateway)
+  baseURL: 'http://localhost:8080', // Route through API gateway for CORS
 });
 
 export default publicApi;

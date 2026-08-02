@@ -41,6 +41,16 @@ import MyWelfareApplications from './pages/MyWelfareApplications.jsx';
 import DepartmentWelfareDashboard from './pages/DepartmentWelfareDashboard.jsx';
 import AdminWelfareDashboard from './pages/AdminWelfareDashboard.jsx';
 
+// ── Governance Analytics (Milestone 4) routes ─────────────────────────────
+import GovernanceDashboard from './pages/GovernanceDashboard.jsx';
+import GovernanceCommand from './pages/GovernanceCommand.jsx';
+import CitizenReports from './pages/CitizenReports.jsx';
+import GrievanceReports from './pages/GrievanceReports.jsx';
+import RevenueReports from './pages/RevenueReports.jsx';
+import PerformanceReports from './pages/PerformanceReports.jsx';
+import AuditLogs from './pages/AuditLogs.jsx';
+
+
 // Guard: redirects to /login if not authenticated
 function Protected({ children }) {
   if (!keycloak.authenticated) {
@@ -184,6 +194,30 @@ function App({ authenticated }) {
         <Route path="/welfare/payment-success" element={
           <Protected><PaymentSuccessScreen /></Protected>
         } />
+
+        {/* ===== GOVERNANCE ANALYTICS & REPORTS (Milestone 4) ===== */}
+        <Route path="/governance/dashboard" element={
+          <Protected><GovernanceDashboard /></Protected>
+        } />
+        <Route path="/governance/command" element={
+          <Protected><GovernanceCommand /></Protected>
+        } />
+        <Route path="/reports/citizens" element={
+          <Protected><CitizenReports /></Protected>
+        } />
+        <Route path="/reports/grievances" element={
+          <Protected><GrievanceReports /></Protected>
+        } />
+        <Route path="/reports/revenue" element={
+          <Protected><RevenueReports /></Protected>
+        } />
+        <Route path="/reports/performance" element={
+          <Protected><PerformanceReports /></Protected>
+        } />
+        <Route path="/reports/audit-logs" element={
+          <Protected><AuditLogs /></Protected>
+        } />
+
 
         {/* Fallback: root redirects based on auth */}
         <Route path="*" element={

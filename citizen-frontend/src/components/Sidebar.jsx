@@ -7,7 +7,8 @@ import {
   FilePlus, Search, Award, User, Inbox, CheckCircle2,
   FileText, ShieldCheck, AlertTriangle, UserPlus, Users, Building,
   LogOut, Heart, Wallet, Send, BarChart2, ClipboardList, Layers,
-  ChevronLeft, ChevronRight, ChevronDown,
+  ChevronLeft, ChevronRight, ChevronDown, TrendingUp,
+  BookOpen, Activity, PieChart, Command,
 } from 'lucide-react';
 
 // ── helpers ──────────────────────────────────────────────────────────────────
@@ -57,12 +58,21 @@ const adminGroups = [
     ],
   },
   {
-    section: 'Reports & Analytics', dot: '#a78bfa',
+    section: 'Governance Analytics', dot: '#a78bfa',
     links: [
-      { to: '/welfare/reports', icon: BarChart2, label: 'Reports',    chip: 'violet' },
+      { to: '/governance/command',   icon: Command,    label: 'Governance Command',    chip: 'violet' },
+      { to: '/governance/dashboard', icon: TrendingUp, label: 'Analytics Dashboard',   chip: 'violet' },
+      { to: '/reports/grievances',   icon: AlertTriangle, label: 'Grievance Reports',  chip: 'orange' },
+      { to: '/reports/revenue',      icon: BarChart2,  label: 'Revenue Reports',       chip: 'emerald' },
+      { to: '/reports/performance',  icon: Activity,   label: 'Performance Reports',   chip: 'violet' },
+      { to: '/reports/audit-logs',   icon: BookOpen,   label: 'Audit Logs',            chip: 'indigo' },
+      { to: '/welfare/reports',      icon: PieChart,   label: 'Welfare Reports',       chip: 'pink' },
     ],
   },
 ];
+
+// COMMISSIONER-specific nav is removed — ADMIN role covers all governance access
+
 
 const citizenGroups = [
   {

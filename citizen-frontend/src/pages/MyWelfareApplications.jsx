@@ -3,6 +3,7 @@ import api from '../api.js';
 import keycloak from '../keycloak.js';
 import AppShell from '../components/AppShell.jsx';
 import PageLoader from '../components/PageLoader.jsx';
+import { FeedbackCard } from '../components/StarRating.jsx';
 import { SectionCard } from '../components/SectionCard.jsx';
 import { Badge } from '../components/Badge.jsx';
 import { Link } from 'react-router-dom';
@@ -408,6 +409,8 @@ export default function MyWelfareApplications() {
               const deptName = app.assignedDepartment || scheme?.department || 'Department';
               const officerInfo = getOfficerInfo(deptName);
 
+              const applicantName = app.applicantName || app.fullName || app.citizenName || keycloak.tokenParsed?.name || keycloak.tokenParsed?.preferred_username || 'Applicant';
+
               const stages = [
                 { id: 1, label: 'Application Submission', desc: 'Scheme selection, profile, bank details & 5 docs uploaded' },
                 { id: 2, label: 'Department Verification', desc: `${deptName} Officer (${officerInfo.name}) verifies Aadhaar, Income & Bank Passbook` },
@@ -436,6 +439,8 @@ export default function MyWelfareApplications() {
                         {scheme?.schemeName || 'Government Welfare Scheme'}
                       </h3>
                       <div style={{ fontSize: 13, color: '#64748b', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+                        <span><strong>Applicant:</strong> <span style={{ color: '#0f172a', fontWeight: 800 }}>{applicantName}</span></span>
+                        <span>•</span>
                         <span><strong>Department:</strong> <span style={{ color: '#2563eb', fontWeight: 700 }}>{deptName}</span></span>
                         <span>•</span>
                         <span><strong>Applied Date:</strong> {app.appliedDate ? new Date(app.appliedDate).toLocaleDateString('en-IN') : 'Recently'}</span>
@@ -640,7 +645,7 @@ export default function MyWelfareApplications() {
                           <span style={{ fontSize: 16, fontWeight: 900, color: '#14532d' }}>Direct Benefit Transfer (DBT) Credited</span>
                         </div>
                         <div style={{ fontSize: 13, color: '#166534' }}>
-                          Funds disbursed successfully to <strong>{app.bankName || 'State Bank of India'}</strong> (Account: **** {(app.accountNumber || '1234').slice(-4)}). Transaction ID: <strong style={{ fontFamily: 'monospace' }}>{app.transactionId || 'DBT-2026-000001'}</strong>
+                          Funds disbursed successfully to applicant <strong style={{ color: '#14532d', fontSize: 14 }}>{applicantName}</strong> at <strong>{app.bankName || 'State Bank of India'}</strong> (Account: **** {(app.accountNumber || '1234').slice(-4)}). Transaction ID: <strong style={{ fontFamily: 'monospace' }}>{app.transactionId || 'DBT-2026-000001'}</strong>
                         </div>
                       </div>
 
@@ -717,10 +722,22 @@ export default function MyWelfareApplications() {
                           ))}
                         </div>
                       )}
+
+                      {/* Citizen 5-Star Feedback Widget for Approved / Disbursed Applications */}
+                      {(['APPROVED', 'FUNDS_DISBURSED', 'COMPLETED', 'ADMIN_APPROVED'].includes(app.status)) && (
+                        <div style={{ marginTop: 16 }}>
+                          <FeedbackCard
+                            referenceType="WELFARE_APPLICATION"
+                            referenceId={app.beneficiaryId || app.id}
+                            title="Rate your welfare scheme application experience"
+                          />
+                        </div>
+                      )}
                     </div>
                   )}
 
                 </div>
+
               );
             })}
 

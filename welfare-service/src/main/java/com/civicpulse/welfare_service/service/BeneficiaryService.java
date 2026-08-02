@@ -415,17 +415,22 @@ public class BeneficiaryService {
     }
 
     public List<Beneficiary> getByDepartment(String departmentName) {
-        return beneficiaryRepo.findByAssignedDepartment(departmentName);
+        if (departmentName == null || departmentName.isBlank() || "All Departments".equalsIgnoreCase(departmentName)) {
+            return beneficiaryRepo.findAll();
+        }
+        return beneficiaryRepo.findByAssignedDepartmentIgnoreCase(departmentName.trim());
     }
 
     public List<Beneficiary> getRecommended() {
-        return beneficiaryRepo.findByStatus(BeneficiaryStatus.RECOMMENDED);
+        return beneficiaryRepo.findByStatusIn(
+                List.of(BeneficiaryStatus.RECOMMENDED, BeneficiaryStatus.ADMIN_APPROVED));
     }
 
     public List<Beneficiary> getPending() {
         return beneficiaryRepo.findByStatusIn(
-                List.of(BeneficiaryStatus.SUBMITTED, BeneficiaryStatus.ASSIGNED_TO_DEPARTMENT,
-                        BeneficiaryStatus.UNDER_DEPARTMENT_VERIFICATION, BeneficiaryStatus.RECOMMENDED));
+                List.of(BeneficiaryStatus.APPLIED, BeneficiaryStatus.SUBMITTED,
+                        BeneficiaryStatus.ASSIGNED_TO_DEPARTMENT, BeneficiaryStatus.UNDER_DEPARTMENT_VERIFICATION,
+                        BeneficiaryStatus.UNDER_REVIEW, BeneficiaryStatus.RECOMMENDED));
     }
 
     public List<Beneficiary> getAll() {
