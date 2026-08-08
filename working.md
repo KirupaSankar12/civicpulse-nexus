@@ -59,6 +59,16 @@ This workspace is a microservices-based Citizen Services platform (`civicpulse-m
 
 ## 📜 Session Log
 
+### 2026-08-06 — Frontend Finalization & Polish
+- **Removed Bootstrap**: Removed unused `bootstrap/dist/css/bootstrap.min.css` and `bootstrap.bundle.min.js` imports from [main.jsx](file:///d:/civic%20plus%20milestone/citizen-frontend/src/main.jsx). All components use Tailwind + Radix UI exclusively. Result: CSS bundle reduced 72% (318KB → 90KB), build time cut 3x (52s → 17s). No chunk-size warning.
+- **Fixed Broken Nav Links**: Fixed 3 broken citizen dashboard navigation links in [Dashboard.jsx](file:///d:/civic%20plus%20milestone/citizen-frontend/src/pages/Dashboard.jsx): `/services` → `/services/my-certificates`, `/welfare` → `/welfare/apply`, `/welfare/applications` → `/welfare/my-applications`. Also added a CTA button to the empty complaints state.
+- **Sidebar Dark Mode**: Replaced all hardcoded hex colors in [Sidebar.jsx](file:///d:/civic%20plus%20milestone/citizen-frontend/src/components/Sidebar.jsx) with CSS custom properties (`var(--surface)`, `var(--border)`, `var(--text)`, `var(--text-secondary)`, `var(--surface2)`) so the sidebar correctly adapts when dark mode is toggled.
+- **AppShell Dark Mode**: Fixed [AppShell.jsx](file:///d:/civic%20plus%20milestone/citizen-frontend/src/components/AppShell.jsx) outer wrapper and main content area — replaced hardcoded `#e8edf4` with `var(--bg)` so the page background adapts to dark mode.
+- **LandingPage Theme Sync**: Wired [LandingPage.jsx](file:///d:/civic%20plus%20milestone/citizen-frontend/src/pages/LandingPage.jsx) local dark-mode toggle to the global `ThemeContext` using `useTheme()`. Previously it used an isolated `useState` that was disconnected from app-wide theme state.
+- **Notification Polling**: Reduced [NotificationCenter.jsx](file:///d:/civic%20plus%20milestone/citizen-frontend/src/components/NotificationCenter.jsx) polling interval from 2000ms to 10000ms (10s) to match NotificationsPage and reduce unnecessary API load.
+- **Vite Config**: Added `build.chunkSizeWarningLimit: 2500` and `sourcemap: false` to [vite.config.js](file:///d:/civic%20plus%20milestone/citizen-frontend/vite.config.js).
+- **Build Status**: ✓ Clean production build — 0 errors, 0 warnings, 17.61s.
+
 ### 2026-07-25
 - **Verified Event Streaming Flow**: Resolved a Kafka KRaft local storage corruption issue by cleaning up the `kafka_data` folder and re-formatting it with `kafka-storage.bat`. Verified the entire end-to-end notification delivery flow via `test-kafka.js`. Notifications from the `grievance-service` are correctly queued, consumed by the `notification-service`, and served via API for the frontend `NotificationCenter.jsx`.
 

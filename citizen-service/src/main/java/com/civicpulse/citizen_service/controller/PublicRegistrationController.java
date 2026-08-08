@@ -44,10 +44,11 @@ public class PublicRegistrationController {
     /**
      * POST /api/citizens/auth/register
      * Public endpoint — called from the React registration form.
-     * 1. Validates that email is not already registered
+     * 1. Validates that email/phone is not already registered
      * 2. Creates Keycloak user with CITIZEN role
      * 3. Saves citizen profile in PostgreSQL (citizenId = Keycloak subject UUID)
      * 4. Publishes CitizenEvent to Kafka "citizen-registered" topic
+     * 5. On DB failure: rolls back the Keycloak user (best-effort delete)
      */
     @PostMapping("/register")
     public ResponseEntity<?> registerCitizen(@Valid @RequestBody PublicRegisterDTO dto) {
@@ -57,15 +58,22 @@ public class PublicRegistrationController {
                 .body(Map.of("message", "An account with this email already exists. Please login."));
         }
 
+        // Check if phone number already exists in our DB
+        if (citizenRepository.existsByPhoneNumber(dto.phoneNumber)) {
+            return ResponseEntity.badRequest()
+                .body(Map.of("message", "An account with this phone number already exists."));
+        }
+
         // Check if email already exists in Keycloak
         if (keycloakAdminService.userExists(dto.email)) {
             return ResponseEntity.badRequest()
                 .body(Map.of("message", "This email is already registered in the system. Please login."));
         }
 
+        String keycloakUserId = null;
         try {
             // Step 1: Create Keycloak user and get the Keycloak user UUID
-            String keycloakUserId = keycloakAdminService.createKeycloakUser(
+            keycloakUserId = keycloakAdminService.createKeycloakUser(
                 dto.email, dto.name, dto.password
             );
 
@@ -104,9 +112,22 @@ public class PublicRegistrationController {
             ));
 
         } catch (Exception e) {
+            log.error("Registration failed for email={}: {}", dto.email, e.getMessage());
+
+            // Rollback: delete the Keycloak user if DB save failed
+            if (keycloakUserId != null) {
+                log.warn("Rolling back Keycloak user {} due to registration failure", keycloakUserId);
+                keycloakAdminService.deleteKeycloakUser(keycloakUserId);
+            }
+
+            String userMessage = e.getMessage() != null && e.getMessage().contains("phone_number")
+                ? "An account with this phone number already exists."
+                : e.getMessage() != null && e.getMessage().contains("email")
+                ? "An account with this email already exists."
+                : "Registration failed. Please check your details and try again.";
+
             return ResponseEntity.status(500)
-                .body(Map.of("message", "Registration failed: " + e.getMessage()));
+                .body(Map.of("message", userMessage));
         }
     }
 }
-

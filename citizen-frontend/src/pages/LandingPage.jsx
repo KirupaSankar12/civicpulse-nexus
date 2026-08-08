@@ -1,5 +1,5 @@
-import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTheme } from '../context/ThemeContext.jsx';
 import { 
   Landmark, AlertTriangle, Info, ShieldAlert, BadgeCheck,
   Droplets, Route, Zap, Trash2, HeartPulse, FileText, FileSignature, Building2,
@@ -48,7 +48,8 @@ const helpItems = [
 ];
 
 function LandingPage() {
-  const [isDark, setIsDark] = useState(false);
+  const { theme: themeMode, toggleTheme } = useTheme();
+  const isDark = themeMode === 'dark';
 
   // Dynamic Theme Palette
   const theme = {
@@ -139,7 +140,7 @@ function LandingPage() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           {/* Theme Toggle Button */}
           <button
-            onClick={() => setIsDark(!isDark)}
+            onClick={toggleTheme}
             style={{
               height: 42, padding: '0 16px', borderRadius: 10,
               background: isDark ? 'rgba(255,255,255,0.08)' : '#eff6ff',

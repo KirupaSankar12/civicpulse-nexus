@@ -303,7 +303,7 @@ export default function MyWelfareApplications() {
 
   return (
     <AppShell title="My Welfare Applications">
-      <div style={{ paddingBottom: 40, display: 'flex', flexDirection: 'column', gap: 24 }}>
+      <div style={{ width: '100%', maxWidth: '100%', padding: '0 24px 40px 24px', margin: '0 auto', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: 24 }}>
         
         {/* Header Banner */}
         <div style={{

@@ -63,6 +63,12 @@ $services = @(
 Write-Host "Starting Spring Boot services..."
 foreach ($svc in $services) {
     Write-Host "  Starting $svc..."
+    if (-not (Test-Path ".\$svc\mvnw.cmd") -and (Test-Path ".\user-service\mvnw.cmd")) {
+        Copy-Item -Path ".\user-service\mvnw.cmd" -Destination ".\$svc\" -Force
+        if (Test-Path ".\user-service\.mvn") {
+            Copy-Item -Path ".\user-service\.mvn" -Destination ".\$svc\" -Recurse -Force
+        }
+    }
     $cmd = ".\mvnw.cmd spring-boot:run -Dspring-boot.run.jvmArguments=`"-Xmx192m -XX:TieredStopAtLevel=1`" > ..\logs\$svc.out.log 2> ..\logs\$svc.err.log"
     Start-Process -FilePath "cmd.exe" `
                   -ArgumentList "/c", $cmd `

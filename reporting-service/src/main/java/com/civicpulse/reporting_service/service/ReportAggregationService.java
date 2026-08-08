@@ -26,9 +26,20 @@ public class ReportAggregationService {
     private final RestClient restClient;
     private final FeedbackService feedbackService;
 
-    public ReportAggregationService(RestClient.Builder loadBalancedRestClientBuilder,
-                                     FeedbackService feedbackService) {
-        this.restClient = loadBalancedRestClientBuilder.build();
+    public ReportAggregationService(FeedbackService feedbackService) {
+        this.restClient = RestClient.builder()
+            .requestInterceptor((request, body, execution) -> {
+                org.springframework.web.context.request.RequestAttributes attributes = 
+                    org.springframework.web.context.request.RequestContextHolder.getRequestAttributes();
+                if (attributes instanceof org.springframework.web.context.request.ServletRequestAttributes servletRequestAttributes) {
+                    String authHeader = servletRequestAttributes.getRequest().getHeader("Authorization");
+                    if (authHeader != null) {
+                        request.getHeaders().add("Authorization", authHeader);
+                    }
+                }
+                return execution.execute(request, body);
+            })
+            .build();
         this.feedbackService = feedbackService;
     }
 
@@ -40,7 +51,7 @@ public class ReportAggregationService {
     public Map<String, Object> fetchGrievanceStats() {
         try {
             Map<String, Object> stats = restClient.get()
-                .uri("http://grievance-service/api/complaints/dashboard/stats")
+                .uri("http://localhost:8083/api/complaints/dashboard/stats")
                 .retrieve()
                 .body(Map.class);
             return stats != null ? stats : new HashMap<>();
@@ -54,7 +65,7 @@ public class ReportAggregationService {
     public List<Map<String, Object>> fetchOverdueComplaints() {
         try {
             List<Map<String, Object>> overdue = restClient.get()
-                .uri("http://grievance-service/api/complaints/overdue")
+                .uri("http://localhost:8083/api/complaints/overdue")
                 .retrieve()
                 .body(List.class);
             return overdue != null ? overdue : List.of();
@@ -68,7 +79,7 @@ public class ReportAggregationService {
     public Map<String, Object> fetchCertificateStats() {
         try {
             Map<String, Object> stats = restClient.get()
-                .uri("http://service-management-service/api/services/dashboard/stats")
+                .uri("http://localhost:8085/api/services/dashboard/stats")
                 .retrieve()
                 .body(Map.class);
             return stats != null ? stats : new HashMap<>();
@@ -82,7 +93,7 @@ public class ReportAggregationService {
     public Map<String, Object> fetchRevenueSummary() {
         try {
             Map<String, Object> revenue = restClient.get()
-                .uri("http://service-management-service/api/services/revenue/summary")
+                .uri("http://localhost:8085/api/services/revenue/summary")
                 .retrieve()
                 .body(Map.class);
             return revenue != null ? revenue : new HashMap<>();
@@ -96,7 +107,7 @@ public class ReportAggregationService {
     public Map<String, Object> fetchWelfareStats() {
         try {
             Map<String, Object> stats = restClient.get()
-                .uri("http://welfare-service/api/welfare/dashboard/stats")
+                .uri("http://localhost:8086/api/welfare/dashboard/stats")
                 .retrieve()
                 .body(Map.class);
             return stats != null ? stats : new HashMap<>();
@@ -110,7 +121,7 @@ public class ReportAggregationService {
     public long fetchCitizenCount() {
         try {
             List<Object> citizens = restClient.get()
-                .uri("http://citizen-service/api/citizens")
+                .uri("http://localhost:8082/api/citizens")
                 .retrieve()
                 .body(List.class);
             return citizens != null ? citizens.size() : 0L;

@@ -31,7 +31,7 @@ const CITIZEN_MENU = [
     links: [
       { to: '/services/apply', label: 'Apply for Certificate', icon: FilePlus },
       { to: '/services/tracker', label: 'Track Application', icon: Search },
-      { to: '/services', label: 'My Certificates', icon: FileText }
+      { to: '/services/my-certificates', label: 'My Certificates', icon: FileText }
     ]
   },
   {
@@ -40,8 +40,8 @@ const CITIZEN_MENU = [
     color: '#10b981',
     bg: '#f0fdf4',
     links: [
-      { to: '/welfare', label: 'Apply for Welfare', icon: Heart },
-      { to: '/welfare/applications', label: 'Welfare Applications', icon: FileText }
+      { to: '/welfare/apply', label: 'Apply for Welfare', icon: Heart },
+      { to: '/welfare/my-applications', label: 'Welfare Applications', icon: FileText }
     ]
   },
   {
@@ -83,8 +83,8 @@ function StatusBadge({ status }) {
 function StatCard({ label, value, icon: Icon, color }) {
   return (
     <div style={{
-      background: '#fff', borderRadius: 14, padding: '18px 22px',
-      border: '1.5px solid #e2e8f0', boxShadow: '0 2px 8px rgba(15,23,42,0.06)',
+      background: 'var(--surface, #ffffff)', borderRadius: 14, padding: '18px 22px',
+      border: '1.5px solid var(--border, #e2e8f0)', boxShadow: '0 2px 8px rgba(15,23,42,0.06)',
       display: 'flex', alignItems: 'center', gap: 14, flex: '1 1 160px',
     }}>
       <div style={{
@@ -94,8 +94,8 @@ function StatCard({ label, value, icon: Icon, color }) {
         <Icon size={20} color={color} />
       </div>
       <div>
-        <div style={{ fontSize: 22, fontWeight: 800, color: '#0f172a', lineHeight: 1 }}>{value}</div>
-        <div style={{ fontSize: 12, color: '#64748b', marginTop: 3, fontWeight: 500 }}>{label}</div>
+        <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--text, #0f172a)', lineHeight: 1 }}>{value}</div>
+        <div style={{ fontSize: 12, color: 'var(--text-secondary, #64748b)', marginTop: 3, fontWeight: 500 }}>{label}</div>
       </div>
     </div>
   );
@@ -148,9 +148,10 @@ function CitizenDashboard() {
 
   return (
     <AppShell title="Overview">
-      {/* ── Welcome Banner ── */}
-      <div style={{
-        background: 'linear-gradient(135deg, #1e40af, #3b82f6)',
+      <div style={{ width: '100%', maxWidth: '100%', padding: '0 24px 40px 24px', margin: '0 auto', boxSizing: 'border-box' }}>
+        {/* ── Welcome Banner ── */}
+        <div style={{
+          background: 'linear-gradient(135deg, #1e40af, #3b82f6)',
         borderRadius: 16, padding: '32px', color: '#fff',
         display: 'flex', flexWrap: 'wrap', gap: 20, alignItems: 'center', justifyContent: 'space-between',
         boxShadow: '0 10px 25px rgba(37,99,235,0.3)',
@@ -201,25 +202,25 @@ function CitizenDashboard() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '24px', marginBottom: '30px' }}>
         {CITIZEN_MENU.map((menu, i) => (
           <div key={i} style={{
-            background: '#fff', borderRadius: 16, padding: 20,
-            border: '1px solid #e2e8f0', boxShadow: '0 4px 12px rgba(15,23,42,0.03)'
+            background: 'var(--surface, #ffffff)', borderRadius: 16, padding: 20,
+            border: '1px solid var(--border, #e2e8f0)', boxShadow: '0 4px 12px rgba(15,23,42,0.03)'
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
               <div style={{ width: 44, height: 44, borderRadius: 12, background: menu.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <menu.icon size={22} color={menu.color} />
               </div>
-              <h3 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: '#0f172a' }}>{menu.category}</h3>
+              <h3 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: 'var(--text, #0f172a)' }}>{menu.category}</h3>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {menu.links.map((link, j) => (
                 <Link key={j} to={link.to} style={{ 
                   textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 10,
-                  padding: '12px 14px', borderRadius: 10, background: '#f8fafc', color: '#475569',
+                  padding: '12px 14px', borderRadius: 10, background: 'var(--bg, #f8fafc)', color: 'var(--text, #475569)',
                   fontSize: 14, fontWeight: 600, transition: 'all 0.2s ease',
                   border: '1px solid transparent'
                 }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = '#f1f5f9'; e.currentTarget.style.color = menu.color; e.currentTarget.style.borderColor = menu.bg; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = '#f8fafc'; e.currentTarget.style.color = '#475569'; e.currentTarget.style.borderColor = 'transparent'; }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--border, #f1f5f9)'; e.currentTarget.style.color = menu.color; e.currentTarget.style.borderColor = menu.bg; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--bg, #f8fafc)'; e.currentTarget.style.color = 'var(--text, #475569)'; e.currentTarget.style.borderColor = 'transparent'; }}
                 >
                   <link.icon size={18} />
                   {link.label}
@@ -231,9 +232,9 @@ function CitizenDashboard() {
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 24 }}>
-        <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(15,23,42,0.04)', overflow: 'hidden', gridColumn: 'span 2' }}>
-          <div style={{ padding: '16px 20px', borderBottom: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: 16, fontWeight: 700, color: '#0f172a' }}>Recent Complaints</span>
+        <div style={{ background: 'var(--surface, #ffffff)', borderRadius: 16, border: '1px solid var(--border, #e2e8f0)', boxShadow: '0 2px 8px rgba(15,23,42,0.04)', overflow: 'hidden', gridColumn: 'span 2' }}>
+          <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border, #e2e8f0)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--text, #0f172a)' }}>Recent Complaints</span>
             <Link to="/complaints" style={{ fontSize: 12, fontWeight: 600, color: '#3b82f6', textDecoration: 'none' }}>View All</Link>
           </div>
           
@@ -241,25 +242,35 @@ function CitizenDashboard() {
             {myComplaints.length === 0 ? (
               <div style={{ padding: 60, textAlign: 'center' }}>
                 <Inbox size={48} color="#cbd5e1" style={{ marginBottom: 16 }} />
-                <div style={{ fontSize: 16, fontWeight: 600, color: '#64748b' }}>No complaints filed yet</div>
+                <div style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-secondary, #64748b)', marginBottom: 16 }}>No complaints filed yet</div>
+                <Link to="/complaints/new" style={{ textDecoration: 'none' }}>
+                  <button style={{
+                    background: '#3b82f6', color: '#fff', border: 'none',
+                    padding: '10px 22px', borderRadius: 8, fontWeight: 600,
+                    fontSize: 14, cursor: 'pointer', display: 'inline-flex',
+                    alignItems: 'center', gap: 6,
+                  }}>
+                    <PenSquare size={15} /> Raise your first complaint
+                  </button>
+                </Link>
               </div>
             ) : (
               <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
                 <thead>
-                  <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-                    <th style={{ padding: '12px 20px', fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>ID</th>
-                    <th style={{ padding: '12px 20px', fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Title & Dept</th>
-                    <th style={{ padding: '12px 20px', fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Status</th>
-                    <th style={{ padding: '12px 20px', fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', textAlign: 'right' }}>Action</th>
+                  <tr style={{ background: 'var(--bg, #f8fafc)', borderBottom: '1px solid var(--border, #e2e8f0)' }}>
+                    <th style={{ padding: '12px 20px', fontSize: 11, fontWeight: 700, color: 'var(--text-secondary, #64748b)', textTransform: 'uppercase' }}>ID</th>
+                    <th style={{ padding: '12px 20px', fontSize: 11, fontWeight: 700, color: 'var(--text-secondary, #64748b)', textTransform: 'uppercase' }}>Title & Dept</th>
+                    <th style={{ padding: '12px 20px', fontSize: 11, fontWeight: 700, color: 'var(--text-secondary, #64748b)', textTransform: 'uppercase' }}>Status</th>
+                    <th style={{ padding: '12px 20px', fontSize: 11, fontWeight: 700, color: 'var(--text-secondary, #64748b)', textTransform: 'uppercase', textAlign: 'right' }}>Action</th>
                   </tr>
                 </thead>
                 <tbody>
                   {myComplaints.slice(0, 5).map(c => (
-                    <tr key={c.complaintId} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                    <tr key={c.complaintId} style={{ borderBottom: '1px solid var(--border, #e2e8f0)' }}>
                       <td style={{ padding: '16px 20px', fontSize: 13, fontFamily: 'monospace', color: '#3b82f6', fontWeight: 600 }}>{c.complaintId?.slice(0, 8)}</td>
                       <td style={{ padding: '16px 20px' }}>
-                        <div style={{ fontSize: 14, fontWeight: 600, color: '#0f172a' }}>{c.title}</div>
-                        <div style={{ fontSize: 12, color: '#64748b', marginTop: 4 }}>{c.department}</div>
+                        <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text, #0f172a)' }}>{c.title}</div>
+                        <div style={{ fontSize: 12, color: 'var(--text-secondary, #64748b)', marginTop: 4 }}>{c.department}</div>
                       </td>
                       <td style={{ padding: '16px 20px' }}>
                         <StatusBadge status={c.status} />
@@ -267,8 +278,8 @@ function CitizenDashboard() {
                       <td style={{ padding: '16px 20px', textAlign: 'right' }}>
                         <Link to={`/complaints/${c.complaintId}`}>
                           <button style={{
-                            background: '#f8fafc', border: '1px solid #e2e8f0', padding: '6px 12px',
-                            borderRadius: 6, fontWeight: 600, fontSize: 12, color: '#0f172a', cursor: 'pointer'
+                            background: 'var(--bg, #f8fafc)', border: '1px solid var(--border, #e2e8f0)', padding: '6px 12px',
+                            borderRadius: 6, fontWeight: 600, fontSize: 12, color: 'var(--text, #0f172a)', cursor: 'pointer'
                           }}>View</button>
                         </Link>
                       </td>
@@ -279,6 +290,7 @@ function CitizenDashboard() {
             )}
           </div>
         </div>
+      </div>
       </div>
     </AppShell>
   );

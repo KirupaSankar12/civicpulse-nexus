@@ -93,7 +93,7 @@ function CitizenRegister() {
 
   return (
     <AppShell title={existing ? 'My Profile' : 'Complete Profile'}>
-      <div style={{ paddingBottom: 40, display: 'flex', flexDirection: 'column', gap: 24 }}>
+      <div style={{ width: '100%', maxWidth: '100%', padding: '0 24px 40px 24px', margin: '0 auto', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: 24 }}>
         
         {/* ── Page Header Banner with Profile Identity ── */}
         <div style={{
@@ -178,25 +178,25 @@ function CitizenRegister() {
         {/* ── Official Verification Badges Bar ── */}
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
           <div style={{
-            background: '#f0fdf4', color: '#166534', border: '1px solid #bbf7d0',
+            background: 'var(--primary-light, #f0fdf4)', color: 'var(--text, #166534)', border: '1px solid var(--border, #bbf7d0)',
             padding: '8px 16px', borderRadius: 12, fontSize: 13, fontWeight: 700,
             display: 'flex', alignItems: 'center', gap: 8, boxShadow: '0 2px 6px rgba(22,101,52,0.05)'
           }}>
-            <ShieldCheck size={16} className="text-emerald-600" /> Identity Verified
+            <ShieldCheck size={16} color="#10b981" /> Identity Verified
           </div>
           <div style={{
-            background: '#f0fdf4', color: '#166534', border: '1px solid #bbf7d0',
+            background: 'var(--primary-light, #f0fdf4)', color: 'var(--text, #166534)', border: '1px solid var(--border, #bbf7d0)',
             padding: '8px 16px', borderRadius: 12, fontSize: 13, fontWeight: 700,
             display: 'flex', alignItems: 'center', gap: 8, boxShadow: '0 2px 6px rgba(22,101,52,0.05)'
           }}>
-            <MapPin size={16} className="text-emerald-600" /> Address Verified
+            <MapPin size={16} color="#10b981" /> Address Verified
           </div>
           <div style={{
-            background: '#f0fdf4', color: '#166534', border: '1px solid #bbf7d0',
+            background: 'var(--primary-light, #f0fdf4)', color: 'var(--text, #166534)', border: '1px solid var(--border, #bbf7d0)',
             padding: '8px 16px', borderRadius: 12, fontSize: 13, fontWeight: 700,
             display: 'flex', alignItems: 'center', gap: 8, boxShadow: '0 2px 6px rgba(22,101,52,0.05)'
           }}>
-            <CheckCircle2 size={16} className="text-emerald-600" /> Aadhaar Linked
+            <CheckCircle2 size={16} color="#10b981" /> Aadhaar Linked
           </div>
         </div>
 
@@ -208,26 +208,26 @@ function CitizenRegister() {
             
             {/* Card 1: Personal & Identity Information */}
             <div style={{
-              background: '#ffffff', borderRadius: 16, border: '1.5px solid #e2e8f0',
+              background: 'var(--surface, #ffffff)', borderRadius: 16, border: '1.5px solid var(--border, #e2e8f0)',
               boxShadow: '0 2px 8px rgba(15,23,42,0.04)', padding: '24px 28px',
               display: 'flex', flexDirection: 'column', gap: 20
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 16, borderBottom: '1px solid #f1f5f9' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 16, borderBottom: '1px solid var(--border, #f1f5f9)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
                   <div style={{
-                    width: 40, height: 40, borderRadius: 12, background: '#f5f3ff',
-                    border: '1px solid #ddd6fe', color: '#7c3aed',
+                    width: 40, height: 40, borderRadius: 12, background: 'var(--primary-light, #f5f3ff)',
+                    border: '1px solid var(--border, #ddd6fe)', color: '#7c3aed',
                     display: 'flex', alignItems: 'center', justifyContent: 'center'
                   }}>
                     <User size={20} />
                   </div>
                   <div>
-                    <h3 style={{ margin: 0, fontSize: 17, fontWeight: 800, color: '#0f172a' }}>1. Personal & Identity Information</h3>
-                    <p style={{ margin: '2px 0 0', fontSize: 13, color: '#64748b' }}>Legal identity and contact credentials</p>
+                    <h3 style={{ margin: 0, fontSize: 17, fontWeight: 800, color: 'var(--text, #0f172a)' }}>1. Personal & Identity Information</h3>
+                    <p style={{ margin: '2px 0 0', fontSize: 13, color: 'var(--text-secondary, #64748b)' }}>Legal identity and contact credentials</p>
                   </div>
                 </div>
                 {!isEditing && (
-                  <span style={{ fontSize: 12, fontWeight: 700, color: '#166534', background: '#f0fdf4', border: '1px solid #bbf7d0', padding: '4px 10px', borderRadius: 8 }}>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: '#10b981', background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', padding: '4px 10px', borderRadius: 8 }}>
                     Verified Record
                   </span>
                 )}
@@ -238,32 +238,32 @@ function CitizenRegister() {
                 /* READ-ONLY VIEW MODE */
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16 }}>
                   
-                  <div style={{ background: '#f8fafc', borderRadius: 12, padding: '14px 18px', border: '1px solid #e2e8f0' }}>
-                    <div style={{ fontSize: 11, fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>Full Name</div>
-                    <div style={{ fontSize: 15, fontWeight: 800, color: '#0f172a' }}>{formData.name || '—'}</div>
+                  <div style={{ background: 'var(--bg, #f8fafc)', borderRadius: 12, padding: '14px 18px', border: '1px solid var(--border, #e2e8f0)' }}>
+                    <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-secondary, #64748b)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>Full Name</div>
+                    <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--text, #0f172a)' }}>{formData.name || '—'}</div>
                   </div>
 
-                  <div style={{ background: '#f8fafc', borderRadius: 12, padding: '14px 18px', border: '1px solid #e2e8f0' }}>
+                  <div style={{ background: 'var(--bg, #f8fafc)', borderRadius: 12, padding: '14px 18px', border: '1px solid var(--border, #e2e8f0)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-                      <div style={{ fontSize: 11, fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Email Address</div>
-                      <span style={{ fontSize: 10, fontWeight: 700, color: '#0284c7', background: '#e0f2fe', padding: '2px 6px', borderRadius: 6 }}>🔒 Keycloak SSO</span>
+                      <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-secondary, #64748b)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Email Address</div>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: '#0284c7', background: 'rgba(2,132,199,0.15)', padding: '2px 6px', borderRadius: 6 }}>🔒 Keycloak SSO</span>
                     </div>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: '#334155', fontFamily: 'monospace' }}>{formData.email || '—'}</div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text, #334155)', fontFamily: 'monospace' }}>{formData.email || '—'}</div>
                   </div>
 
-                  <div style={{ background: '#f8fafc', borderRadius: 12, padding: '14px 18px', border: '1px solid #e2e8f0' }}>
-                    <div style={{ fontSize: 11, fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>Phone Number</div>
-                    <div style={{ fontSize: 15, fontWeight: 800, color: '#0f172a', fontFamily: 'monospace' }}>{formData.phoneNumber || '—'}</div>
+                  <div style={{ background: 'var(--bg, #f8fafc)', borderRadius: 12, padding: '14px 18px', border: '1px solid var(--border, #e2e8f0)' }}>
+                    <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-secondary, #64748b)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>Phone Number</div>
+                    <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--text, #0f172a)', fontFamily: 'monospace' }}>{formData.phoneNumber || '—'}</div>
                   </div>
 
-                  <div style={{ background: '#f8fafc', borderRadius: 12, padding: '14px 18px', border: '1px solid #e2e8f0' }}>
+                  <div style={{ background: 'var(--bg, #f8fafc)', borderRadius: 12, padding: '14px 18px', border: '1px solid var(--border, #e2e8f0)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-                      <div style={{ fontSize: 11, fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Aadhaar Number</div>
-                      <span style={{ fontSize: 10, fontWeight: 700, color: '#166534', background: '#f0fdf4', border: '1px solid #bbf7d0', padding: '2px 6px', borderRadius: 6, display: 'flex', alignItems: 'center', gap: 3 }}>
+                      <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-secondary, #64748b)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Aadhaar Number</div>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: '#10b981', background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', padding: '2px 6px', borderRadius: 6, display: 'flex', alignItems: 'center', gap: 3 }}>
                         <CheckCircle2 size={10} /> Verified
                       </span>
                     </div>
-                    <div style={{ fontSize: 15, fontWeight: 800, color: '#0f172a', fontFamily: 'monospace' }}>{maskAadhaar(formData.aadhar)}</div>
+                    <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--text, #0f172a)', fontFamily: 'monospace' }}>{maskAadhaar(formData.aadhar)}</div>
                   </div>
 
                 </div>
@@ -271,27 +271,27 @@ function CitizenRegister() {
                 /* EDITABLE INPUTS MODE */
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 20 }}>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    <Label style={{ fontSize: 12, fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Full Name <span style={{ color: '#ef4444' }}>*</span></Label>
-                    <Input name="name" value={formData.name} onChange={handleChange} required placeholder="Full legal name" style={{ height: 44, borderRadius: 10, border: '1.5px solid #cbd5e1', fontSize: 14, color: '#0f172a' }} />
+                    <Label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text, #334155)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Full Name <span style={{ color: '#ef4444' }}>*</span></Label>
+                    <Input name="name" value={formData.name} onChange={handleChange} required placeholder="Full legal name" style={{ height: 44, borderRadius: 10, border: '1.5px solid var(--border, #cbd5e1)', fontSize: 14, color: 'var(--text, #0f172a)', background: 'var(--surface, #ffffff)' }} />
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <Label style={{ fontSize: 12, fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Email (Keycloak Account)</Label>
-                      <span style={{ fontSize: 11, color: '#64748b', fontWeight: 700 }}>🔒 Managed via Keycloak</span>
+                      <Label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text, #334155)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Email (Keycloak Account)</Label>
+                      <span style={{ fontSize: 11, color: 'var(--text-secondary, #64748b)', fontWeight: 700 }}>🔒 Managed via Keycloak</span>
                     </div>
-                    <Input type="email" value={formData.email} disabled style={{ height: 44, borderRadius: 10, border: '1px solid #e2e8f0', background: '#f8fafc', fontSize: 14, color: '#64748b', fontFamily: 'monospace' }} />
+                    <Input type="email" value={formData.email} disabled style={{ height: 44, borderRadius: 10, border: '1px solid var(--border, #e2e8f0)', background: 'var(--bg, #f8fafc)', fontSize: 14, color: 'var(--text, #64748b)', fontFamily: 'monospace' }} />
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    <Label style={{ fontSize: 12, fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Phone Number <span style={{ color: '#ef4444' }}>*</span></Label>
-                    <Input name="phoneNumber" value={formData.phoneNumber} onChange={handleChange} required placeholder="9000000001" style={{ height: 44, borderRadius: 10, border: '1.5px solid #cbd5e1', fontSize: 14, fontFamily: 'monospace', color: '#0f172a' }} />
+                    <Label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text, #334155)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Phone Number <span style={{ color: '#ef4444' }}>*</span></Label>
+                    <Input name="phoneNumber" value={formData.phoneNumber} onChange={handleChange} required placeholder="9000000001" style={{ height: 44, borderRadius: 10, border: '1.5px solid var(--border, #cbd5e1)', fontSize: 14, fontFamily: 'monospace', color: 'var(--text, #0f172a)', background: 'var(--surface, #ffffff)' }} />
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <Label style={{ fontSize: 12, fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Aadhaar Number</Label>
-                      {existing && <span style={{ fontSize: 11, color: '#166534', fontWeight: 700 }}>✓ Locked after verification</span>}
+                      <Label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text, #334155)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Aadhaar Number</Label>
+                      {existing && <span style={{ fontSize: 11, color: '#10b981', fontWeight: 700 }}>✓ Locked after verification</span>}
                     </div>
                     <Input 
                       name="aadhar" 
@@ -299,7 +299,7 @@ function CitizenRegister() {
                       onChange={handleChange} 
                       disabled={!!existing} 
                       placeholder="1111-2222-3333" 
-                      style={{ height: 44, borderRadius: 10, border: '1.5px solid #cbd5e1', fontSize: 14, fontFamily: 'monospace', color: '#0f172a', background: existing ? '#f8fafc' : '#fff' }} 
+                      style={{ height: 44, borderRadius: 10, border: '1.5px solid var(--border, #cbd5e1)', fontSize: 14, fontFamily: 'monospace', color: 'var(--text, #0f172a)', background: 'var(--bg, #f8fafc)' }} 
                     />
                   </div>
                 </div>
@@ -308,26 +308,26 @@ function CitizenRegister() {
 
             {/* Card 2: Residential Address & Ward Location */}
             <div style={{
-              background: '#ffffff', borderRadius: 16, border: '1.5px solid #e2e8f0',
+              background: 'var(--surface, #ffffff)', borderRadius: 16, border: '1.5px solid var(--border, #e2e8f0)',
               boxShadow: '0 2px 8px rgba(15,23,42,0.04)', padding: '24px 28px',
               display: 'flex', flexDirection: 'column', gap: 20
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 16, borderBottom: '1px solid #f1f5f9' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 16, borderBottom: '1px solid var(--border, #f1f5f9)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
                   <div style={{
-                    width: 40, height: 40, borderRadius: 12, background: '#f5f3ff',
-                    border: '1px solid #ddd6fe', color: '#7c3aed',
+                    width: 40, height: 40, borderRadius: 12, background: 'var(--primary-light, #f5f3ff)',
+                    border: '1px solid var(--border, #ddd6fe)', color: '#7c3aed',
                     display: 'flex', alignItems: 'center', justifyContent: 'center'
                   }}>
                     <MapPin size={20} />
                   </div>
                   <div>
-                    <h3 style={{ margin: 0, fontSize: 17, fontWeight: 800, color: '#0f172a' }}>2. Residential Address & Ward Location</h3>
-                    <p style={{ margin: '2px 0 0', fontSize: 13, color: '#64748b' }}>Your address determines municipal officer dispatch</p>
+                    <h3 style={{ margin: 0, fontSize: 17, fontWeight: 800, color: 'var(--text, #0f172a)' }}>2. Residential Address & Ward Location</h3>
+                    <p style={{ margin: '2px 0 0', fontSize: 13, color: 'var(--text-secondary, #64748b)' }}>Your address determines municipal officer dispatch</p>
                   </div>
                 </div>
                 {!isEditing && (
-                  <span style={{ fontSize: 12, fontWeight: 700, color: '#166534', background: '#f0fdf4', border: '1px solid #bbf7d0', padding: '4px 10px', borderRadius: 8 }}>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: '#10b981', background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', padding: '4px 10px', borderRadius: 8 }}>
                     Mapped Ward
                   </span>
                 )}
@@ -337,29 +337,29 @@ function CitizenRegister() {
                 /* READ-ONLY ADDRESS VIEW */
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
                   
-                  <div style={{ background: '#f8fafc', borderRadius: 12, padding: '14px 18px', border: '1px solid #e2e8f0', gridColumn: '1 / -1' }}>
-                    <div style={{ fontSize: 11, fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>Residential Address</div>
-                    <div style={{ fontSize: 15, fontWeight: 800, color: '#0f172a' }}>{formData.address || '—'}</div>
+                  <div style={{ background: 'var(--bg, #f8fafc)', borderRadius: 12, padding: '14px 18px', border: '1px solid var(--border, #e2e8f0)', gridColumn: '1 / -1' }}>
+                    <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-secondary, #64748b)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>Residential Address</div>
+                    <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--text, #0f172a)' }}>{formData.address || '—'}</div>
                   </div>
 
-                  <div style={{ background: '#f8fafc', borderRadius: 12, padding: '14px 18px', border: '1px solid #e2e8f0' }}>
-                    <div style={{ fontSize: 11, fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>Ward</div>
-                    <div style={{ fontSize: 15, fontWeight: 800, color: '#0f172a' }}>{formData.ward || '—'}</div>
+                  <div style={{ background: 'var(--bg, #f8fafc)', borderRadius: 12, padding: '14px 18px', border: '1px solid var(--border, #e2e8f0)' }}>
+                    <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-secondary, #64748b)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>Ward</div>
+                    <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--text, #0f172a)' }}>{formData.ward || '—'}</div>
                   </div>
 
-                  <div style={{ background: '#f8fafc', borderRadius: 12, padding: '14px 18px', border: '1px solid #e2e8f0' }}>
-                    <div style={{ fontSize: 11, fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>City</div>
-                    <div style={{ fontSize: 15, fontWeight: 800, color: '#0f172a' }}>{formData.city || '—'}</div>
+                  <div style={{ background: 'var(--bg, #f8fafc)', borderRadius: 12, padding: '14px 18px', border: '1px solid var(--border, #e2e8f0)' }}>
+                    <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-secondary, #64748b)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>City</div>
+                    <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--text, #0f172a)' }}>{formData.city || '—'}</div>
                   </div>
 
-                  <div style={{ background: '#f8fafc', borderRadius: 12, padding: '14px 18px', border: '1px solid #e2e8f0' }}>
-                    <div style={{ fontSize: 11, fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>State</div>
-                    <div style={{ fontSize: 15, fontWeight: 800, color: '#0f172a' }}>{formData.state || 'Tamil Nadu'}</div>
+                  <div style={{ background: 'var(--bg, #f8fafc)', borderRadius: 12, padding: '14px 18px', border: '1px solid var(--border, #e2e8f0)' }}>
+                    <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-secondary, #64748b)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>State</div>
+                    <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--text, #0f172a)' }}>{formData.state || 'Tamil Nadu'}</div>
                   </div>
 
-                  <div style={{ background: '#f8fafc', borderRadius: 12, padding: '14px 18px', border: '1px solid #e2e8f0' }}>
-                    <div style={{ fontSize: 11, fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>PIN Code</div>
-                    <div style={{ fontSize: 15, fontWeight: 800, color: '#0f172a', fontFamily: 'monospace' }}>{formData.pincode || '—'}</div>
+                  <div style={{ background: 'var(--bg, #f8fafc)', borderRadius: 12, padding: '14px 18px', border: '1px solid var(--border, #e2e8f0)' }}>
+                    <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-secondary, #64748b)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>PIN Code</div>
+                    <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--text, #0f172a)', fontFamily: 'monospace' }}>{formData.pincode || '—'}</div>
                   </div>
 
                 </div>
@@ -367,28 +367,28 @@ function CitizenRegister() {
                 /* EDITABLE ADDRESS INPUTS */
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 20 }}>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8, gridColumn: '1 / -1' }}>
-                    <Label style={{ fontSize: 12, fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Residential Address <span style={{ color: '#ef4444' }}>*</span></Label>
-                    <Input name="address" value={formData.address} onChange={handleChange} required placeholder="Flat no., Street, Area/Locality" style={{ height: 44, borderRadius: 10, border: '1.5px solid #cbd5e1', fontSize: 14, color: '#0f172a' }} />
+                    <Label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text, #334155)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Residential Address <span style={{ color: '#ef4444' }}>*</span></Label>
+                    <Input name="address" value={formData.address} onChange={handleChange} required placeholder="Flat no., Street, Area/Locality" style={{ height: 44, borderRadius: 10, border: '1.5px solid var(--border, #cbd5e1)', fontSize: 14, color: 'var(--text, #0f172a)', background: 'var(--surface, #ffffff)' }} />
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    <Label style={{ fontSize: 12, fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Ward <span style={{ color: '#ef4444' }}>*</span></Label>
-                    <Input name="ward" value={formData.ward} onChange={handleChange} required placeholder="e.g. Ward 1" style={{ height: 44, borderRadius: 10, border: '1.5px solid #cbd5e1', fontSize: 14, color: '#0f172a' }} />
+                    <Label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text, #334155)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Ward <span style={{ color: '#ef4444' }}>*</span></Label>
+                    <Input name="ward" value={formData.ward} onChange={handleChange} required placeholder="e.g. Ward 1" style={{ height: 44, borderRadius: 10, border: '1.5px solid var(--border, #cbd5e1)', fontSize: 14, color: 'var(--text, #0f172a)', background: 'var(--surface, #ffffff)' }} />
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    <Label style={{ fontSize: 12, fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.06em' }}>City <span style={{ color: '#ef4444' }}>*</span></Label>
-                    <Input name="city" value={formData.city} onChange={handleChange} required placeholder="e.g. Hosur" style={{ height: 44, borderRadius: 10, border: '1.5px solid #cbd5e1', fontSize: 14, color: '#0f172a' }} />
+                    <Label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text, #334155)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>City <span style={{ color: '#ef4444' }}>*</span></Label>
+                    <Input name="city" value={formData.city} onChange={handleChange} required placeholder="e.g. Hosur" style={{ height: 44, borderRadius: 10, border: '1.5px solid var(--border, #cbd5e1)', fontSize: 14, color: 'var(--text, #0f172a)', background: 'var(--surface, #ffffff)' }} />
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    <Label style={{ fontSize: 12, fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.06em' }}>State</Label>
-                    <Input name="state" value={formData.state} onChange={handleChange} placeholder="e.g. Tamil Nadu" style={{ height: 44, borderRadius: 10, border: '1.5px solid #cbd5e1', fontSize: 14, color: '#0f172a' }} />
+                    <Label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text, #334155)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>State</Label>
+                    <Input name="state" value={formData.state} onChange={handleChange} placeholder="e.g. Tamil Nadu" style={{ height: 44, borderRadius: 10, border: '1.5px solid var(--border, #cbd5e1)', fontSize: 14, color: 'var(--text, #0f172a)', background: 'var(--surface, #ffffff)' }} />
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    <Label style={{ fontSize: 12, fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.06em' }}>PIN Code <span style={{ color: '#ef4444' }}>*</span></Label>
-                    <Input name="pincode" value={formData.pincode} onChange={handleChange} required placeholder="635002" maxLength={6} style={{ height: 44, borderRadius: 10, border: '1.5px solid #cbd5e1', fontSize: 14, fontFamily: 'monospace', color: '#0f172a' }} />
+                    <Label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text, #334155)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>PIN Code <span style={{ color: '#ef4444' }}>*</span></Label>
+                    <Input name="pincode" value={formData.pincode} onChange={handleChange} required placeholder="635002" maxLength={6} style={{ height: 44, borderRadius: 10, border: '1.5px solid var(--border, #cbd5e1)', fontSize: 14, fontFamily: 'monospace', color: 'var(--text, #0f172a)', background: 'var(--surface, #ffffff)' }} />
                   </div>
                 </div>
               )}
@@ -396,7 +396,7 @@ function CitizenRegister() {
 
             {/* Save / Cancel Action Bar inside Form */}
             {isEditing && (
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, background: '#ffffff', borderRadius: 16, padding: '16px 24px', border: '1.5px solid #cbd5e1', boxShadow: '0 4px 14px rgba(15,23,42,0.08)' }}>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, background: 'var(--surface, #ffffff)', borderRadius: 16, padding: '16px 24px', border: '1.5px solid var(--border, #cbd5e1)', boxShadow: '0 4px 14px rgba(15,23,42,0.08)' }}>
                 {existing && (
                   <Button
                     type="button"
@@ -411,9 +411,9 @@ function CitizenRegister() {
                   type="submit"
                   disabled={loading}
                   style={{
-                    height: 44, borderRadius: 10, padding: '0 28px', background: '#6d28d9', color: '#ffffff',
+                    height: 44, borderRadius: 10, padding: '0 28px', background: '#059669', color: '#ffffff',
                     fontWeight: 800, fontSize: 14, border: 'none', cursor: loading ? 'not-allowed' : 'pointer',
-                    boxShadow: '0 4px 12px rgba(109, 40, 217, 0.25)', display: 'flex', alignItems: 'center', gap: 8
+                    boxShadow: '0 4px 12px rgba(5, 150, 105, 0.25)', display: 'flex', alignItems: 'center', gap: 8
                   }}
                 >
                   <Save size={16} />
@@ -424,58 +424,58 @@ function CitizenRegister() {
 
             {/* Card 3: Recent Citizen Activities Log */}
             <div style={{
-              background: '#ffffff', borderRadius: 16, border: '1.5px solid #e2e8f0',
+              background: 'var(--surface, #ffffff)', borderRadius: 16, border: '1.5px solid var(--border, #e2e8f0)',
               boxShadow: '0 2px 8px rgba(15,23,42,0.04)', padding: '24px 28px',
               display: 'flex', flexDirection: 'column', gap: 16
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, paddingBottom: 14, borderBottom: '1px solid #f1f5f9' }}>
-                <div style={{ width: 36, height: 36, borderRadius: 10, background: '#eff6ff', border: '1px solid #bfdbfe', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, paddingBottom: 14, borderBottom: '1px solid var(--border, #f1f5f9)' }}>
+                <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--bg, #eff6ff)', border: '1px solid var(--border, #bfdbfe)', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <Activity size={18} />
                 </div>
                 <div>
-                  <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: '#0f172a' }}>Recent Citizen Activities</h3>
-                  <p style={{ margin: 0, fontSize: 12, color: '#64748b' }}>Audit log of submitted complaints and certificate requests</p>
+                  <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: 'var(--text, #0f172a)' }}>Recent Citizen Activities</h3>
+                  <p style={{ margin: 0, fontSize: 12, color: 'var(--text-secondary, #64748b)' }}>Audit log of submitted complaints and certificate requests</p>
                 </div>
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: '#f8fafc', borderRadius: 12, border: '1px solid #e2e8f0' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: 'var(--bg, #f8fafc)', borderRadius: 12, border: '1px solid var(--border, #e2e8f0)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <div style={{ width: 32, height: 32, borderRadius: 8, background: '#f0fdf4', color: '#166534', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(16,185,129,0.15)', color: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <CheckCircle2 size={16} />
                     </div>
                     <div>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: '#0f172a' }}>Complaint submitted</div>
-                      <div style={{ fontSize: 11, color: '#64748b' }}>Unresolved water leakage on Main Street</div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text, #0f172a)' }}>Complaint submitted</div>
+                      <div style={{ fontSize: 11, color: 'var(--text-secondary, #64748b)' }}>Unresolved water leakage on Main Street</div>
                     </div>
                   </div>
-                  <span style={{ fontSize: 12, fontWeight: 600, color: '#64748b' }}>26 July 2026</span>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary, #64748b)' }}>26 July 2026</span>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: '#f8fafc', borderRadius: 12, border: '1px solid #e2e8f0' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: 'var(--bg, #f8fafc)', borderRadius: 12, border: '1px solid var(--border, #e2e8f0)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <div style={{ width: 32, height: 32, borderRadius: 8, background: '#eff6ff', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(59,130,246,0.15)', color: '#3b82f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <FileText size={16} />
                     </div>
                     <div>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: '#0f172a' }}>Birth Certificate downloaded</div>
-                      <div style={{ fontSize: 11, color: '#64748b' }}>Digitally signed certificate #BC-2026-8812</div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text, #0f172a)' }}>Birth Certificate downloaded</div>
+                      <div style={{ fontSize: 11, color: 'var(--text-secondary, #64748b)' }}>Digitally signed certificate #BC-2026-8812</div>
                     </div>
                   </div>
-                  <span style={{ fontSize: 12, fontWeight: 600, color: '#64748b' }}>22 July 2026</span>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary, #64748b)' }}>22 July 2026</span>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: '#f8fafc', borderRadius: 12, border: '1px solid #e2e8f0' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: 'var(--bg, #f8fafc)', borderRadius: 12, border: '1px solid var(--border, #e2e8f0)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <div style={{ width: 32, height: 32, borderRadius: 8, background: '#fdf4ff', color: '#c026d3', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(192,38,211,0.15)', color: '#c026d3', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <Award size={16} />
                     </div>
                     <div>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: '#0f172a' }}>Welfare application submitted</div>
-                      <div style={{ fontSize: 11, color: '#64748b' }}>Kalaignar Magalir Urimai Scheme</div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text, #0f172a)' }}>Welfare application submitted</div>
+                      <div style={{ fontSize: 11, color: 'var(--text-secondary, #64748b)' }}>Kalaignar Magalir Urimai Scheme</div>
                     </div>
                   </div>
-                  <span style={{ fontSize: 12, fontWeight: 600, color: '#64748b' }}>20 July 2026</span>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary, #64748b)' }}>20 July 2026</span>
                 </div>
               </div>
             </div>
@@ -487,26 +487,26 @@ function CitizenRegister() {
             
             {/* Account Status Card */}
             <div style={{
-              background: '#ffffff', borderRadius: 16, border: '1.5px solid #e2e8f0',
+              background: 'var(--surface, #ffffff)', borderRadius: 16, border: '1.5px solid var(--border, #e2e8f0)',
               boxShadow: '0 2px 8px rgba(15,23,42,0.04)', padding: '24px',
               display: 'flex', flexDirection: 'column', gap: 16
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#0f172a', fontWeight: 800, fontSize: 16 }}>
-                <Sparkles className="w-5 h-5 text-violet-600" /> Account Status
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'var(--text, #0f172a)', fontWeight: 800, fontSize: 16 }}>
+                <Sparkles className="w-5 h-5 text-emerald-500" /> Account Status
               </div>
               
               {existing ? (
-                <div style={{ padding: '14px 16px', background: '#f0fdf4', color: '#166534', borderRadius: 12, border: '1px solid #bbf7d0', fontSize: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  <div style={{ fontWeight: 800, display: 'flex', alignItems: 'center', gap: 6, fontSize: 13 }}>
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Active Citizen Profile
+                <div style={{ padding: '14px 16px', background: 'rgba(16,185,129,0.15)', color: '#4ade80', borderRadius: 12, border: '1px solid rgba(16,185,129,0.3)', fontSize: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <div style={{ fontWeight: 800, display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--text, #f8fafc)' }}>
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400" /> Active Citizen Profile
                   </div>
-                  <div style={{ fontSize: 11, color: '#166534', fontWeight: 600 }}>Citizen ID:</div>
-                  <div style={{ fontFamily: 'monospace', background: '#ffffff', padding: '6px 10px', borderRadius: 8, border: '1px solid #bbf7d0', color: '#0f172a', fontWeight: 700, wordBreak: 'break-all' }}>
+                  <div style={{ fontSize: 11, color: 'var(--text-secondary, #94a3b8)', fontWeight: 600 }}>Citizen ID:</div>
+                  <div style={{ fontFamily: 'monospace', background: 'var(--bg, #09141a)', padding: '6px 10px', borderRadius: 8, border: '1px solid var(--border, #bbf7d0)', color: 'var(--text, #0f172a)', fontWeight: 700, wordBreak: 'break-all' }}>
                     {existing.citizenId}
                   </div>
                 </div>
               ) : (
-                <div style={{ padding: '14px 16px', background: '#fffbeb', color: '#92400e', borderRadius: 12, border: '1px solid #fde68a', fontSize: 12, fontWeight: 700 }}>
+                <div style={{ padding: '14px 16px', background: 'rgba(245,158,11,0.15)', color: '#fcd34d', borderRadius: 12, border: '1px solid rgba(245,158,11,0.3)', fontSize: 12, fontWeight: 700 }}>
                   ⚠️ Registration Pending. Complete this form to enable civic features.
                 </div>
               )}
@@ -514,55 +514,55 @@ function CitizenRegister() {
 
             {/* Profile Completion Indicator Card */}
             <div style={{
-              background: '#ffffff', borderRadius: 16, border: '1.5px solid #e2e8f0',
+              background: 'var(--surface, #ffffff)', borderRadius: 16, border: '1.5px solid var(--border, #e2e8f0)',
               boxShadow: '0 2px 8px rgba(15,23,42,0.04)', padding: '24px',
               display: 'flex', flexDirection: 'column', gap: 16
             }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: 14, fontWeight: 800, color: '#0f172a' }}>Profile Completion</span>
-                <span style={{ fontSize: 14, fontWeight: 900, color: '#6d28d9' }}>{completionPercent}%</span>
+                <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--text, #0f172a)' }}>Profile Completion</span>
+                <span style={{ fontSize: 14, fontWeight: 900, color: '#10b981' }}>{completionPercent}%</span>
               </div>
 
               {/* Progress Bar */}
-              <div style={{ width: '100%', height: 10, borderRadius: 10, background: '#f1f5f9', overflow: 'hidden' }}>
+              <div style={{ width: '100%', height: 10, borderRadius: 10, background: 'var(--bg, #f1f5f9)', overflow: 'hidden' }}>
                 <div style={{
                   width: `${completionPercent}%`, height: '100%',
-                  background: 'linear-gradient(90deg, #7c3aed, #2563eb)',
+                  background: 'linear-gradient(90deg, #059669, #10b981)',
                   borderRadius: 10, transition: 'width 0.4s ease'
                 }} />
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, fontSize: 12, color: '#475569', paddingTop: 4 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, fontSize: 12, color: 'var(--text-secondary, #475569)', paddingTop: 4 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <Check size={14} className="text-emerald-600" /> Complete Aadhaar verification
+                  <Check size={14} className="text-emerald-500" /> Complete Aadhaar verification
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <Check size={14} className="text-emerald-600" /> Residential ward mapped
+                  <Check size={14} className="text-emerald-500" /> Residential ward mapped
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <Check size={14} className="text-emerald-600" /> Phone number contact active
+                  <Check size={14} className="text-emerald-500" /> Phone number contact active
                 </div>
               </div>
             </div>
 
             {/* Security Information Card */}
             <div style={{
-              background: '#ffffff', borderRadius: 16, border: '1.5px solid #e2e8f0',
+              background: 'var(--surface, #ffffff)', borderRadius: 16, border: '1.5px solid var(--border, #e2e8f0)',
               boxShadow: '0 2px 8px rgba(15,23,42,0.04)', padding: '24px',
               display: 'flex', flexDirection: 'column', gap: 14
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 800, color: '#0f172a' }}>
-                <Lock size={16} className="text-sky-600" /> Security Information
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 800, color: 'var(--text, #0f172a)' }}>
+                <Lock size={16} className="text-emerald-500" /> Security Information
               </div>
               
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, fontSize: 12, color: '#475569' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', background: '#f8fafc', borderRadius: 8, border: '1px solid #e2e8f0' }}>
-                  <KeyRound size={14} className="text-violet-600 shrink-0" />
-                  <span>Keycloak SSO Active</span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, fontSize: 12, color: 'var(--text-secondary, #475569)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', background: 'var(--bg, #f8fafc)', borderRadius: 8, border: '1px solid var(--border, #e2e8f0)' }}>
+                  <KeyRound size={14} className="text-emerald-500 shrink-0" />
+                  <span style={{ color: 'var(--text, #0f172a)', fontWeight: 600 }}>Keycloak SSO Active</span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', background: '#f8fafc', borderRadius: 8, border: '1px solid #e2e8f0' }}>
-                  <ShieldCheck size={14} className="text-emerald-600 shrink-0" />
-                  <span>JWT Multi-Factor Protected</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', background: 'var(--bg, #f8fafc)', borderRadius: 8, border: '1px solid var(--border, #e2e8f0)' }}>
+                  <ShieldCheck size={14} className="text-emerald-500 shrink-0" />
+                  <span style={{ color: 'var(--text, #0f172a)', fontWeight: 600 }}>JWT Multi-Factor Protected</span>
                 </div>
               </div>
             </div>

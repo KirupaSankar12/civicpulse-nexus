@@ -151,7 +151,8 @@ function AdminOfficers() {
 
   return (
     <AppShell title="Manage Officers">
-      {toastMessage && (
+      <div style={{ width: '100%', maxWidth: '100%', padding: '0 24px 40px 24px', margin: '0 auto', boxSizing: 'border-box' }}>
+        {toastMessage && (
         <div style={{ position: 'fixed', bottom: 20, right: 20, zIndex: 1100 }}>
           <div style={{ background: '#10b981', color: '#fff', padding: '12px 20px', borderRadius: 8, fontWeight: 700, boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
             ✓ {toastMessage}
@@ -382,6 +383,7 @@ function AdminOfficers() {
           </div>
         </>
       )}
+      </div>
     </AppShell>
   );
 }

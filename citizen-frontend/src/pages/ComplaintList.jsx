@@ -199,7 +199,7 @@ export default function ComplaintList() {
 
   return (
     <AppShell title={isCitizen ? 'My Complaints' : 'All Complaints'}>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 24, paddingBottom: 40, maxWidth: 1600, margin: '0 auto' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 24, padding: '0 24px 40px 24px', width: '100%', maxWidth: '100%', margin: '0 auto', boxSizing: 'border-box' }}>
 
         {/* ── Page Header (Executive Navy/Emerald Theme matching Civic Services) ── */}
         <div style={{

@@ -237,9 +237,10 @@ function AdminDashboard() {
 
   return (
     <AppShell title="Enterprise Analytics">
-      {/* ── Welcome Banner ── */}
-      <div style={{
-        background: 'linear-gradient(135deg, #0f172a, #334155)',
+      <div style={{ width: '100%', maxWidth: '100%', padding: '0 24px 40px 24px', margin: '0 auto', boxSizing: 'border-box' }}>
+        {/* ── Welcome Banner ── */}
+        <div style={{
+          background: 'linear-gradient(135deg, #0f172a, #334155)',
         borderRadius: 16, padding: '24px 32px', color: '#fff',
         display: 'flex', flexWrap: 'wrap', gap: 20, alignItems: 'center', justifyContent: 'space-between',
         boxShadow: '0 10px 25px rgba(15,23,42,0.3)',
@@ -482,7 +483,7 @@ function AdminDashboard() {
           {stats.timeline.length === 0 && <div style={{ padding: 40, textAlign: 'center', color: '#94a3b8', fontSize: 14 }}>No recent activity found.</div>}
         </div>
       </div>
-
+      </div>
     </AppShell>
   );
 }

@@ -17,9 +17,9 @@ public interface AuditLogRepository extends JpaRepository<AuditLog, UUID> {
 
     // Paginated fetch with optional eventType and date-range filter
     @Query("SELECT a FROM AuditLog a WHERE " +
-           "(:eventType IS NULL OR a.eventType = :eventType) AND " +
-           "(:from IS NULL OR a.receivedAt >= :from) AND " +
-           "(:to IS NULL OR a.receivedAt <= :to) " +
+           "(CAST(:eventType AS text) IS NULL OR a.eventType = :eventType) AND " +
+           "(CAST(:from AS timestamp) IS NULL OR a.receivedAt >= :from) AND " +
+           "(CAST(:to AS timestamp) IS NULL OR a.receivedAt <= :to) " +
            "ORDER BY a.receivedAt DESC")
     Page<AuditLog> findFiltered(
             @Param("eventType") String eventType,

@@ -832,7 +832,7 @@ export default function SchemeApplicationForm() {
 
   return (
     <AppShell title="Apply for Welfare Scheme">
-      <div style={{ paddingBottom: 100, display: 'flex', flexDirection: 'column', gap: 24 }}>
+      <div style={{ width: '100%', maxWidth: '100%', padding: '0 24px 100px 24px', margin: '0 auto', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: 24 }}>
         
         <StepIndicator current={0} />
 

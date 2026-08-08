@@ -1,122 +1,183 @@
 import { useEffect, useState } from 'react';
 import AppShell from '../components/AppShell.jsx';
-import { StatCard } from '../components/StatCard.jsx';
 import api from '../api.js';
-import { AlertTriangle, CheckCircle2, Clock, TrendingUp, AlertOctagon } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext.jsx';
+import { AlertTriangle, CheckCircle2, Clock, TrendingUp, AlertOctagon, Activity, Server, FileBadge } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, Legend } from 'recharts';
+import {
+  KpiCard, SectionCard, ReportPageHeader, ErrorBanner, UnavailableBanner,
+  EmptyState, ChartTooltip, InfoCard, Skeleton, GLOBAL_STYLES, PALETTE
+} from '../components/ReportShared.jsx';
 
 const STATUS_COLORS = {
   NEW: '#3b82f6', ASSIGNED: '#f97316', IN_PROGRESS: '#8b5cf6',
   RESOLVED: '#10b981', CLOSED: '#64748b', REJECTED: '#ef4444',
 };
 
-const DEPT_COLORS = ['#6366f1','#10b981','#f59e0b','#ef4444','#3b82f6','#8b5cf6','#06b6d4','#f97316'];
-
 export default function GrievanceReports() {
+  const { effectiveTheme } = useTheme();
+  const isDark = effectiveTheme === 'dark';
+
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const [lastRefresh, setLastRefresh] = useState(new Date());
 
-  useEffect(() => {
-    api.get('/api/reports/grievances')
-      .then(r => setData(r.data))
-      .catch(e => setError(e.response?.data?.message || 'Failed to load grievance data'))
-      .finally(() => setLoading(false));
-  }, []);
+  const fetchAll = async (isRefresh = false) => {
+    if (isRefresh) setRefreshing(true);
+    else setLoading(true);
+    setError(null);
+    try {
+      const res = await api.get('/api/reports/grievances');
+      setData(res.data);
+    } catch (e) {
+      setError(e.response?.data?.message || 'Failed to load grievance data');
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+      setLastRefresh(new Date());
+    }
+  };
+
+  useEffect(() => { fetchAll(); }, []);
 
   const isUnavailable = data?.status === 'unavailable';
 
   // Build chart data
   const statusData = data?.byStatus
-    ? Object.entries(data.byStatus).map(([k, v]) => ({ name: k, count: v, fill: STATUS_COLORS[k] || '#94a3b8' }))
+    ? Object.entries(data.byStatus)
+        .filter(([, v]) => v > 0)
+        .map(([k, v]) => ({ name: k, count: v, fill: STATUS_COLORS[k] || '#94a3b8' }))
+        .sort((a, b) => b.count - a.count)
     : [];
+
   const deptData = data?.byDepartment
-    ? Object.entries(data.byDepartment).map(([k, v]) => ({ name: k.replace(' Department',''), value: v }))
+    ? Object.entries(data.byDepartment)
+        .filter(([, v]) => v > 0)
+        .map(([k, v], i) => ({ name: k.replace(' Department', ''), value: v, fill: PALETTE[i % PALETTE.length] }))
+        .sort((a, b) => b.value - a.value)
     : [];
+
+  const surface = isDark ? '#1e293b' : '#fff';
+  const border = isDark ? '#334155' : '#f1f5f9';
 
   return (
     <AppShell title="Grievance Reports">
-      <div style={{ maxWidth: 1600, margin: '0 auto', padding: '0 0 32px' }}>
-        <div style={{ marginBottom: 24 }}>
-          <h2 style={{ fontSize: 22, fontWeight: 800, color: '#0f172a', margin: 0 }}>Grievance Reports</h2>
-          <p style={{ color: '#64748b', fontSize: 13, marginTop: 4 }}>
-            Complaint analytics aggregated from grievance-service
-          </p>
-        </div>
-
-        {loading && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(200px,1fr))', gap: 16, marginBottom: 24 }}>
-            {[1,2,3,4].map(i => (
-              <div key={i} style={{ height: 100, borderRadius: 12, background: '#e2e8f0', animation: 'pulse 1.5s infinite' }} />
-            ))}
-          </div>
-        )}
-
-        {error && (
-          <div style={{ padding: '12px 16px', borderRadius: 8, background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', fontSize: 13, marginBottom: 16 }}>
-            {error}
-          </div>
-        )}
+      <style>{GLOBAL_STYLES}</style>
+      <div style={{ maxWidth: 1600, margin: '0 auto', paddingBottom: 40 }}>
+        
+        <ReportPageHeader
+          title="Grievance Reports"
+          subtitle="Complaint analytics aggregated from grievance-service"
+          icon={AlertTriangle} iconBg="linear-gradient(135deg,#ef4444,#f97316)"
+          isDark={isDark} lastRefresh={lastRefresh}
+          onRefresh={() => fetchAll(true)} refreshing={refreshing}
+        />
 
         {isUnavailable && !loading && (
-          <div style={{ padding: '40px', textAlign: 'center', background: '#fff', borderRadius: 14, border: '1px solid #e2e8f0' }}>
-            <AlertTriangle size={40} style={{ margin: '0 auto 12px', color: '#94a3b8' }} />
-            <p style={{ fontSize: 15, fontWeight: 600, color: '#475569' }}>Grievance service temporarily unreachable</p>
+          <UnavailableBanner message="The grievance-service is not responding. Data will load automatically once the service is online." isDark={isDark} />
+        )}
+
+        <ErrorBanner error={error} />
+
+        {loading && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(220px,1fr))', gap: 16 }}>
+              {[1, 2, 3, 4, 5].map(i => <Skeleton key={i} h={120} />)}
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+              <Skeleton h={300} />
+              <Skeleton h={300} />
+            </div>
           </div>
         )}
 
-        {data && !isUnavailable && !loading && (
-          <>
-            {/* Stat cards */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(200px,1fr))', gap: 16, marginBottom: 24 }}>
-              <StatCard icon={AlertTriangle} title="Total Complaints" value={(data.totalComplaints || 0).toLocaleString()} />
-              <StatCard icon={CheckCircle2} title="Resolved" value={(data.resolvedComplaints || 0).toLocaleString()} subtitle="Including closed" />
-              <StatCard icon={Clock} title="Pending" value={(data.pendingComplaints || 0).toLocaleString()} />
-              <StatCard icon={TrendingUp} title="Resolution Rate" value={`${(data.resolutionRate || 0).toFixed(1)}%`} />
+        {!loading && data && !isUnavailable && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }} className="rpt-card">
+            
+            {/* ── KPI Cards ──────────────────────────────────────────────── */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(210px,1fr))', gap: 16 }}>
+              <KpiCard
+                icon={AlertTriangle} label="Total Complaints"
+                value={(data.totalComplaints || 0).toLocaleString()} subtitle="All-time recorded grievances"
+                color="#6366f1" bg={isDark ? '#312e81' : '#ede9fe'} isDark={isDark}
+              />
+              <KpiCard
+                icon={CheckCircle2} label="Resolved & Closed"
+                value={(data.resolvedComplaints || 0).toLocaleString()} subtitle="Successfully handled cases"
+                color="#10b981" bg={isDark ? '#064e3b' : '#d1fae5'} isDark={isDark}
+              />
+              <KpiCard
+                icon={Clock} label="Pending Resolution"
+                value={(data.pendingComplaints || 0).toLocaleString()} subtitle="Currently being processed"
+                color="#f59e0b" bg={isDark ? '#78350f' : '#fef3c7'} isDark={isDark}
+              />
+              <KpiCard
+                icon={TrendingUp} label="Resolution Rate"
+                value={`${(data.resolutionRate || 0).toFixed(1)}%`} subtitle="Of total complaints"
+                color="#8b5cf6" bg={isDark ? '#4c1d95' : '#ede9fe'} isDark={isDark}
+              />
               {data.overdueCount != null && (
-                <StatCard icon={AlertOctagon} title="Overdue" value={data.overdueCount.toLocaleString()} subtitle="Passed SLA" />
+                <KpiCard
+                  icon={AlertOctagon} label="Overdue Cases"
+                  value={data.overdueCount.toLocaleString()} subtitle="Passed SLA timeframe"
+                  color="#ef4444" bg={isDark ? '#7f1d1d' : '#fef2f2'} isDark={isDark}
+                  trend="Urgent" trendUp={false}
+                />
               )}
             </div>
 
-            {/* Charts */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 24 }}>
-              {/* Status distribution bar chart */}
-              {statusData.length > 0 && (
-                <div style={{ background: '#fff', borderRadius: 14, padding: 20, border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(15,23,42,0.06)' }}>
-                  <h3 style={{ fontSize: 14, fontWeight: 700, color: '#0f172a', marginBottom: 16 }}>Complaints by Status</h3>
-                  <ResponsiveContainer width="100%" height={200}>
-                    <BarChart data={statusData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                      <XAxis dataKey="name" tick={{ fontSize: 10 }} />
-                      <YAxis tick={{ fontSize: 11 }} />
-                      <Tooltip />
-                      <Bar dataKey="count" radius={[4,4,0,0]}>
+            {/* ── Charts ─────────────────────────────────────────────────── */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: 16 }}>
+              
+              <SectionCard title="Complaints by Status" subtitle="Distribution of current case lifecycles" icon={Activity} isDark={isDark}>
+                {statusData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={260}>
+                    <BarChart data={statusData} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#334155' : '#f1f5f9'} vertical={false} />
+                      <XAxis dataKey="name" tick={{ fontSize: 11, fill: isDark ? '#94a3b8' : '#64748b' }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fontSize: 11, fill: isDark ? '#94a3b8' : '#64748b' }} axisLine={false} tickLine={false} />
+                      <Tooltip content={<ChartTooltip isDark={isDark} formatter={v => v.toLocaleString()} />} />
+                      <Bar dataKey="count" radius={[6, 6, 0, 0]} maxBarSize={60}>
                         {statusData.map((d, i) => <Cell key={i} fill={d.fill} />)}
                       </Bar>
                     </BarChart>
                   </ResponsiveContainer>
-                </div>
-              )}
+                ) : (
+                  <EmptyState icon={Activity} title="No Status Data" desc="No complaints have been recorded yet." isDark={isDark} />
+                )}
+              </SectionCard>
 
-              {/* Department pie chart */}
-              {deptData.length > 0 && (
-                <div style={{ background: '#fff', borderRadius: 14, padding: 20, border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(15,23,42,0.06)' }}>
-                  <h3 style={{ fontSize: 14, fontWeight: 700, color: '#0f172a', marginBottom: 16 }}>By Department</h3>
-                  <ResponsiveContainer width="100%" height={200}>
+              <SectionCard title="Department Distribution" subtitle="Volume of complaints assigned per department" icon={Server} isDark={isDark}>
+                {deptData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={260}>
                     <PieChart>
-                      <Pie data={deptData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} label={({ name, percent }) => `${name} ${(percent*100).toFixed(0)}%`} labelLine={false}>
-                        {deptData.map((_, i) => <Cell key={i} fill={DEPT_COLORS[i % DEPT_COLORS.length]} />)}
+                      <Pie
+                        data={deptData} dataKey="value" nameKey="name"
+                        cx="50%" cy="50%" innerRadius={60} outerRadius={90}
+                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                        labelLine={false} paddingAngle={2}
+                      >
+                        {deptData.map((d, i) => <Cell key={i} fill={d.fill} />)}
                       </Pie>
-                      <Tooltip />
+                      <Tooltip contentStyle={{ backgroundColor: isDark ? '#1e293b' : '#ffffff', color: isDark ? '#f8fafc' : '#111827', borderRadius: '10px', border: `1px solid ${border}`, fontSize: 13, fontWeight: 600 }} />
                     </PieChart>
                   </ResponsiveContainer>
-                </div>
-              )}
+                ) : (
+                  <EmptyState icon={Server} title="No Department Data" desc="No complaints have been routed to departments yet." isDark={isDark} />
+                )}
+              </SectionCard>
             </div>
-          </>
-        )}
 
-        <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }`}</style>
+            {/* ── Footer Info ────────────────────────────────────────────── */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px,1fr))', gap: 16 }}>
+              <InfoCard icon={Server} label="Data Source" value="grievance-service" color="#10b981" bg={isDark ? '#064e3b' : '#d1fae5'} isDark={isDark} />
+              <InfoCard icon={FileBadge} label="Update Frequency" value="Real-time" color="#3b82f6" bg={isDark ? '#1e3a5f' : '#dbeafe'} isDark={isDark} />
+            </div>
+
+          </div>
+        )}
       </div>
     </AppShell>
   );

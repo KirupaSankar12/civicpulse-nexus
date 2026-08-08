@@ -176,9 +176,10 @@ function OfficerDashboard() {
 
   return (
     <AppShell title="Field Operations">
-      {/* ── Welcome Banner ── */}
-      <div style={{
-        background: 'linear-gradient(135deg, #1e293b, #0f172a)',
+      <div style={{ width: '100%', maxWidth: '100%', padding: '0 24px 40px 24px', margin: '0 auto', boxSizing: 'border-box' }}>
+        {/* ── Welcome Banner ── */}
+        <div style={{
+          background: 'linear-gradient(135deg, #1e293b, #0f172a)',
         borderRadius: 16, padding: '32px', color: '#fff',
         display: 'flex', flexWrap: 'wrap', gap: 20, alignItems: 'center', justifyContent: 'space-between',
         boxShadow: '0 10px 25px rgba(15,23,42,0.3)',
@@ -409,6 +410,7 @@ function OfficerDashboard() {
           )}
         </>
       )}
+      </div>
     </AppShell>
   );
 }

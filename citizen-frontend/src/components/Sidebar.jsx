@@ -258,8 +258,8 @@ export default function Sidebar({ collapsed = false, onToggleCollapse }) {
         top: 0,
         display: 'flex',
         flexDirection: 'column',
-        background: '#f1f5f9',
-        borderRight: '2px solid #cbd5e1',
+        background: 'var(--surface)',
+        borderRight: '2px solid var(--border)',
         boxShadow: '3px 0 16px rgba(15,23,42,0.10)',
         transition: 'width 0.22s cubic-bezier(0.4,0,0.2,1), min-width 0.22s cubic-bezier(0.4,0,0.2,1)',
         overflow: 'hidden',
@@ -274,8 +274,8 @@ export default function Sidebar({ collapsed = false, onToggleCollapse }) {
         alignItems: 'center',
         gap: 10,
         padding: collapsed ? '0 14px' : '0 16px',
-        borderBottom: '2px solid #cbd5e1',
-        background: '#ffffff',
+        borderBottom: '2px solid var(--border)',
+        background: 'var(--surface)',
         flexShrink: 0,
         overflow: 'hidden',
       }}>
@@ -292,10 +292,10 @@ export default function Sidebar({ collapsed = false, onToggleCollapse }) {
         {/* Wordmark (hidden when collapsed) */}
         {!collapsed && (
           <div style={{ overflow: 'hidden', flex: 1 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: '#0f172a', lineHeight: 1.2, whiteSpace: 'nowrap' }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', lineHeight: 1.2, whiteSpace: 'nowrap' }}>
               CivicPulse Nexus
             </div>
-            <div style={{ fontSize: 9, fontWeight: 600, color: '#94a3b8', letterSpacing: '0.08em', textTransform: 'uppercase', marginTop: 1 }}>
+            <div style={{ fontSize: 9, fontWeight: 600, color: 'var(--text-secondary)', letterSpacing: '0.08em', textTransform: 'uppercase', marginTop: 1 }}>
               Government Portal
             </div>
           </div>
@@ -309,12 +309,13 @@ export default function Sidebar({ collapsed = false, onToggleCollapse }) {
         flex: 1,
         overflowY: 'auto',
         overflowX: 'hidden',
-        padding: collapsed ? '12px 8px' : '12px 10px',
+        padding: collapsed ? '8px 6px' : '8px 8px',
         display: 'flex',
         flexDirection: 'column',
-        gap: 0,
+        gap: 4,
         scrollbarWidth: 'thin',
-        scrollbarColor: '#e2e8f0 transparent',
+        scrollbarColor: 'var(--border) transparent',
+        background: 'var(--surface)',
       }}>
         {navGroups.map((group, gi) => (
           <div key={group.section}>
@@ -322,7 +323,7 @@ export default function Sidebar({ collapsed = false, onToggleCollapse }) {
             {!collapsed && (
               <div style={{
                 display: 'flex', alignItems: 'center', gap: 7,
-                padding: gi === 0 ? '4px 6px 8px' : '20px 6px 8px',
+                padding: gi === 0 ? '6px 6px 8px' : '22px 6px 8px',
               }}>
                 <span style={{
                   width: 7, height: 7, borderRadius: '50%',
@@ -331,23 +332,23 @@ export default function Sidebar({ collapsed = false, onToggleCollapse }) {
                   boxShadow: `0 0 0 3px ${group.dot}44`,
                 }} />
                 <span style={{
-                  fontSize: 10, fontWeight: 800, color: '#475569',
+                  fontSize: 10, fontWeight: 800, color: 'var(--text-secondary)',
                   textTransform: 'uppercase', letterSpacing: '0.1em',
                   whiteSpace: 'nowrap',
                 }}>
                   {group.section}
                 </span>
-                <div style={{ flex: 1, height: 1.5, background: '#cbd5e1', borderRadius: 1 }} />
+                <div style={{ flex: 1, height: 1.5, background: 'var(--border)', borderRadius: 1 }} />
               </div>
             )}
 
             {/* collapsed: just a divider line between sections (not first) */}
             {collapsed && gi > 0 && (
-              <div style={{ height: 1.5, background: '#cbd5e1', margin: '8px 4px' }} />
+              <div style={{ height: 1.5, background: 'var(--border)', margin: '8px 4px' }} />
             )}
 
             {/* ── Nav links ── */}
-            <nav style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <nav style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
               {group.links.map((link) => {
                 const Icon = link.icon;
                 const isActive = link.exact
@@ -367,24 +368,24 @@ export default function Sidebar({ collapsed = false, onToggleCollapse }) {
                       display: 'flex',
                       alignItems: 'center',
                       gap: 10,
-                      padding: collapsed ? '8px 6px' : '8px 10px',
+                      padding: collapsed ? '7px 6px' : '7px 10px',
                       borderRadius: 9,
                       justifyContent: collapsed ? 'center' : 'flex-start',
-                      background: isActive ? '#1e293b' : 'transparent',
-                      boxShadow: isActive ? '0 2px 8px rgba(15,23,42,0.18)' : 'none',
+                      background: isActive ? 'var(--surface2)' : 'transparent',
+                      boxShadow: isActive ? '0 2px 8px rgba(15,23,42,0.12)' : 'none',
                       transition: 'background 0.15s, box-shadow 0.15s',
                       cursor: 'pointer',
                       position: 'relative',
                     }}
-                      onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = '#e2e8f0'; }}
+                      onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = 'var(--border-light)'; }}
                       onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent'; }}
                     >
                       {/* Icon chip */}
                       <div style={{
                         width: 30, height: 30, borderRadius: 8, flexShrink: 0,
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        background: isActive ? chip.bg : '#dde3ec',
-                        border: isActive ? 'none' : '1px solid #c8d0dc',
+                        background: isActive ? chip.bg : 'var(--surface2)',
+                        border: isActive ? 'none' : '1px solid var(--border)',
                         transition: 'background 0.15s',
                       }}>
                         <Icon
@@ -399,7 +400,7 @@ export default function Sidebar({ collapsed = false, onToggleCollapse }) {
                         <span style={{
                           fontSize: 13,
                           fontWeight: isActive ? 700 : 600,
-                          color: isActive ? '#ffffff' : '#1e293b',
+                          color: isActive ? chip.color : 'var(--text)',
                           whiteSpace: 'nowrap',
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
@@ -432,8 +433,8 @@ export default function Sidebar({ collapsed = false, onToggleCollapse }) {
       {/* ── Bottom: Profile card + Collapse toggle ──────────────────────────── */}
       <div style={{
         flexShrink: 0,
-        borderTop: '2px solid #cbd5e1',
-        background: '#ffffff',
+        borderTop: '2px solid var(--border)',
+        background: 'var(--surface)',
         padding: collapsed ? '10px 8px' : '10px',
       }}>
         {/* Collapse toggle button */}
@@ -451,13 +452,13 @@ export default function Sidebar({ collapsed = false, onToggleCollapse }) {
             border: 'none',
             background: 'transparent',
             cursor: 'pointer',
-            color: '#94a3b8',
+            color: 'var(--text-secondary)',
             fontSize: 12,
             fontWeight: 500,
             marginBottom: 8,
             transition: 'background 0.15s',
           }}
-          onMouseEnter={e => e.currentTarget.style.background = '#f8fafc'}
+          onMouseEnter={e => e.currentTarget.style.background = 'var(--surface2)'}
           onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
         >
           {!collapsed && <span style={{ fontSize: 11 }}>Collapse</span>}
@@ -466,78 +467,79 @@ export default function Sidebar({ collapsed = false, onToggleCollapse }) {
             : <ChevronLeft size={15} />}
         </button>
 
-        {/* Profile card */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 10,
-          padding: collapsed ? '8px 4px' : '10px 10px',
-          borderRadius: 10,
-          background: '#f1f5f9',
-          border: '1.5px solid #cbd5e1',
-          cursor: 'pointer',
-          justifyContent: collapsed ? 'center' : 'flex-start',
-          transition: 'background 0.15s',
-          position: 'relative',
-          boxShadow: '0 1px 4px rgba(15,23,42,0.07)',
-        }}
-          onMouseEnter={e => e.currentTarget.style.background = '#e2e8f0'}
-          onMouseLeave={e => e.currentTarget.style.background = '#f1f5f9'}
+        {/* Profile Card */}
+        <div 
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 12,
+            padding: collapsed ? '10px 6px' : '12px 14px',
+            borderRadius: 14,
+            background: 'var(--surface, #0f2027)',
+            border: '1px solid var(--border, rgba(16,185,129,0.25))',
+            cursor: 'pointer',
+            justifyContent: collapsed ? 'center' : 'flex-start',
+            transition: 'all 0.2s ease',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.12)'
+          }}
+          onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(16,185,129,0.5)'}
+          onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border, rgba(16,185,129,0.25))'}
           onClick={() => keycloak.logout()}
           title={collapsed ? `${name} — ${roleLabel} (click to sign out)` : undefined}
         >
           {/* Avatar */}
           <div style={{
-            width: 32, height: 32, borderRadius: '50%', flexShrink: 0,
-            background: 'linear-gradient(135deg, #3b82f6, #6366f1)',
+            width: 36, height: 36, borderRadius: 10, flexShrink: 0,
+            background: 'linear-gradient(135deg, #10b981, #059669)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: '#fff', fontSize: 11, fontWeight: 700,
-            boxShadow: '0 0 0 2px #fff, 0 0 0 3px rgba(99,102,241,0.3)',
+            color: '#ffffff', fontSize: 13, fontWeight: 800,
+            boxShadow: '0 2px 8px rgba(16,185,129,0.3)',
           }}>
             {initials}
           </div>
 
           {/* Name + role (expanded only) */}
           {!collapsed && (
-            <>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{
-                  fontSize: 13, fontWeight: 700, color: '#0f172a',
-                  whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                }}>
-                  {username}
-                </div>
+            <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <div style={{
+                fontSize: 13, fontWeight: 800, color: 'var(--text, #f8fafc)',
+                whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                lineHeight: 1.2
+              }}>
+                {username}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2 }}>
                 <span style={{
-                  display: 'inline-block', marginTop: 2,
-                  fontSize: 10, fontWeight: 600, borderRadius: 4,
-                  padding: '1px 6px',
-                  background: badge.bg, color: badge.color,
+                  fontSize: 10, fontWeight: 700, borderRadius: 6,
+                  padding: '2px 8px', width: 'fit-content',
+                  background: 'rgba(16,185,129,0.15)', color: '#10b981', border: '1px solid rgba(16,185,129,0.3)'
                 }}>
                   {roleLabel}
                 </span>
               </div>
-              <ChevronDown size={14} color="#94a3b8" style={{ flexShrink: 0 }} />
-            </>
+            </div>
           )}
         </div>
 
-        {/* Sign-out hint (expanded only) */}
+        {/* Sign-out Action Button (expanded only) */}
         {!collapsed && (
           <button
+            type="button"
             onClick={() => keycloak.logout()}
             style={{
-              width: '100%', marginTop: 4,
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-              padding: '6px', borderRadius: 8,
-              border: 'none', background: 'transparent', cursor: 'pointer',
-              fontSize: 12, fontWeight: 500, color: '#ef4444',
-              transition: 'background 0.15s',
+              width: '100%', marginTop: 8,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              padding: '10px 14px', borderRadius: 12,
+              border: '1px solid rgba(239,68,68,0.25)', background: 'rgba(239,68,68,0.08)',
+              cursor: 'pointer', fontSize: 12, fontWeight: 700, color: '#ef4444',
+              transition: 'all 0.2s ease',
+              boxShadow: '0 2px 6px rgba(239,68,68,0.1)'
             }}
-            onMouseEnter={e => e.currentTarget.style.background = '#fef2f2'}
-            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.18)'; e.currentTarget.style.borderColor = 'rgba(239,68,68,0.5)'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.08)'; e.currentTarget.style.borderColor = 'rgba(239,68,68,0.25)'; }}
           >
-            <LogOut size={13} />
-            Sign out
+            <LogOut size={14} color="#ef4444" />
+            Sign Out
           </button>
         )}
       </div>

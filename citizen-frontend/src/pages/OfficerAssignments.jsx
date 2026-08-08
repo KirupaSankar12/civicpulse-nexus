@@ -158,9 +158,10 @@ export default function OfficerAssignments() {
 
   return (
     <AppShell title="Officer Assignments">
-      {/* ── Welcome Banner ── */}
-      <div style={{
-        background: 'linear-gradient(135deg, #0f172a, #334155)',
+      <div style={{ width: '100%', maxWidth: '100%', padding: '0 24px 40px 24px', margin: '0 auto', boxSizing: 'border-box' }}>
+        {/* ── Welcome Banner ── */}
+        <div style={{
+          background: 'linear-gradient(135deg, #0f172a, #334155)',
         borderRadius: 16, padding: '24px 32px', color: '#ffffff',
         display: 'flex', flexWrap: 'wrap', gap: 20, alignItems: 'center', justifyContent: 'space-between',
         boxShadow: '0 10px 25px rgba(15,23,42,0.3)',
@@ -479,6 +480,7 @@ export default function OfficerAssignments() {
             </table>
           </div>
         )}
+      </div>
       </div>
     </AppShell>
   );

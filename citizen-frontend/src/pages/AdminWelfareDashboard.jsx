@@ -158,7 +158,7 @@ export default function AdminWelfareDashboard() {
 
   return (
     <AppShell title="Budget & Fund Approval">
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 24, paddingBottom: 60 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 24, padding: '0 24px 60px 24px', width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}>
         
         {/* Banner */}
         <div style={{

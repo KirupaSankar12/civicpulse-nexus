@@ -206,7 +206,7 @@ function OfficerApplicationView() {
 
   return (
     <AppShell title="Application Details">
-      <div className="space-y-6">
+      <div className="space-y-6 w-full max-w-full px-6 sm:px-8 lg:px-12 py-2" style={{ boxSizing: 'border-box' }}>
         
         {/* Header */}
         <div className="flex justify-between items-center gap-4">

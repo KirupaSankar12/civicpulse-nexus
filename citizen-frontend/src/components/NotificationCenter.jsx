@@ -2,23 +2,48 @@ import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api.js';
 import keycloak from '../keycloak.js';
-import { Bell, Check, CheckCircle2, Circle, AlertCircle, RefreshCw } from 'lucide-react';
+import { Bell, CheckCheck, Clock, Heart, AlertCircle, Sparkles, ArrowRight } from 'lucide-react';
 
-function getNotifIcon(eventType) {
+function getNotifTheme(eventType) {
   const type = (eventType || '').toUpperCase();
-  if (type.includes('COMPLAINT') || type.includes('GRIEVANCE')) return '📢';
-  if (type.includes('ASSIGN')) return '👤';
-  if (type.includes('RESOLV') || type.includes('APPROV')) return '✅';
-  if (type.includes('REJECT')) return '❌';
-  if (type.includes('PERMIT')) return '🏗';
-  if (type.includes('TRADE')) return '🏢';
-  if (type.includes('BIRTH')) return '👶';
-  if (type.includes('DEATH')) return '🕊';
-  if (type.includes('INCOME')) return '💰';
-  if (type.includes('RESIDENCE')) return '🏠';
-  if (type.includes('CERTIFICATE') || type.includes('SERVICE')) return '📜';
-  if (type.includes('VERIFICATION')) return '🟡';
-  return '🔔';
+  if (type.includes('APPROV') || type.includes('RESOLV')) {
+    return {
+      icon: CheckCheck,
+      iconColor: '#059669',
+      bgColor: '#ecfdf5',
+      borderColor: '#a7f3d0'
+    };
+  }
+  if (type.includes('REJECT')) {
+    return {
+      icon: AlertCircle,
+      iconColor: '#dc2626',
+      bgColor: '#fef2f2',
+      borderColor: '#fecaca'
+    };
+  }
+  if (type.includes('VERIF')) {
+    return {
+      icon: Clock,
+      iconColor: '#d97706',
+      bgColor: '#fffbeb',
+      borderColor: '#fde68a'
+    };
+  }
+  if (type.includes('CREDIT') || type.includes('FUND') || type.includes('WELFARE')) {
+    return {
+      icon: Heart,
+      iconColor: '#2563eb',
+      bgColor: '#eff6ff',
+      borderColor: '#bfdbfe'
+    };
+  }
+  return {
+    icon: Bell,
+    iconColor: '#6366f1',
+    bgColor: '#eef2ff',
+    borderColor: '#c7d2fe'
+  };
 }
 
 function NotificationCenter() {
@@ -36,7 +61,7 @@ function NotificationCenter() {
 
   useEffect(() => {
     if (!recipient) return;
-    const fetch = () => {
+    const fetchNotifs = () => {
       api.get(`/notification-service/api/notifications/recipient/${recipient}`)
         .then(r => {
           setNotifications(r.data);
@@ -44,10 +69,10 @@ function NotificationCenter() {
         })
         .catch(() => setLoading(false));
     };
-    fetch();
-    const t = setInterval(fetch, 2000);
+    fetchNotifs();
+    const t = setInterval(fetchNotifs, 10000);
     
-    const handleForceRefresh = () => setTimeout(fetch, 500);
+    const handleForceRefresh = () => setTimeout(fetchNotifs, 500);
     window.addEventListener('refresh-notifications', handleForceRefresh);
     
     return () => {
@@ -79,112 +104,183 @@ function NotificationCenter() {
   };
 
   return (
-    <div ref={ref} className="position-relative">
+    <div ref={ref} style={{ position: 'relative', display: 'inline-block' }}>
+      {/* Bell Button */}
       <button
         type="button"
-        className="btn btn-light position-relative p-2 rounded-circle border-0 d-flex align-items-center justify-content-center"
         onClick={() => setIsOpen(!isOpen)}
-        style={{ width: '40px', height: '40px', background: isOpen ? '#f1f5f9' : 'transparent', transition: 'all 0.2s' }}
+        title="Notifications"
+        aria-label="Notifications"
+        style={{
+          position: 'relative',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          width: 38, height: 38, borderRadius: '50%',
+          border: '1.5px solid var(--border, #e2e8f0)', background: 'var(--surface, #ffffff)',
+          cursor: 'pointer', transition: 'all 0.15s ease',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+        }}
+        onMouseEnter={e => e.currentTarget.style.background = 'var(--bg, #f8fafc)'}
+        onMouseLeave={e => e.currentTarget.style.background = 'var(--surface, #ffffff)'}
       >
-        <Bell size={20} className="text-secondary" />
+        <Bell size={18} color="var(--text-secondary, #475569)" />
         {unread > 0 && (
-          <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger shadow-sm border border-2 border-white" style={{ fontSize: '10px', marginTop: '4px', marginLeft: '-8px' }}>
+          <span style={{
+            position: 'absolute', top: -2, right: -2,
+            minWidth: 18, height: 18, padding: '0 4px',
+            borderRadius: 10, background: '#ef4444', color: '#ffffff',
+            fontSize: 10, fontWeight: 800,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            border: '2px solid #ffffff', boxShadow: '0 2px 4px rgba(239,68,68,0.3)',
+            lineHeight: 1
+          }}>
             {unread > 9 ? '9+' : unread}
-            <span className="visually-hidden">unread messages</span>
           </span>
         )}
       </button>
 
+      {/* Popover Dropdown Card */}
       {isOpen && (
-        <div className="position-absolute end-0 mt-2 bg-white rounded-4 shadow-lg border overflow-hidden" style={{ width: '380px', zIndex: 1050 }}>
-          <div className="d-flex justify-content-between align-items-center p-3 border-bottom bg-light">
-            <h6 className="mb-0 fw-bold d-flex align-items-center gap-2">
-              Notifications
-              {unread > 0 && <span className="badge bg-primary rounded-pill">{unread} new</span>}
-            </h6>
+        <div style={{
+          position: 'absolute', right: 0, top: 'calc(100% + 10px)',
+          width: 380, maxWidth: 'calc(100vw - 32px)',
+          background: 'var(--surface, #ffffff)', borderRadius: 20,
+          boxShadow: '0 20px 40px -10px rgba(15,23,42,0.25), 0 0 0 1px var(--border, rgba(15,23,42,0.08))',
+          overflow: 'hidden', zIndex: 1000
+        }}>
+          {/* Header */}
+          <div style={{
+            background: 'linear-gradient(135deg, #059669 0%, #0d9488 100%)',
+            padding: '16px 20px', color: '#ffffff',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: '#ffffff' }}>
+                Notifications
+              </h3>
+              {unread > 0 && (
+                <span style={{ background: 'rgba(255,255,255,0.22)', color: '#ffffff', padding: '3px 10px', borderRadius: 12, fontSize: 11, fontWeight: 800 }}>
+                  {unread} new
+                </span>
+              )}
+            </div>
+
             {unread > 0 && (
-              <button type="button" className="btn btn-link text-decoration-none p-0 fw-semibold" style={{ fontSize: '13px' }} onClick={markAllRead}>
-                <Check size={14} className="me-1" /> Mark all read
+              <button
+                type="button"
+                onClick={markAllRead}
+                style={{
+                  background: 'rgba(255,255,255,0.15)', color: '#ffffff',
+                  border: '1px solid rgba(255,255,255,0.3)', borderRadius: 10,
+                  padding: '5px 10px', fontSize: 12, fontWeight: 700,
+                  cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
+                  transition: 'background 0.15s'
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.25)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.15)'}
+              >
+                <CheckCheck size={14} color="#ffffff" /> Mark all read
               </button>
             )}
           </div>
 
-          <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+          {/* List Feed */}
+          <div style={{ maxHeight: 380, overflowY: 'auto', scrollbarWidth: 'thin' }}>
             {loading ? (
-              // Loading Skeleton Cards
-              Array.from({ length: 3 }).map((_, idx) => (
-                <div key={idx} className="p-3 border-bottom d-flex gap-3">
-                  <div className="rounded-circle bg-light" style={{ width: '40px', height: '40px' }}></div>
-                  <div className="flex-fill">
-                    <div className="placeholder-glow mb-2">
-                      <span className="placeholder col-7 rounded"></span>
-                    </div>
-                    <div className="placeholder-glow mb-2">
-                      <span className="placeholder col-10 rounded"></span>
-                    </div>
-                    <div className="placeholder-glow">
-                      <span className="placeholder col-4 rounded"></span>
-                    </div>
-                  </div>
-                </div>
-              ))
+              <div style={{ padding: 32, textAlign: 'center', color: 'var(--text-secondary, #94a3b8)', fontSize: 13 }}>
+                Loading notifications...
+              </div>
             ) : notifications.length === 0 ? (
-              <div className="p-5 text-center text-muted">
-                <h1 className="mb-3">🎉</h1>
-                <h6 className="fw-bold text-dark">You're all caught up!</h6>
-                <p className="small mb-0">No new notifications right now.</p>
+              <div style={{ padding: 40, textAlign: 'center' }}>
+                <Sparkles size={32} color="#059669" style={{ margin: '0 auto 12px' }} />
+                <p style={{ margin: '0 0 4px 0', fontSize: 14, fontWeight: 700, color: 'var(--text, #0f172a)' }}>You're all caught up!</p>
+                <p style={{ margin: 0, fontSize: 12, color: 'var(--text-secondary, #64748b)' }}>No new notifications right now.</p>
               </div>
             ) : (
-              notifications.slice(0, 10).map(n => (
-                <div
-                  key={n.notificationId}
-                  className={`p-3 border-bottom d-flex gap-3 ${!n.readStatus ? 'bg-primary bg-opacity-10' : 'bg-white'} custom-hover-bg`}
-                  style={{ cursor: 'pointer', transition: 'background 0.2s' }}
-                  onClick={() => {
-                    if (!n.readStatus) markRead(n.notificationId);
-                    setIsOpen(false);
-                    if (n.relatedEntityType === 'COMPLAINT') {
-                      navigate(isOfficer ? '/officer' : '/complaints');
-                    } else if (n.relatedEntityType === 'CERTIFICATE') {
-                      navigate(isOfficer ? '/services/officer/dashboard' : '/services/tracker');
-                    }
-                  }}
-                >
-                  <div className="d-flex align-items-center justify-content-center bg-white rounded-circle shadow-sm flex-shrink-0" style={{ width: '42px', height: '42px', fontSize: '20px' }}>
-                    {getNotifIcon(n.eventType)}
-                  </div>
-                  <div className="flex-grow-1 min-vw-0">
-                    <div className="d-flex justify-content-between align-items-start mb-1">
-                      <h6 className={`mb-0 fw-bold text-truncate ${!n.readStatus ? 'text-primary' : 'text-dark'}`} style={{ fontSize: '14px', maxWidth: '200px' }}>
-                        {n.title || n.eventType}
-                      </h6>
-                      <small className="text-muted" style={{ fontSize: '11px', whiteSpace: 'nowrap' }}>
-                        {new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </small>
+              notifications.slice(0, 10).map((n, idx) => {
+                const theme = getNotifTheme(n.eventType);
+                const Icon = theme.icon;
+                const isUnread = !n.readStatus;
+
+                return (
+                  <div
+                    key={n.notificationId}
+                    onClick={() => {
+                      if (!n.readStatus) markRead(n.notificationId);
+                      setIsOpen(false);
+                      if (n.relatedEntityType === 'COMPLAINT') {
+                        navigate(isOfficer ? '/officer' : '/complaints');
+                      } else if (n.relatedEntityType === 'CERTIFICATE') {
+                        navigate(isOfficer ? '/services/officer/dashboard' : '/services/tracker');
+                      } else {
+                        navigate(isOfficer ? '/welfare/department-dashboard' : '/welfare/my-applications');
+                      }
+                    }}
+                    style={{
+                      padding: '16px 20px',
+                      borderBottom: idx < notifications.length - 1 ? '1px solid var(--border, #f1f5f9)' : 'none',
+                      background: isUnread ? 'rgba(16,185,129,0.12)' : 'var(--surface, #ffffff)',
+                      display: 'flex', gap: 14, alignItems: 'flex-start',
+                      cursor: 'pointer', transition: 'background 0.15s'
+                    }}
+                    onMouseEnter={e => { if (!isUnread) e.currentTarget.style.background = 'var(--bg, #f8fafc)'; }}
+                    onMouseLeave={e => { if (!isUnread) e.currentTarget.style.background = 'var(--surface, #ffffff)'; }}
+                  >
+                    {/* Icon Avatar */}
+                    <div style={{
+                      width: 40, height: 40, borderRadius: 12, flexShrink: 0,
+                      background: theme.bgColor, border: `1px solid ${theme.borderColor}`,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center'
+                    }}>
+                      <Icon size={18} color={theme.iconColor} />
                     </div>
-                    <p className="mb-0 text-muted small lh-sm" style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                      {n.message}
-                    </p>
-                  </div>
-                  {!n.readStatus && (
-                    <div className="align-self-center ms-2">
-                      <div className="rounded-circle bg-primary" style={{ width: '8px', height: '8px' }}></div>
+
+                    {/* Content */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 2, gap: 8 }}>
+                        <h4 style={{ margin: 0, fontSize: 14, fontWeight: isUnread ? 800 : 700, color: 'var(--text, #0f172a)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {n.title || n.eventType}
+                        </h4>
+                        <span style={{ fontSize: 11, fontWeight: 600, color: isUnread ? '#059669' : 'var(--text-secondary, #94a3b8)', whiteSpace: 'nowrap' }}>
+                          {new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </div>
+
+                      <p style={{ margin: 0, fontSize: 12, color: 'var(--text-secondary, #64748b)', lineHeight: 1.45, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                        {n.message}
+                      </p>
                     </div>
-                  )}
-                </div>
-              ))
+
+                    {/* Unread indicator */}
+                    {isUnread && (
+                      <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981', flexShrink: 0, marginTop: 6, boxShadow: '0 0 0 3px #d1fae5' }} />
+                    )}
+                  </div>
+                );
+              })
             )}
           </div>
 
-          <div className="p-2 bg-light border-top text-center">
+          {/* Footer */}
+          <div style={{ padding: '12px 16px', background: 'var(--bg, #f8fafc)', borderTop: '1px solid var(--border, #e2e8f0)' }}>
             <button 
-              className="btn btn-link text-decoration-none fw-bold w-100 py-1"
+              type="button"
               onClick={() => {
                 setIsOpen(false);
                 navigate('/notifications');
               }}
+              style={{
+                width: '100%', padding: '10px 16px',
+                background: '#059669', color: '#ffffff',
+                border: 'none', borderRadius: 12,
+                fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                boxShadow: '0 4px 12px rgba(5,150,105,0.2)',
+                transition: 'transform 0.15s ease'
+              }}
+              onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-1px)'}
+              onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
             >
-              View All Notifications
+              View All Notifications <ArrowRight size={14} />
             </button>
           </div>
         </div>
@@ -194,3 +290,4 @@ function NotificationCenter() {
 }
 
 export default NotificationCenter;
+

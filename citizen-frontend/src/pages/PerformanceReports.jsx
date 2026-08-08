@@ -1,164 +1,222 @@
 import { useEffect, useState } from 'react';
 import AppShell from '../components/AppShell.jsx';
 import api from '../api.js';
-import { Activity, CheckCircle2, Clock, TrendingUp } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext.jsx';
+import { Activity, Clock, TrendingUp, CheckCircle, ShieldAlert, Zap } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import {
+  KpiCard, SectionCard, ReportPageHeader, ErrorBanner, UnavailableBanner,
+  EmptyState, ChartTooltip, Skeleton, GLOBAL_STYLES, PALETTE
+} from '../components/ReportShared.jsx';
 
-const DEPT_COLORS = ['#6366f1','#10b981','#f59e0b','#ef4444','#3b82f6','#8b5cf6','#06b6d4','#f97316'];
-
-function PerformanceBadge({ rate }) {
+function PerformanceBadge({ rate, isDark }) {
   const isGood = rate >= 85;
+  const isWarn = rate >= 60 && rate < 85;
   return (
     <span style={{
-      padding: '3px 9px', borderRadius: 20, fontSize: 11, fontWeight: 700,
-      background: isGood ? '#dcfce7' : '#fef9c3',
-      color: isGood ? '#15803d' : '#a16207',
+      padding: '4px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700,
+      display: 'inline-flex', alignItems: 'center', gap: 4,
+      background: isGood ? (isDark ? '#064e3b' : '#dcfce7') : isWarn ? (isDark ? '#78350f' : '#fef9c3') : (isDark ? '#7f1d1d' : '#fee2e2'),
+      color: isGood ? (isDark ? '#34d399' : '#15803d') : isWarn ? (isDark ? '#fbbf24' : '#a16207') : (isDark ? '#f87171' : '#dc2626'),
+      border: `1px solid ${isGood ? (isDark ? '#047857' : '#bbf7d0') : isWarn ? (isDark ? '#92400e' : '#fef08a') : (isDark ? '#991b1b' : '#fecaca')}`,
     }}>
-      {isGood ? '✓ Good' : '⚠ Needs Attention'}
+      {isGood ? <CheckCircle size={12} /> : <ShieldAlert size={12} />}
+      {isGood ? 'Excellent' : isWarn ? 'Acceptable' : 'Needs Attention'}
     </span>
   );
 }
 
 export default function PerformanceReports() {
+  const { effectiveTheme } = useTheme();
+  const isDark = effectiveTheme === 'dark';
+
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const [lastRefresh, setLastRefresh] = useState(new Date());
 
-  useEffect(() => {
-    api.get('/api/reports/performance')
-      .then(r => setData(r.data))
-      .catch(e => setError(e.response?.data?.message || 'Failed to load performance data'))
-      .finally(() => setLoading(false));
-  }, []);
+  const fetchAll = async (isRefresh = false) => {
+    if (isRefresh) setRefreshing(true);
+    else setLoading(true);
+    setError(null);
+    try {
+      const res = await api.get('/api/reports/performance');
+      setData(res.data);
+    } catch (e) {
+      setError(e.response?.data?.message || 'Failed to load performance data');
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+      setLastRefresh(new Date());
+    }
+  };
 
-  const depts = data?.departmentPerformance
-    ? Object.values(data.departmentPerformance)
-    : [];
+  useEffect(() => { fetchAll(); }, []);
+
+  const isUnavailable = data?.grievanceDataUnavailable;
+
+  const depts = data?.departmentPerformance ? Object.values(data.departmentPerformance) : [];
 
   const chartData = depts.map((d, i) => ({
-    name: (d.department || 'Unknown').replace(' Department','').replace(' Dept',''),
+    name: (d.department || 'Unknown').replace(' Department', '').replace(' Dept', ''),
     rate: Math.round(d.resolutionRate * 10) / 10,
     total: d.totalHandled,
-    fill: DEPT_COLORS[i % DEPT_COLORS.length],
+    fill: PALETTE[i % PALETTE.length],
   }));
+
+  const overallRate = data?.overallResolutionRate || 0;
+  const totalCasesHandled = depts.reduce((sum, d) => sum + (d.totalHandled || 0), 0);
+  const topDept = [...depts].sort((a, b) => (b.resolutionRate || 0) - (a.resolutionRate || 0))[0];
+
+  const surface = isDark ? '#1e293b' : '#fff';
+  const border = isDark ? '#334155' : '#f1f5f9';
 
   return (
     <AppShell title="Performance Reports">
-      <div style={{ maxWidth: 1600, margin: '0 auto', padding: '0 0 32px' }}>
-        <div style={{ marginBottom: 24 }}>
-          <h2 style={{ fontSize: 22, fontWeight: 800, color: '#0f172a', margin: 0 }}>Performance Reports</h2>
-          <p style={{ color: '#64748b', fontSize: 13, marginTop: 4 }}>
-            Department performance metrics and resolution rates
-          </p>
-        </div>
+      <style>{GLOBAL_STYLES}</style>
+      <div style={{ maxWidth: 1600, margin: '0 auto', paddingBottom: 40 }}>
+        
+        <ReportPageHeader
+          title="Department Performance"
+          subtitle="SLA compliance and resolution metrics across departments"
+          icon={Activity} iconBg="linear-gradient(135deg,#3b82f6,#2563eb)"
+          isDark={isDark} lastRefresh={lastRefresh}
+          onRefresh={() => fetchAll(true)} refreshing={refreshing}
+        />
 
-        {/* Overall resolution rate stat */}
-        {data?.overallResolutionRate != null && (
-          <div style={{ display: 'flex', gap: 16, marginBottom: 24 }}>
-            <div style={{ padding: '16px 24px', borderRadius: 12, background: '#fff', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: 12, boxShadow: '0 2px 8px rgba(15,23,42,0.06)' }}>
-              <div style={{ padding: 10, borderRadius: 10, background: '#e0e7ff' }}>
-                <TrendingUp size={22} color="#4f46e5" />
-              </div>
-              <div>
-                <div style={{ fontSize: 12, color: '#64748b', fontWeight: 500 }}>Overall Resolution Rate</div>
-                <div style={{ fontSize: 26, fontWeight: 800, color: '#0f172a' }}>
-                  {(data.overallResolutionRate).toFixed(1)}%
-                </div>
-              </div>
-            </div>
+        {isUnavailable && !loading && (
+          <div style={{
+            padding: '12px 16px', borderRadius: 10, marginBottom: 20,
+            background: isDark ? '#78350f' : '#fef9c3', border: `1px solid ${isDark ? '#92400e' : '#fde047'}`,
+            color: isDark ? '#fde68a' : '#713f12', fontSize: 13, display: 'flex', alignItems: 'center', gap: 10,
+          }}>
+            <ShieldAlert size={16} />
+            <span style={{ fontWeight: 600 }}>Grievance service is temporarily unreachable. Performance data may be incomplete.</span>
           </div>
         )}
+
+        <ErrorBanner error={error} />
 
         {loading && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(280px,1fr))', gap: 16 }}>
-            {[1,2,3,4].map(i => (
-              <div key={i} style={{ height: 120, borderRadius: 12, background: '#e2e8f0', animation: 'pulse 1.5s infinite' }} />
-            ))}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(250px,1fr))', gap: 16 }}>
+              {[1, 2, 3].map(i => <Skeleton key={i} h={120} />)}
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(320px,1fr))', gap: 16 }}>
+              {[1, 2, 3, 4].map(i => <Skeleton key={i} h={160} />)}
+            </div>
+            <Skeleton h={300} />
           </div>
         )}
 
-        {error && (
-          <div style={{ padding: '12px 16px', borderRadius: 8, background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', fontSize: 13, marginBottom: 16 }}>
-            {error}
-          </div>
-        )}
+        {!loading && data && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }} className="rpt-card">
+            
+            {/* ── Overview KPIs ────────────────────────────────────────────── */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(250px,1fr))', gap: 16 }}>
+              <KpiCard
+                icon={TrendingUp} label="Overall Resolution Rate"
+                value={`${overallRate.toFixed(1)}%`} subtitle="Average across all departments"
+                color="#6366f1" bg={isDark ? '#312e81' : '#ede9fe'} isDark={isDark}
+                trend={overallRate >= 85 ? 'Healthy' : 'Needs work'} trendUp={overallRate >= 85}
+              />
+              <KpiCard
+                icon={Activity} label="Total Cases Handled"
+                value={totalCasesHandled.toLocaleString()} subtitle="By all tracking departments"
+                color="#10b981" bg={isDark ? '#064e3b' : '#d1fae5'} isDark={isDark}
+              />
+              <KpiCard
+                icon={Zap} label="Top Performing Dept"
+                value={topDept ? topDept.department.replace(' Department','') : 'N/A'} 
+                subtitle={topDept ? `${topDept.resolutionRate.toFixed(1)}% Resolution Rate` : 'No data'}
+                color="#f59e0b" bg={isDark ? '#78350f' : '#fef3c7'} isDark={isDark}
+              />
+            </div>
 
-        {data?.grievanceDataUnavailable && !loading && (
-          <div style={{ padding: '10px 16px', borderRadius: 8, background: '#fef9c3', border: '1px solid #fde047', color: '#713f12', fontSize: 13, marginBottom: 16 }}>
-            ⚠️ Grievance service is temporarily unreachable. Performance data may be incomplete.
-          </div>
-        )}
+            {/* ── Department Detail Cards ──────────────────────────────────── */}
+            {depts.length > 0 && (
+              <div>
+                <h3 style={{ fontSize: 16, fontWeight: 700, color: isDark ? '#f1f5f9' : '#0f172a', marginBottom: 16 }}>Detailed Breakdown</h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(320px,1fr))', gap: 16 }}>
+                  {depts.map((dept, i) => {
+                    const rate = dept.resolutionRate || 0;
+                    const color = rate >= 85 ? '#10b981' : rate >= 60 ? '#f59e0b' : '#ef4444';
+                    
+                    return (
+                      <div key={dept.department} style={{
+                        background: surface, borderRadius: 16, padding: 22,
+                        border: `1px solid ${border}`, boxShadow: '0 2px 12px rgba(15,23,42,0.06)',
+                        display: 'flex', flexDirection: 'column', gap: 16,
+                      }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                            <div style={{
+                              width: 38, height: 38, borderRadius: 10, background: isDark ? '#334155' : '#f1f5f9',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b', fontWeight: 800, fontSize: 16
+                            }}>
+                              {dept.department.charAt(0)}
+                            </div>
+                            <div>
+                              <div style={{ fontSize: 14, fontWeight: 700, color: isDark ? '#f1f5f9' : '#0f172a' }}>{dept.department}</div>
+                              <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>{(dept.totalHandled || 0).toLocaleString()} cases</div>
+                            </div>
+                          </div>
+                          <PerformanceBadge rate={rate} isDark={isDark} />
+                        </div>
+                        
+                        <div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                            <span style={{ fontSize: 12, fontWeight: 600, color: '#64748b' }}>Resolution Rate</span>
+                            <span style={{ fontSize: 13, fontWeight: 800, color }}>{rate.toFixed(1)}%</span>
+                          </div>
+                          <div style={{ height: 8, background: isDark ? '#334155' : '#f1f5f9', borderRadius: 9999, overflow: 'hidden' }}>
+                            <div style={{ width: `${Math.min(100, rate)}%`, height: '100%', background: color, transition: 'width 0.6s ease' }} />
+                          </div>
+                        </div>
 
-        {/* Department cards */}
-        {depts.length > 0 && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(280px,1fr))', gap: 16, marginBottom: 24 }}>
-            {depts.map((dept, i) => {
-              const rate = dept.resolutionRate || 0;
-              const color = rate >= 85 ? '#10b981' : rate >= 60 ? '#f59e0b' : '#ef4444';
-              return (
-                <div key={dept.department} style={{
-                  background: '#fff', borderRadius: 14, padding: 20,
-                  border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(15,23,42,0.06)',
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
-                    <div>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: '#0f172a', marginBottom: 2 }}>{dept.department}</div>
-                      <div style={{ fontSize: 12, color: '#64748b' }}>{(dept.totalHandled || 0).toLocaleString()} cases handled</div>
-                    </div>
-                    <PerformanceBadge rate={rate} />
-                  </div>
-                  {/* Progress bar */}
-                  <div style={{ marginBottom: 8 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                      <span style={{ fontSize: 11, color: '#64748b' }}>Resolution Rate</span>
-                      <span style={{ fontSize: 12, fontWeight: 700, color }}>{rate.toFixed(1)}%</span>
-                    </div>
-                    <div style={{ height: 8, background: '#f1f5f9', borderRadius: 9999 }}>
-                      <div style={{ width: `${Math.min(100, rate)}%`, height: '100%', borderRadius: 9999, background: color, transition: 'width 0.6s ease' }} />
-                    </div>
-                  </div>
-                  {dept.avgTurnaroundHours > 0 && (
-                    <div style={{ fontSize: 12, color: '#64748b', display: 'flex', alignItems: 'center', gap: 4, marginTop: 4 }}>
-                      <Clock size={11} />
-                      Avg turnaround: {dept.avgTurnaroundHours}h
-                    </div>
-                  )}
+                        {dept.avgTurnaroundHours > 0 && (
+                          <div style={{ padding: '10px 12px', background: isDark ? '#0f172a' : '#f8fafc', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <Clock size={14} color="#6366f1" />
+                            <span style={{ fontSize: 12, color: isDark ? '#94a3b8' : '#475569', fontWeight: 600 }}>
+                              Avg Turnaround: <span style={{ color: isDark ? '#f1f5f9' : '#0f172a' }}>{dept.avgTurnaroundHours}h</span>
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
-              );
-            })}
+              </div>
+            )}
+
+            {/* ── Comparison Chart ────────────────────────────────────────── */}
+            {chartData.length > 0 && (
+              <SectionCard title="Department Comparison" subtitle="Resolution rates side-by-side" icon={BarChart2} isDark={isDark}>
+                <ResponsiveContainer width="100%" height={260}>
+                  <BarChart data={chartData} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#334155' : '#f1f5f9'} vertical={false} />
+                    <XAxis dataKey="name" tick={{ fontSize: 11, fill: isDark ? '#94a3b8' : '#64748b' }} axisLine={false} tickLine={false} />
+                    <YAxis unit="%" tick={{ fontSize: 11, fill: isDark ? '#94a3b8' : '#64748b' }} domain={[0, 100]} axisLine={false} tickLine={false} />
+                    <Tooltip content={<ChartTooltip isDark={isDark} formatter={v => `${v}%`} />} />
+                    <Bar dataKey="rate" radius={[6, 6, 0, 0]} maxBarSize={60}>
+                      {chartData.map((d, i) => <Cell key={i} fill={d.fill} />)}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </SectionCard>
+            )}
+
+            {depts.length === 0 && !error && (
+              <EmptyState icon={Activity} title="No Performance Data" desc="Performance metrics will appear here once cases are resolved by departments." isDark={isDark} />
+            )}
+
           </div>
         )}
-
-        {/* Bar chart */}
-        {chartData.length > 0 && (
-          <div style={{ background: '#fff', borderRadius: 14, padding: 20, border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(15,23,42,0.06)' }}>
-            <h3 style={{ fontSize: 14, fontWeight: 700, color: '#0f172a', marginBottom: 16 }}>
-              Department Resolution Rate Comparison
-            </h3>
-            <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                <XAxis dataKey="name" tick={{ fontSize: 11 }} />
-                <YAxis unit="%" tick={{ fontSize: 11 }} domain={[0, 100]} />
-                <Tooltip formatter={v => [`${v}%`, 'Resolution Rate']} />
-                <Bar dataKey="rate" radius={[4,4,0,0]}>
-                  {chartData.map((d, i) => <Cell key={i} fill={d.fill} />)}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        )}
-
-        {!loading && depts.length === 0 && !error && (
-          <div style={{ padding: '60px', textAlign: 'center', background: '#fff', borderRadius: 14, border: '1px solid #e2e8f0' }}>
-            <Activity size={40} style={{ margin: '0 auto 12px', color: '#94a3b8' }} />
-            <p style={{ fontSize: 15, fontWeight: 600, color: '#475569' }}>No department performance data yet</p>
-            <p style={{ fontSize: 13, color: '#94a3b8' }}>Data populates as complaints are resolved by departments</p>
-          </div>
-        )}
-
-        <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }`}</style>
       </div>
     </AppShell>
   );
 }
+
+// Ensure BarChart2 is available for the SectionCard icon
+import { BarChart2 } from 'lucide-react';

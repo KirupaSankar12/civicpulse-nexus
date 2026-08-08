@@ -147,7 +147,7 @@ function ComplaintForm() {
 
   return (
     <AppShell title="Raise Complaint">
-      <div style={{ paddingBottom: '100px' }}>
+      <div style={{ width: '100%', maxWidth: '100%', padding: '0 24px 100px 24px', margin: '0 auto', boxSizing: 'border-box' }}>
         
         {/* ── Welcome Banner (Executive Navy/Emerald Theme matching Civic Services) ── */}
         <div style={{
@@ -176,38 +176,37 @@ function ComplaintForm() {
 
         <form onSubmit={handleSubmit} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 24, alignItems: 'start' }}>
           
-          {/* Main Content Column */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 24, gridColumn: 'span 2' }}>
             
             {/* Issue Details Card */}
-            <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(15,23,42,0.04)', overflow: 'hidden' }}>
-              <div style={{ padding: '16px 20px', borderBottom: '1px solid #e2e8f0', background: '#f8fafc', display: 'flex', alignItems: 'center', gap: 8 }}>
-                <PenSquare size={20} color="#0f172a" />
-                <h3 style={{ margin: 0, color: '#0f172a', fontSize: '16px', fontWeight: '700' }}>Issue Details</h3>
+            <div style={{ background: 'var(--surface, #ffffff)', borderRadius: 16, border: '1px solid var(--border, #e2e8f0)', boxShadow: '0 2px 8px rgba(15,23,42,0.04)', overflow: 'hidden' }}>
+              <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border, #e2e8f0)', background: 'var(--bg, #f8fafc)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <PenSquare size={20} color="var(--text, #0f172a)" />
+                <h3 style={{ margin: 0, color: 'var(--text, #0f172a)', fontSize: '16px', fontWeight: '700' }}>Issue Details</h3>
               </div>
               <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: 20 }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  <label style={{ fontSize: 14, fontWeight: 600, color: '#334155' }}>Complaint Title <span style={{ color: '#ef4444' }}>*</span></label>
+                  <label style={{ fontSize: 14, fontWeight: 600, color: 'var(--text, #334155)' }}>Complaint Title <span style={{ color: '#ef4444' }}>*</span></label>
                   <input 
                     value={form.title} 
                     onChange={e => setField('title', e.target.value)} 
                     placeholder="e.g., Unresolved water leakage on Main Street" 
-                    style={{ padding: '12px 16px', borderRadius: 10, border: '1.5px solid #e2e8f0', fontSize: 15, outline: 'none', transition: 'border-color 0.2s', width: '100%', boxSizing: 'border-box' }}
+                    style={{ padding: '12px 16px', borderRadius: 10, border: '1.5px solid var(--border, #e2e8f0)', fontSize: 15, outline: 'none', transition: 'border-color 0.2s', width: '100%', boxSizing: 'border-box', background: 'var(--surface, #ffffff)', color: 'var(--text, #0f172a)' }}
                     onFocus={e => e.target.style.borderColor = '#ef4444'}
-                    onBlur={e => e.target.style.borderColor = '#e2e8f0'}
+                    onBlur={e => e.target.style.borderColor = 'var(--border, #e2e8f0)'}
                     required 
                   />
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  <label style={{ fontSize: 14, fontWeight: 600, color: '#334155' }}>Detailed Description <span style={{ color: '#ef4444' }}>*</span></label>
+                  <label style={{ fontSize: 14, fontWeight: 600, color: 'var(--text, #334155)' }}>Detailed Description <span style={{ color: '#ef4444' }}>*</span></label>
                   <textarea 
                     value={form.description} 
                     onChange={e => setField('description', e.target.value)} 
                     placeholder="Please describe the exact issue, how long it has been occurring, and any other relevant information that will assist the field officer..." 
-                    style={{ padding: '12px 16px', borderRadius: 10, border: '1.5px solid #e2e8f0', fontSize: 15, outline: 'none', transition: 'border-color 0.2s', minHeight: 140, resize: 'vertical', width: '100%', boxSizing: 'border-box', fontFamily: 'inherit' }}
+                    style={{ padding: '12px 16px', borderRadius: 10, border: '1.5px solid var(--border, #e2e8f0)', fontSize: 15, outline: 'none', transition: 'border-color 0.2s', minHeight: 140, resize: 'vertical', width: '100%', boxSizing: 'border-box', fontFamily: 'inherit', background: 'var(--surface, #ffffff)', color: 'var(--text, #0f172a)' }}
                     onFocus={e => e.target.style.borderColor = '#ef4444'}
-                    onBlur={e => e.target.style.borderColor = '#e2e8f0'}
+                    onBlur={e => e.target.style.borderColor = 'var(--border, #e2e8f0)'}
                     required 
                   />
                 </div>
@@ -215,20 +214,20 @@ function ComplaintForm() {
             </div>
 
             {/* Classification Card */}
-            <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(15,23,42,0.04)', overflow: 'hidden' }}>
-              <div style={{ padding: '16px 20px', borderBottom: '1px solid #e2e8f0', background: '#f8fafc', display: 'flex', alignItems: 'center', gap: 8 }}>
-                <Building2 size={20} color="#0f172a" />
-                <h3 style={{ margin: 0, color: '#0f172a', fontSize: '16px', fontWeight: '700' }}>Classification</h3>
+            <div style={{ background: 'var(--surface, #ffffff)', borderRadius: 16, border: '1px solid var(--border, #e2e8f0)', boxShadow: '0 2px 8px rgba(15,23,42,0.04)', overflow: 'hidden' }}>
+              <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border, #e2e8f0)', background: 'var(--bg, #f8fafc)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Building2 size={20} color="var(--text, #0f172a)" />
+                <h3 style={{ margin: 0, color: 'var(--text, #0f172a)', fontSize: '16px', fontWeight: '700' }}>Classification</h3>
               </div>
               <div style={{ padding: '24px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  <label style={{ fontSize: 14, fontWeight: 600, color: '#334155' }}>Target Department <span style={{ color: '#ef4444' }}>*</span></label>
+                  <label style={{ fontSize: 14, fontWeight: 600, color: 'var(--text, #334155)' }}>Target Department <span style={{ color: '#ef4444' }}>*</span></label>
                   <select 
                     value={form.department} 
                     onChange={e => setField('department', e.target.value)}
-                    style={{ padding: '12px 16px', borderRadius: 10, border: '1.5px solid #e2e8f0', fontSize: 15, outline: 'none', transition: 'border-color 0.2s', width: '100%', boxSizing: 'border-box', background: '#fff', appearance: 'none', cursor: 'pointer' }}
+                    style={{ padding: '12px 16px', borderRadius: 10, border: '1.5px solid var(--border, #e2e8f0)', fontSize: 15, outline: 'none', transition: 'border-color 0.2s', width: '100%', boxSizing: 'border-box', background: 'var(--surface, #ffffff)', color: 'var(--text, #0f172a)', appearance: 'none', cursor: 'pointer' }}
                     onFocus={e => e.target.style.borderColor = '#ef4444'}
-                    onBlur={e => e.target.style.borderColor = '#e2e8f0'}
+                    onBlur={e => e.target.style.borderColor = 'var(--border, #e2e8f0)'}
                     required
                   >
                     <option value="" disabled>Select Department...</option>
@@ -236,13 +235,13 @@ function ComplaintForm() {
                   </select>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  <label style={{ fontSize: 14, fontWeight: 600, color: '#334155' }}>Issue Category</label>
+                  <label style={{ fontSize: 14, fontWeight: 600, color: 'var(--text, #334155)' }}>Issue Category</label>
                   <select 
                     value={form.category} 
                     onChange={e => setField('category', e.target.value)}
-                    style={{ padding: '12px 16px', borderRadius: 10, border: '1.5px solid #e2e8f0', fontSize: 15, outline: 'none', transition: 'border-color 0.2s', width: '100%', boxSizing: 'border-box', background: '#fff', appearance: 'none', cursor: 'pointer' }}
+                    style={{ padding: '12px 16px', borderRadius: 10, border: '1.5px solid var(--border, #e2e8f0)', fontSize: 15, outline: 'none', transition: 'border-color 0.2s', width: '100%', boxSizing: 'border-box', background: 'var(--surface, #ffffff)', color: 'var(--text, #0f172a)', appearance: 'none', cursor: 'pointer' }}
                     onFocus={e => e.target.style.borderColor = '#ef4444'}
-                    onBlur={e => e.target.style.borderColor = '#e2e8f0'}
+                    onBlur={e => e.target.style.borderColor = 'var(--border, #e2e8f0)'}
                   >
                     <option value="" disabled>Select Category...</option>
                     {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
@@ -252,10 +251,10 @@ function ComplaintForm() {
             </div>
             
             {/* Media Attachments Card */}
-            <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(15,23,42,0.04)', overflow: 'hidden' }}>
-              <div style={{ padding: '16px 20px', borderBottom: '1px solid #e2e8f0', background: '#f8fafc', display: 'flex', alignItems: 'center', gap: 8 }}>
-                <FileUp size={20} color="#0f172a" />
-                <h3 style={{ margin: 0, color: '#0f172a', fontSize: '16px', fontWeight: '700' }}>Attachments</h3>
+            <div style={{ background: 'var(--surface, #ffffff)', borderRadius: 16, border: '1px solid var(--border, #e2e8f0)', boxShadow: '0 2px 8px rgba(15,23,42,0.04)', overflow: 'hidden' }}>
+              <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border, #e2e8f0)', background: 'var(--bg, #f8fafc)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <FileUp size={20} color="var(--text, #0f172a)" />
+                <h3 style={{ margin: 0, color: 'var(--text, #0f172a)', fontSize: '16px', fontWeight: '700' }}>Attachments</h3>
               </div>
               <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
                 <input
@@ -273,18 +272,16 @@ function ComplaintForm() {
                   onDragLeave={() => setIsDragging(false)}
                   onDrop={handleDrop}
                   style={{ 
-                    border: isDragging ? '2px dashed #ef4444' : '2px dashed #cbd5e1', 
+                    border: isDragging ? '2px dashed #ef4444' : '2px dashed var(--border, #cbd5e1)', 
                     borderRadius: 14, padding: '36px 20px', 
                     display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', 
-                    background: isDragging ? '#fef2f2' : '#f8fafc', 
+                    background: isDragging ? 'rgba(239,68,68,0.05)' : 'var(--bg, #f8fafc)', 
                     cursor: 'pointer', transition: 'all 0.2s ease' 
                   }} 
-                  onMouseEnter={e => e.currentTarget.style.background = '#f1f5f9'} 
-                  onMouseLeave={e => e.currentTarget.style.background = isDragging ? '#fef2f2' : '#f8fafc'}
                 >
-                  <FileUp size={36} color="#94a3b8" style={{ marginBottom: 12 }} />
-                  <p style={{ margin: 0, fontSize: 15, fontWeight: 700, color: '#1e293b' }}>Click to upload or drag and drop</p>
-                  <p style={{ margin: '6px 0 0', fontSize: 13, color: '#64748b' }}>SVG, PNG, JPG or PDF (max. 5MB per file)</p>
+                  <FileUp size={36} color="var(--text-secondary, #94a3b8)" style={{ marginBottom: 12 }} />
+                  <p style={{ margin: 0, fontSize: 15, fontWeight: 700, color: 'var(--text, #1e293b)' }}>Click to upload or drag and drop</p>
+                  <p style={{ margin: '6px 0 0', fontSize: 13, color: 'var(--text-secondary, #64748b)' }}>SVG, PNG, JPG or PDF (max. 5MB per file)</p>
                 </div>
 
                 {/* Selected File Previews */}
@@ -297,7 +294,7 @@ function ComplaintForm() {
                       {attachments.map((att, idx) => (
                         <div key={idx} style={{
                           display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10,
-                          padding: '10px 14px', background: '#f8fafc', borderRadius: 12, border: '1px solid #e2e8f0'
+                          padding: '10px 14px', background: 'var(--bg, #f8fafc)', borderRadius: 12, border: '1px solid var(--border, #e2e8f0)'
                         }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
                             {att.type.startsWith('image/') ? (
@@ -308,7 +305,7 @@ function ComplaintForm() {
                               </div>
                             )}
                             <div style={{ minWidth: 0 }}>
-                              <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: '#0f172a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{att.name}</p>
+                              <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: 'var(--text, #0f172a)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{att.name}</p>
                               <p style={{ margin: 0, fontSize: 11, color: '#64748b' }}>{att.size}</p>
                             </div>
                           </div>
@@ -316,8 +313,6 @@ function ComplaintForm() {
                             type="button"
                             onClick={(e) => { e.stopPropagation(); removeAttachment(idx); }}
                             style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: 4, borderRadius: 6 }}
-                            onMouseEnter={e => e.currentTarget.style.color = '#ef4444'}
-                            onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}
                           >
                             <X size={16} />
                           </button>
@@ -335,33 +330,33 @@ function ComplaintForm() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 24, gridColumn: 'span 1' }}>
             
             {/* Location & Priority Card */}
-            <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(15,23,42,0.04)', overflow: 'hidden' }}>
-              <div style={{ padding: '16px 20px', borderBottom: '1px solid #e2e8f0', background: '#f8fafc', display: 'flex', alignItems: 'center', gap: 8 }}>
-                <MapPin size={20} color="#0f172a" />
-                <h3 style={{ margin: 0, color: '#0f172a', fontSize: '16px', fontWeight: '700' }}>Location & Impact</h3>
+            <div style={{ background: 'var(--surface, #ffffff)', borderRadius: 16, border: '1px solid var(--border, #e2e8f0)', boxShadow: '0 2px 8px rgba(15,23,42,0.04)', overflow: 'hidden' }}>
+              <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border, #e2e8f0)', background: 'var(--bg, #f8fafc)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <MapPin size={20} color="var(--text, #0f172a)" />
+                <h3 style={{ margin: 0, color: 'var(--text, #0f172a)', fontSize: '16px', fontWeight: '700' }}>Location & Impact</h3>
               </div>
               <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: 20 }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  <label style={{ fontSize: 14, fontWeight: 600, color: '#334155' }}>Exact Location <span style={{ color: '#ef4444' }}>*</span></label>
+                  <label style={{ fontSize: 14, fontWeight: 600, color: 'var(--text, #334155)' }}>Exact Location <span style={{ color: '#ef4444' }}>*</span></label>
                   <textarea 
                     value={form.location} 
                     onChange={e => setField('location', e.target.value)} 
                     placeholder="E.g., Near City Mall, Ward 12..." 
-                    style={{ padding: '12px 16px', borderRadius: 10, border: '1.5px solid #e2e8f0', fontSize: 15, outline: 'none', transition: 'border-color 0.2s', minHeight: 80, resize: 'vertical', width: '100%', boxSizing: 'border-box', fontFamily: 'inherit' }}
+                    style={{ padding: '12px 16px', borderRadius: 10, border: '1.5px solid var(--border, #e2e8f0)', fontSize: 15, outline: 'none', transition: 'border-color 0.2s', minHeight: 80, resize: 'vertical', width: '100%', boxSizing: 'border-box', fontFamily: 'inherit', background: 'var(--surface, #ffffff)', color: 'var(--text, #0f172a)' }}
                     onFocus={e => e.target.style.borderColor = '#ef4444'}
-                    onBlur={e => e.target.style.borderColor = '#e2e8f0'}
+                    onBlur={e => e.target.style.borderColor = 'var(--border, #e2e8f0)'}
                     required 
                   />
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  <label style={{ fontSize: 14, fontWeight: 600, color: '#334155' }}>Priority Level</label>
+                  <label style={{ fontSize: 14, fontWeight: 600, color: 'var(--text, #334155)' }}>Priority Level</label>
                   <select 
                     value={form.priority} 
                     onChange={e => setField('priority', e.target.value)}
-                    style={{ padding: '12px 16px', borderRadius: 10, border: '1.5px solid #e2e8f0', fontSize: 15, outline: 'none', transition: 'border-color 0.2s', width: '100%', boxSizing: 'border-box', background: '#fff', appearance: 'none', cursor: 'pointer' }}
+                    style={{ padding: '12px 16px', borderRadius: 10, border: '1.5px solid var(--border, #e2e8f0)', fontSize: 15, outline: 'none', transition: 'border-color 0.2s', width: '100%', boxSizing: 'border-box', background: 'var(--surface, #ffffff)', color: 'var(--text, #0f172a)', appearance: 'none', cursor: 'pointer' }}
                     onFocus={e => e.target.style.borderColor = '#ef4444'}
-                    onBlur={e => e.target.style.borderColor = '#e2e8f0'}
+                    onBlur={e => e.target.style.borderColor = 'var(--border, #e2e8f0)'}
                   >
                     <option value="LOW">Low (No immediate danger)</option>
                     <option value="MEDIUM">Medium (Urgent)</option>

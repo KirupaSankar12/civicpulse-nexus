@@ -133,6 +133,23 @@ public class KeycloakAdminService {
     }
 
     /**
+     * Delete a Keycloak user by userId (used for rollback if DB save fails).
+     */
+    public void deleteKeycloakUser(String userId) {
+        try {
+            String adminToken = getAdminToken();
+            String deleteUrl = serverUrl + "/admin/realms/" + realm + "/users/" + userId;
+            HttpHeaders headers = new HttpHeaders();
+            headers.setBearerAuth(adminToken);
+            restTemplate.exchange(deleteUrl, HttpMethod.DELETE, new HttpEntity<>(headers), Void.class);
+        } catch (Exception e) {
+            // Log but don't rethrow — rollback is best-effort
+            org.slf4j.LoggerFactory.getLogger(KeycloakAdminService.class)
+                .warn("Failed to delete Keycloak user {} during rollback: {}", userId, e.getMessage());
+        }
+    }
+
+    /**
      * Check if a user with given email already exists in Keycloak.
      */
     public boolean userExists(String email) {

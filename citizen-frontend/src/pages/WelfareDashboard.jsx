@@ -224,26 +224,45 @@ export default function WelfareDashboard() {
     <AppShell title="Welfare &amp; Finance Overview">
       <div style={{ display: 'flex', flexDirection: 'column', gap: 24, paddingBottom: 40 }}>
 
-        {/* ── Welcome Header ─────────────────────────────────────────────── */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}>
-          <div>
-            <h2 style={{ fontSize: 22, fontWeight: 700, color: isDark ? '#f1f5f9' : '#0f172a', margin: 0 }}>
-              {getGreeting()}, {username}! 👋
-            </h2>
-            <p style={{ color: '#94a3b8', fontSize: 14, marginTop: 6, lineHeight: 1.6 }}>
-              Monitor welfare schemes, budget utilization, and fund<br />
-              disbursements across all departments.
-            </p>
+        {/* ── Welcome Header ───────────────────────────────────────────── */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {/* Row 1: Greeting + description */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+                <h2 style={{ fontSize: 22, fontWeight: 700, color: isDark ? '#f1f5f9' : '#0f172a', margin: 0 }}>
+                  {getGreeting()}, {username}! 👋
+                </h2>
+                <span style={{
+                  fontSize: 11, fontWeight: 700, letterSpacing: '0.08em',
+                  background: '#dcfce7', color: '#15803d',
+                  padding: '3px 10px', borderRadius: 20,
+                  border: '1px solid #bbf7d0', whiteSpace: 'nowrap',
+                }}>LIVE</span>
+              </div>
+              <p style={{ color: '#94a3b8', fontSize: 14, margin: 0, lineHeight: 1.6 }}>
+                Monitor welfare schemes, budget utilization, and fund disbursements across all departments.
+              </p>
+            </div>
           </div>
-          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+
+          {/* Row 2: Action toolbar */}
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap',
+            padding: '11px 16px',
+            background: isDark ? '#1e293b' : '#f8fafc',
+            border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
+            borderRadius: 12,
+          }}>
+            <span style={{ fontSize: 12, fontWeight: 600, color: '#94a3b8', marginRight: 2 }}>Quick Actions:</span>
             <Link to="/welfare/schemes" style={btnPrimary}>
-              <Plus size={16} /> New Scheme
+              <Plus size={15} /> New Scheme
             </Link>
             <Link to="/welfare/budgets" style={btnOutline}>
-              <Wallet size={16} /> Allocate Budget
+              <Wallet size={15} /> Allocate Budget
             </Link>
             <Link to="/welfare/reports" style={btnOutline}>
-              <Download size={16} /> Export Report
+              <Download size={15} /> Export Report
             </Link>
           </div>
         </div>

@@ -250,7 +250,7 @@ function MyCertificates() {
 
   return (
     <AppShell title="My Digital Certificates Vault">
-      <div style={{ maxWidth: 1600, margin: '0 auto', paddingBottom: 60, display: 'flex', flexDirection: 'column', gap: 24 }}>
+      <div style={{ width: '100%', maxWidth: '100%', padding: '0 24px 60px 24px', margin: '0 auto', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: 24 }}>
         
         {/* ── Executive Top Header Banner ── */}
         <div style={{

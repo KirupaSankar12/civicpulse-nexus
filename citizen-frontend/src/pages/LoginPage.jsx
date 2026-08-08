@@ -219,7 +219,7 @@ function LoginPage() {
       {/* ── Right Form Container (True Split-Screen) ── */}
       <div style={{
         flex: '1 1 55%', padding: '60px 10%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-        background: '#ffffff', position: 'relative'
+        background: 'var(--surface, #ffffff)', position: 'relative'
       }}>
         <div style={{
           width: '100%', maxWidth: 800,
@@ -227,10 +227,10 @@ function LoginPage() {
         }}>
           
           <div style={{ textAlign: 'left', marginBottom: 16 }}>
-            <h2 style={{ margin: '0 0 16px', fontSize: 38, fontWeight: 900, color: '#0f172a', letterSpacing: '-0.02em' }}>
+            <h2 style={{ margin: '0 0 16px', fontSize: 38, fontWeight: 900, color: 'var(--text, #0f172a)', letterSpacing: '-0.02em' }}>
               Sign In to Your Account
             </h2>
-            <p style={{ margin: 0, fontSize: 17, color: '#64748b', lineHeight: 1.5, fontWeight: 500 }}>
+            <p style={{ margin: 0, fontSize: 17, color: 'var(--text-secondary, #64748b)', lineHeight: 1.5, fontWeight: 500 }}>
               Choose your portal role below and enter your credentials.
             </p>
           </div>
@@ -242,23 +242,23 @@ function LoginPage() {
               onClick={() => setLoginRole('citizen')}
               style={{
                 padding: '16px', borderRadius: 16, textAlign: 'left', cursor: 'pointer',
-                background: loginRole === 'citizen' ? '#eff6ff' : '#ffffff',
-                border: loginRole === 'citizen' ? '2px solid #3b82f6' : '1.5px solid #cbd5e1',
+                background: loginRole === 'citizen' ? 'rgba(59,130,246,0.12)' : 'var(--bg, #ffffff)',
+                border: loginRole === 'citizen' ? '2px solid #3b82f6' : '1.5px solid var(--border, #cbd5e1)',
                 boxShadow: loginRole === 'citizen' ? '0 4px 20px rgba(59,130,246,0.15)' : '0 2px 4px rgba(0,0,0,0.02)',
                 transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
                 outline: 'none'
               }}
               onMouseOver={e => { if(loginRole !== 'citizen') e.currentTarget.style.borderColor = '#93c5fd' }}
-              onMouseOut={e => { if(loginRole !== 'citizen') e.currentTarget.style.borderColor = '#cbd5e1' }}
+              onMouseOut={e => { if(loginRole !== 'citizen') e.currentTarget.style.borderColor = 'var(--border, #cbd5e1)' }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                <div style={{ width: 36, height: 36, borderRadius: 10, background: loginRole === 'citizen' ? '#3b82f6' : '#f1f5f9', color: loginRole === 'citizen' ? '#fff' : '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}>
+                <div style={{ width: 36, height: 36, borderRadius: 10, background: loginRole === 'citizen' ? '#3b82f6' : 'var(--border, #f1f5f9)', color: loginRole === 'citizen' ? '#fff' : 'var(--text-secondary, #64748b)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}>
                   <User size={20} />
                 </div>
                 {loginRole === 'citizen' && <span style={{ fontSize: 11, fontWeight: 800, color: '#15803d', background: '#dcfce7', padding: '3px 10px', borderRadius: 12, border: '1px solid #86efac' }}>Active</span>}
               </div>
-              <div style={{ fontSize: 15, fontWeight: 800, color: loginRole === 'citizen' ? '#1e40af' : '#334155' }}>Citizen Portal</div>
-              <div style={{ fontSize: 12, color: '#64748b', marginTop: 4, fontWeight: 500 }}>File complaints & apply</div>
+              <div style={{ fontSize: 15, fontWeight: 800, color: loginRole === 'citizen' ? '#3b82f6' : 'var(--text, #334155)' }}>Citizen Portal</div>
+              <div style={{ fontSize: 12, color: 'var(--text-secondary, #64748b)', marginTop: 4, fontWeight: 500 }}>File complaints & apply</div>
             </button>
 
             <button
@@ -266,23 +266,23 @@ function LoginPage() {
               onClick={() => setLoginRole('officer')}
               style={{
                 padding: '16px', borderRadius: 16, textAlign: 'left', cursor: 'pointer',
-                background: loginRole === 'officer' ? '#f5f3ff' : '#ffffff',
-                border: loginRole === 'officer' ? '2px solid #8b5cf6' : '1.5px solid #cbd5e1',
+                background: loginRole === 'officer' ? 'rgba(139,92,246,0.12)' : 'var(--bg, #ffffff)',
+                border: loginRole === 'officer' ? '2px solid #8b5cf6' : '1.5px solid var(--border, #cbd5e1)',
                 boxShadow: loginRole === 'officer' ? '0 4px 20px rgba(139,92,246,0.15)' : '0 2px 4px rgba(0,0,0,0.02)',
                 transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
                 outline: 'none'
               }}
               onMouseOver={e => { if(loginRole !== 'officer') e.currentTarget.style.borderColor = '#c4b5fd' }}
-              onMouseOut={e => { if(loginRole !== 'officer') e.currentTarget.style.borderColor = '#cbd5e1' }}
+              onMouseOut={e => { if(loginRole !== 'officer') e.currentTarget.style.borderColor = 'var(--border, #cbd5e1)' }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                <div style={{ width: 36, height: 36, borderRadius: 10, background: loginRole === 'officer' ? '#8b5cf6' : '#f1f5f9', color: loginRole === 'officer' ? '#fff' : '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}>
+                <div style={{ width: 36, height: 36, borderRadius: 10, background: loginRole === 'officer' ? '#8b5cf6' : 'var(--border, #f1f5f9)', color: loginRole === 'officer' ? '#fff' : 'var(--text-secondary, #64748b)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}>
                   <Briefcase size={20} />
                 </div>
                 {loginRole === 'officer' && <span style={{ fontSize: 11, fontWeight: 800, color: '#6d28d9', background: '#ede9fe', padding: '3px 10px', borderRadius: 12, border: '1px solid #c4b5fd' }}>Active</span>}
               </div>
-              <div style={{ fontSize: 15, fontWeight: 800, color: loginRole === 'officer' ? '#5b21b6' : '#334155' }}>Officer Portal</div>
-              <div style={{ fontSize: 12, color: '#64748b', marginTop: 4, fontWeight: 500 }}>Verify & approve apps</div>
+              <div style={{ fontSize: 15, fontWeight: 800, color: loginRole === 'officer' ? '#8b5cf6' : 'var(--text, #334155)' }}>Officer Portal</div>
+              <div style={{ fontSize: 12, color: 'var(--text-secondary, #64748b)', marginTop: 4, fontWeight: 500 }}>Verify & approve apps</div>
             </button>
           </div>
 
@@ -299,10 +299,10 @@ function LoginPage() {
           )}
 
           {/* Main Login Form */}
-          <form onSubmit={handleCustomLogin} style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+          <form onSubmit={handleCustomLogin} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
             
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <label htmlFor="login-email" style={{ fontSize: 14, fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+            <div>
+              <label htmlFor="login-email" style={{ display: 'block', fontSize: 12, fontWeight: 800, color: 'var(--text, #475569)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                 Username or Email Address <span style={{ color: '#ef4444' }}>*</span>
               </label>
               <div style={{ position: 'relative' }}>
@@ -312,31 +312,29 @@ function LoginPage() {
                   type="text"
                   value={email}
                   onChange={(e) => { setEmail(e.target.value); setFieldErrors({ ...fieldErrors, email: null }); }}
-                  placeholder={loginRole === 'citizen' ? 'citizen1@gmail.com' : 'john or mark'}
+                  placeholder="e.g. citizen1@gmail.com or officer1"
                   style={{
-                    width: '100%', height: 56, paddingLeft: 52, paddingRight: 16, borderRadius: 14,
-                    border: fieldErrors.email ? '2px solid #ef4444' : '2px solid #e2e8f0',
-                    fontSize: 16, color: '#0f172a', boxSizing: 'border-box', outline: 'none',
-                    transition: 'all 0.2s', background: '#f8fafc'
+                    width: '100%', height: 56, paddingLeft: 52, paddingRight: 20, borderRadius: 14,
+                    border: fieldErrors.email ? '2px solid #ef4444' : '2px solid var(--border, #e2e8f0)',
+                    fontSize: 16, color: 'var(--text, #0f172a)', boxSizing: 'border-box', outline: 'none',
+                    transition: 'all 0.2s', background: 'var(--bg, #f8fafc)'
                   }}
-                  onFocus={e => { if(!fieldErrors.email) e.target.style.borderColor = loginRole === 'citizen' ? '#3b82f6' : '#8b5cf6'; e.target.style.background = '#fff'; }}
-                  onBlur={e => { if(!fieldErrors.email) e.target.style.borderColor = '#e2e8f0'; e.target.style.background = '#f8fafc'; }}
+                  onFocus={e => { if(!fieldErrors.email) e.target.style.borderColor = loginRole === 'citizen' ? '#3b82f6' : '#8b5cf6'; }}
+                  onBlur={e => { if(!fieldErrors.email) e.target.style.borderColor = 'var(--border, #e2e8f0)'; }}
                 />
               </div>
-              {fieldErrors.email && <div style={{ fontSize: 13, color: '#ef4444', fontWeight: 600 }}>{fieldErrors.email}</div>}
+              {fieldErrors.email && <div style={{ fontSize: 13, color: '#ef4444', marginTop: 6, fontWeight: 600 }}>{fieldErrors.email}</div>}
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <label htmlFor="login-password" style={{ fontSize: 14, fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                <label htmlFor="login-password" style={{ fontSize: 12, fontWeight: 800, color: 'var(--text, #475569)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                   Password <span style={{ color: '#ef4444' }}>*</span>
                 </label>
                 <a
                   href="#forgot"
-                  onClick={(e) => { e.preventDefault(); alert('Contact municipal admin to reset credentials or use Keycloak Admin Console.'); }}
-                  style={{ fontSize: 14, color: loginRole === 'citizen' ? '#2563eb' : '#7c3aed', textDecoration: 'none', fontWeight: 700, transition: 'opacity 0.2s' }}
-                  onMouseOver={e => e.target.style.opacity = '0.8'}
-                  onMouseOut={e => e.target.style.opacity = '1'}
+                  onClick={(e) => { e.preventDefault(); alert('Please contact system administrator or use Keycloak SSO reset option.'); }}
+                  style={{ fontSize: 13, fontWeight: 700, color: loginRole === 'citizen' ? '#3b82f6' : '#8b5cf6', textDecoration: 'none' }}
                 >
                   Forgot Password?
                 </a>
@@ -351,12 +349,12 @@ function LoginPage() {
                   placeholder="••••••••"
                   style={{
                     width: '100%', height: 56, paddingLeft: 52, paddingRight: 52, borderRadius: 14,
-                    border: fieldErrors.password ? '2px solid #ef4444' : '2px solid #e2e8f0',
-                    fontSize: 16, color: '#0f172a', boxSizing: 'border-box', outline: 'none',
-                    transition: 'all 0.2s', background: '#f8fafc'
+                    border: fieldErrors.password ? '2px solid #ef4444' : '2px solid var(--border, #e2e8f0)',
+                    fontSize: 16, color: 'var(--text, #0f172a)', boxSizing: 'border-box', outline: 'none',
+                    transition: 'all 0.2s', background: 'var(--bg, #f8fafc)'
                   }}
-                  onFocus={e => { if(!fieldErrors.password) e.target.style.borderColor = loginRole === 'citizen' ? '#3b82f6' : '#8b5cf6'; e.target.style.background = '#fff'; }}
-                  onBlur={e => { if(!fieldErrors.password) e.target.style.borderColor = '#e2e8f0'; e.target.style.background = '#f8fafc'; }}
+                  onFocus={e => { if(!fieldErrors.password) e.target.style.borderColor = loginRole === 'citizen' ? '#3b82f6' : '#8b5cf6'; }}
+                  onBlur={e => { if(!fieldErrors.password) e.target.style.borderColor = 'var(--border, #e2e8f0)'; }}
                 />
                 <button
                   type="button"
@@ -366,7 +364,7 @@ function LoginPage() {
                   {showPassword ? <EyeOff size={22} /> : <Eye size={22} />}
                 </button>
               </div>
-              {fieldErrors.password && <div style={{ fontSize: 13, color: '#ef4444', fontWeight: 600 }}>{fieldErrors.password}</div>}
+              {fieldErrors.password && <div style={{ fontSize: 13, color: '#ef4444', marginTop: 6, fontWeight: 600 }}>{fieldErrors.password}</div>}
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 4 }}>
@@ -377,7 +375,7 @@ function LoginPage() {
                 onChange={(e) => setRememberMe(e.target.checked)}
                 style={{ width: 18, height: 18, cursor: 'pointer', accentColor: loginRole === 'citizen' ? '#2563eb' : '#7c3aed', borderRadius: 4 }}
               />
-              <label htmlFor="rememberMe" style={{ fontSize: 14, color: '#475569', cursor: 'pointer', fontWeight: 600, userSelect: 'none' }}>
+              <label htmlFor="rememberMe" style={{ fontSize: 14, color: 'var(--text, #475569)', cursor: 'pointer', fontWeight: 600, userSelect: 'none' }}>
                 Remember my username
               </label>
             </div>
@@ -409,28 +407,28 @@ function LoginPage() {
 
           {/* Divider */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 16, margin: '12px 0' }}>
-            <div style={{ flex: 1, height: 2, background: '#e2e8f0', borderRadius: 2 }} />
-            <span style={{ fontSize: 13, color: '#94a3b8', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em' }}>or</span>
-            <div style={{ flex: 1, height: 2, background: '#e2e8f0', borderRadius: 2 }} />
+            <div style={{ flex: 1, height: 2, background: 'var(--border, #e2e8f0)', borderRadius: 2 }} />
+            <span style={{ fontSize: 13, color: 'var(--text-secondary, #94a3b8)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em' }}>or</span>
+            <div style={{ flex: 1, height: 2, background: 'var(--border, #e2e8f0)', borderRadius: 2 }} />
           </div>
 
           <button
             type="button"
             onClick={handleKeycloakSSORedirect}
             style={{
-              height: 56, borderRadius: 14, background: '#ffffff', color: '#334155',
-              border: '2px solid #cbd5e1', fontWeight: 800, fontSize: 16, cursor: 'pointer',
+              height: 56, borderRadius: 14, background: 'var(--surface, #ffffff)', color: 'var(--text, #334155)',
+              border: '2px solid var(--border, #cbd5e1)', fontWeight: 800, fontSize: 16, cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
               boxShadow: '0 4px 12px rgba(0,0,0,0.03)', transition: 'all 0.2s'
             }}
-            onMouseOver={e => { e.currentTarget.style.background = '#f8fafc'; e.currentTarget.style.borderColor = '#94a3b8' }}
-            onMouseOut={e => { e.currentTarget.style.background = '#ffffff'; e.currentTarget.style.borderColor = '#cbd5e1' }}
+            onMouseOver={e => { e.currentTarget.style.borderColor = '#94a3b8' }}
+            onMouseOut={e => { e.currentTarget.style.borderColor = 'var(--border, #cbd5e1)' }}
           >
             <Globe size={22} className="text-sky-600" /> Use Keycloak Single Sign-On (SSO)
           </button>
 
           {/* Quick-Fill Test Credentials Panel */}
-          <div style={{ background: '#f8fafc', border: '2px solid #e2e8f0', borderRadius: 16, overflow: 'hidden', marginTop: 12 }}>
+          <div style={{ background: 'var(--bg, #f8fafc)', border: '2px solid var(--border, #e2e8f0)', borderRadius: 16, overflow: 'hidden', marginTop: 12 }}>
             <button
               type="button"
               onClick={() => setShowTestCreds(!showTestCreds)}

@@ -160,7 +160,7 @@ export default function GovernanceDashboard() {
               </h3>
               <div style={{ maxHeight: 220, overflowY: 'auto' }}>
                 {deptData.map((d, i) => (
-                  <PerformanceBar key={d.name} dept={d.name} rate={d.rate} />
+                  <PerformanceBar key={i} dept={d.name} rate={d.rate} />
                 ))}
               </div>
             </div>
@@ -184,8 +184,8 @@ export default function GovernanceDashboard() {
                 </tr>
               </thead>
               <tbody>
-                {Object.values(data.departmentPerformance).map((d, i) => (
-                  <tr key={d.department} style={{ borderTop: '1px solid #f1f5f9' }}
+                {Object.entries(data.departmentPerformance).map(([key, d], i) => (
+                  <tr key={key} style={{ borderTop: '1px solid #f1f5f9' }}
                     onMouseEnter={e => e.currentTarget.style.background = '#f8fafc'}
                     onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                   >

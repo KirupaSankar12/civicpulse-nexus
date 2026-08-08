@@ -413,7 +413,7 @@ function ServiceApplicationForm() {
 
   return (
     <AppShell title="Apply for Certificates">
-      <div style={{ paddingBottom: 40 }}>
+      <div style={{ width: '100%', maxWidth: '100%', padding: '0 24px 40px 24px', margin: '0 auto', boxSizing: 'border-box' }}>
 
         {serviceType && (
           <div style={{ marginBottom: 20 }}>

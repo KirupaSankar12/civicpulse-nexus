@@ -1,27 +1,30 @@
 import { useEffect, useState, useCallback } from 'react';
 import AppShell from '../components/AppShell.jsx';
 import api from '../api.js';
+import { useTheme } from '../context/ThemeContext.jsx';
 import {
   Users, AlertTriangle, Award, Heart, BarChart2,
   RefreshCw, CheckCircle2, Wifi, WifiOff, Activity, Landmark,
 } from 'lucide-react';
+import { ReportPageHeader, GLOBAL_STYLES } from '../components/ReportShared.jsx';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Individual milestone card component
 // ─────────────────────────────────────────────────────────────────────────────
-function MilestoneCard({ title, milestone, icon: Icon, color, bg, items, loading, unavailable }) {
+function MilestoneCard({ title, milestone, icon: Icon, color, bg, items, loading, unavailable, isDark }) {
   return (
     <div style={{
-      background: '#fff', borderRadius: 16, padding: 24,
-      border: `1.5px solid ${unavailable ? '#fde047' : '#e2e8f0'}`,
+      background: isDark ? '#1e293b' : '#fff',
+      borderRadius: 16, padding: 24,
+      border: `1.5px solid ${unavailable ? (isDark ? '#854d0e' : '#fde047') : (isDark ? '#334155' : '#e2e8f0')}`,
       boxShadow: unavailable
-        ? '0 4px 20px rgba(234,179,8,0.12)'
+        ? (isDark ? '0 4px 20px rgba(234,179,8,0.05)' : '0 4px 20px rgba(234,179,8,0.12)')
         : '0 4px 20px rgba(15,23,42,0.07)',
       transition: 'transform 0.2s, box-shadow 0.2s',
       position: 'relative', overflow: 'hidden',
     }}
       onMouseEnter={e => { e.currentTarget.style.transform='translateY(-2px)'; e.currentTarget.style.boxShadow=`0 8px 30px rgba(15,23,42,0.12)`; }}
-      onMouseLeave={e => { e.currentTarget.style.transform='translateY(0)'; e.currentTarget.style.boxShadow=unavailable?'0 4px 20px rgba(234,179,8,0.12)':'0 4px 20px rgba(15,23,42,0.07)'; }}
+      onMouseLeave={e => { e.currentTarget.style.transform='translateY(0)'; e.currentTarget.style.boxShadow=unavailable?(isDark ? '0 4px 20px rgba(234,179,8,0.05)' : '0 4px 20px rgba(234,179,8,0.12)'):'0 4px 20px rgba(15,23,42,0.07)'; }}
     >
       {/* Top accent bar */}
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: color, borderRadius: '16px 16px 0 0' }} />
@@ -31,7 +34,7 @@ function MilestoneCard({ title, milestone, icon: Icon, color, bg, items, loading
           <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 2 }}>
             {milestone}
           </div>
-          <div style={{ fontSize: 15, fontWeight: 800, color: '#0f172a' }}>{title}</div>
+          <div style={{ fontSize: 15, fontWeight: 800, color: isDark ? '#f1f5f9' : '#0f172a' }}>{title}</div>
         </div>
         <div style={{ width: 40, height: 40, borderRadius: 12, background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <Icon size={20} color={color} />
@@ -40,14 +43,14 @@ function MilestoneCard({ title, milestone, icon: Icon, color, bg, items, loading
 
       {unavailable && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 8, background: '#fef9c3', border: '1px solid #fde047', marginBottom: 12 }}>
-          <WifiOff size={13} color="#a16207" />
-          <span style={{ fontSize: 12, color: '#a16207', fontWeight: 600 }}>Service temporarily unreachable</span>
+          <WifiOff size={13} color={isDark ? '#fde047' : '#a16207'} />
+          <span style={{ fontSize: 12, color: isDark ? '#fde047' : '#a16207', fontWeight: 600 }}>Service temporarily unreachable</span>
         </div>
       )}
 
       {loading && !unavailable && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {[1,2,3].map(i => <div key={i} style={{ height: 16, borderRadius: 6, background: '#f1f5f9', animation: 'shimmer 1.4s infinite' }} />)}
+          {[1,2,3].map(i => <div key={i} style={{ height: 16, borderRadius: 6, background: isDark ? '#334155' : '#f1f5f9', animation: 'shimmer 1.4s infinite' }} />)}
         </div>
       )}
 
@@ -56,7 +59,7 @@ function MilestoneCard({ title, milestone, icon: Icon, color, bg, items, loading
           {items.map(({ label, value }) => (
             <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: 12, color: '#64748b', fontWeight: 500 }}>{label}</span>
-              <span style={{ fontSize: 14, fontWeight: 800, color: '#0f172a' }}>{value ?? '—'}</span>
+              <span style={{ fontSize: 14, fontWeight: 800, color: isDark ? '#f1f5f9' : '#0f172a' }}>{value ?? '—'}</span>
             </div>
           ))}
         </div>
@@ -68,45 +71,49 @@ function MilestoneCard({ title, milestone, icon: Icon, color, bg, items, loading
 // ─────────────────────────────────────────────────────────────────────────────
 // Center hub card
 // ─────────────────────────────────────────────────────────────────────────────
-function CenterHubCard({ health, loading }) {
+function CenterHubCard({ health, loading, isDark }) {
   return (
     <div style={{
-      background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
-      borderRadius: 20, padding: 28,
-      border: '1.5px solid #334155',
-      boxShadow: '0 8px 40px rgba(15,23,42,0.3), 0 0 0 1px rgba(99,102,241,0.15)',
-      gridColumn: 'span 1', alignSelf: 'center', textAlign: 'center',
+      background: isDark ? '#1e293b' : '#fff',
+      borderRadius: 20, padding: 32,
+      border: `1.5px solid ${isDark ? '#334155' : '#e2e8f0'}`,
+      boxShadow: '0 12px 32px rgba(15,23,42,0.06)',
+      gridColumn: 'span 1', alignSelf: 'stretch', textAlign: 'center',
+      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+      position: 'relative', overflow: 'hidden'
     }}>
-      <div style={{ width: 56, height: 56, borderRadius: 18, background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', boxShadow: '0 8px 24px rgba(99,102,241,0.4)' }}>
-        <Landmark size={26} color="#fff" />
+      {/* Subtle background glow */}
+      <div style={{ position: 'absolute', top: -40, left: '50%', transform: 'translateX(-50%)', width: 120, height: 120, background: '#6366f1', opacity: isDark ? 0.15 : 0.05, filter: 'blur(30px)', borderRadius: '50%', pointerEvents: 'none' }} />
+
+      <div style={{ width: 48, height: 48, borderRadius: 14, background: isDark ? '#334155' : '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16, zIndex: 1 }}>
+        <Landmark size={24} color="#6366f1" />
       </div>
-      <div style={{ fontSize: 11, fontWeight: 800, color: '#7dd3fc', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>
+      
+      <div style={{ fontSize: 11, fontWeight: 700, color: '#6366f1', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 4, zIndex: 1 }}>
         Governance Command
       </div>
-      <div style={{ fontSize: 17, fontWeight: 800, color: '#f8fafc', lineHeight: 1.3, marginBottom: 16 }}>
+      <div style={{ fontSize: 18, fontWeight: 900, color: isDark ? '#f1f5f9' : '#0f172a', letterSpacing: '-0.02em', marginBottom: 24, zIndex: 1 }}>
         CivicPulse Nexus
       </div>
 
       {/* System health indicator */}
-      <div style={{ padding: '10px 16px', borderRadius: 10, background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)', marginBottom: 14 }}>
+      <div style={{ width: '100%', padding: '16px 20px', borderRadius: 14, background: isDark ? '#0f172a' : '#fafbfc', border: `1px solid ${isDark ? '#1e293b' : '#f1f5f9'}`, zIndex: 1 }}>
         {loading ? (
-          <div style={{ fontSize: 12, color: '#94a3b8' }}>Computing system health…</div>
+          <div style={{ fontSize: 13, color: '#94a3b8', fontWeight: 500 }}>Computing health…</div>
         ) : (
           <>
-            <div style={{ fontSize: 11, color: '#94a3b8', marginBottom: 4 }}>Overall System Health</div>
-            <div style={{ fontSize: 26, fontWeight: 800, color: health >= 75 ? '#4ade80' : health >= 50 ? '#fbbf24' : '#f87171' }}>
+            <div style={{ fontSize: 12, color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>System Health</div>
+            <div style={{ fontSize: 32, fontWeight: 900, color: health >= 75 ? '#10b981' : health >= 50 ? '#f59e0b' : '#ef4444', letterSpacing: '-0.03em', lineHeight: 1 }}>
               {health?.toFixed(1) ?? '—'}%
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, marginTop: 4 }}>
-              <div style={{ width: 7, height: 7, borderRadius: '50%', background: health >= 75 ? '#4ade80' : '#fbbf24', animation: 'pulse-dot 1.5s infinite' }} />
-              <span style={{ fontSize: 11, color: '#94a3b8' }}>{health >= 75 ? 'All systems nominal' : health >= 50 ? 'Partial degradation' : 'Attention needed'}</span>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 10 }}>
+              <div style={{ width: 8, height: 8, borderRadius: '50%', background: health >= 75 ? '#10b981' : health >= 50 ? '#f59e0b' : '#ef4444', animation: 'pulse-dot 2s infinite' }} />
+              <span style={{ fontSize: 12, fontWeight: 600, color: isDark ? '#94a3b8' : '#64748b' }}>
+                {health >= 75 ? 'Optimal' : health >= 50 ? 'Degraded' : 'Attention Needed'}
+              </span>
             </div>
           </>
         )}
-      </div>
-
-      <div style={{ fontSize: 11, color: '#475569', lineHeight: 1.6 }}>
-        Smart Governance · Citizen Services<br />Public Administration
       </div>
     </div>
   );
@@ -116,6 +123,9 @@ function CenterHubCard({ health, loading }) {
 // Main GovernanceCommand page
 // ─────────────────────────────────────────────────────────────────────────────
 export default function GovernanceCommand() {
+  const { effectiveTheme } = useTheme();
+  const isDark = effectiveTheme === 'dark';
+
   const [grievance, setGrievance]   = useState(null);
   const [certs, setCerts]           = useState(null);
   const [welfare, setWelfare]       = useState(null);
@@ -176,35 +186,17 @@ export default function GovernanceCommand() {
       <div style={{ maxWidth: 1600, margin: '0 auto', padding: '0 0 40px' }}>
 
         {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28 }}>
-          <div>
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#6366f1', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>
-              Executive Platform View
-            </div>
-            <h1 style={{ fontSize: 26, fontWeight: 900, color: '#0f172a', margin: 0 }}>
-              Governance Command Center
-            </h1>
-            <p style={{ color: '#64748b', fontSize: 13, marginTop: 4 }}>
-              Integrated view of all 4 milestones · Last updated: {lastRefresh.toLocaleTimeString()}
-            </p>
-          </div>
-          <button
-            onClick={fetchAll}
-            disabled={anyLoading}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 8,
-              padding: '10px 20px', borderRadius: 10, border: 'none',
-              background: anyLoading ? '#e2e8f0' : 'linear-gradient(135deg,#6366f1,#8b5cf6)',
-              color: anyLoading ? '#94a3b8' : '#fff', fontWeight: 700, fontSize: 13,
-              cursor: anyLoading ? 'not-allowed' : 'pointer',
-              boxShadow: anyLoading ? 'none' : '0 4px 16px rgba(99,102,241,0.35)',
-              transition: 'all 0.2s',
-            }}
-          >
-            <RefreshCw size={15} style={{ animation: anyLoading ? 'spin 1s linear infinite' : 'none' }} />
-            {anyLoading ? 'Loading…' : 'Refresh All'}
-          </button>
-        </div>
+        <ReportPageHeader
+          title="Governance Command Center"
+          subtitle="Integrated view of all 4 milestones"
+          icon={Landmark}
+          iconBg="linear-gradient(135deg, #0f172a, #334155)"
+          iconColor="#38bdf8"
+          isDark={isDark}
+          lastRefresh={lastRefresh}
+          onRefresh={fetchAll}
+          refreshing={anyLoading}
+        />
 
         {/* Hub-and-spoke grid (2 × 2 + center = 5 cards) */}
         <div style={{
@@ -221,6 +213,7 @@ export default function GovernanceCommand() {
             bg="#fff7ed"
             loading={loadingStates.grievance}
             unavailable={unavail.grievance}
+            isDark={isDark}
             items={grievance ? [
               { label: 'Total Complaints', value: (grievance.totalComplaints || 0).toLocaleString() },
               { label: 'Resolved', value: (grievance.resolvedComplaints || 0).toLocaleString() },
@@ -230,7 +223,7 @@ export default function GovernanceCommand() {
           />
 
           {/* Center: Governance Command hub */}
-          <CenterHubCard health={health} loading={anyLoading} />
+          <CenterHubCard health={health} loading={anyLoading} isDark={isDark} />
 
           <MilestoneCard
             title="Certificate Management"
@@ -240,6 +233,7 @@ export default function GovernanceCommand() {
             bg="#eff6ff"
             loading={loadingStates.certs}
             unavailable={unavail.certs}
+            isDark={isDark}
             items={certs ? [
               { label: 'Total Applications', value: (certs.totalApplications || 0).toLocaleString() },
               { label: 'Certificates Issued', value: (certs.certificatesIssued || 0).toLocaleString() },
@@ -257,6 +251,7 @@ export default function GovernanceCommand() {
             bg="#f0fdf4"
             loading={loadingStates.welfare}
             unavailable={unavail.welfare}
+            isDark={isDark}
             items={welfare ? [
               { label: 'Beneficiaries', value: (welfare.totalBeneficiaries || 0).toLocaleString() },
               { label: 'Amount Disbursed', value: welfare.totalDisbursed != null ? `₹${Number(welfare.totalDisbursed).toLocaleString('en-IN')}` : '—' },
@@ -280,6 +275,7 @@ export default function GovernanceCommand() {
             bg="#f5f3ff"
             loading={loadingStates.governance}
             unavailable={unavail.governance}
+            isDark={isDark}
             items={governance ? [
               { label: 'Total Citizens', value: (governance.totalCitizens || 0).toLocaleString() },
               { label: 'Citizen Satisfaction', value: governance.citizenSatisfactionScore > 0 ? `${governance.citizenSatisfactionScore.toFixed(1)} / 5 ★` : 'No data yet' },
@@ -292,8 +288,8 @@ export default function GovernanceCommand() {
         {/* Tech stack footer */}
         <div style={{
           textAlign: 'center', padding: '18px 24px',
-          borderRadius: 14, background: '#f8fafc',
-          border: '1px solid #e2e8f0',
+          borderRadius: 14, background: isDark ? '#1e293b' : '#f8fafc',
+          border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
         }}>
           <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 8 }}>
             Technology Stack
@@ -308,8 +304,7 @@ export default function GovernanceCommand() {
       </div>
 
       <style>{`
-        @keyframes shimmer { 0%{opacity:1} 50%{opacity:0.4} 100%{opacity:1} }
-        @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+        ${GLOBAL_STYLES}
         @keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(1.3)} }
       `}</style>
     </AppShell>
