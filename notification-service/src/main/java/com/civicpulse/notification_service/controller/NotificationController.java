@@ -25,7 +25,12 @@ public class NotificationController {
             if (recipient == null || recipient.isBlank()) {
                 return ResponseEntity.ok(Collections.emptyList());
             }
-            List<Notification> list = notificationRepository.findByRecipientOrderByCreatedAtDesc(recipient);
+            List<Notification> list;
+            if (recipient.toLowerCase().contains("admin")) {
+                list = notificationRepository.findForAdmin(recipient);
+            } else {
+                list = notificationRepository.findByRecipientOrderByCreatedAtDesc(recipient);
+            }
             return ResponseEntity.ok(list != null ? list : Collections.emptyList());
         } catch (Exception e) {
             return ResponseEntity.ok(Collections.emptyList());

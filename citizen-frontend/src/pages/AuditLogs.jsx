@@ -3,7 +3,7 @@ import AppShell from '../components/AppShell.jsx';
 import api from '../api.js';
 import { useTheme } from '../context/ThemeContext.jsx';
 import { BookOpen, X, FileJson, Server } from 'lucide-react';
-import { ReportPageHeader, ErrorBanner, Skeleton, EmptyState, GLOBAL_STYLES } from '../components/ReportShared.jsx';
+import { ReportPageHeader, KpiCard, SectionCard, ErrorBanner, Skeleton, EmptyState, GLOBAL_STYLES } from '../components/ReportShared.jsx';
 
 const EVENT_CATEGORY = {
   'complaint-status-changed': { color: '#f97316', bg: '#fff7ed', label: 'Complaint Status' },
@@ -158,9 +158,17 @@ export default function AuditLogs() {
 
         <ErrorBanner error={error} />
 
-        {/* ── Data Table ─────────────────────────────────────────────────── */}
-        <div className="rpt-card" style={{ background: surface, borderRadius: 16, border: `1px solid ${border}`, overflow: 'hidden', boxShadow: '0 2px 12px rgba(15,23,42,0.06)' }}>
-          <div style={{ overflowX: 'auto' }}>
+        {/* ── KPI Cards ────────────────────────────────────────────────────── */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 24 }}>
+          <KpiCard icon={Server} label="Total Recorded Events" value={total.toLocaleString()} color="#3b82f6" bg="#eff6ff" isDark={isDark} />
+          <KpiCard icon={BookOpen} label="Kafka Event Topics" value="11 Topics" subtitle="Real-time event stream" color="#10b981" bg="#f0fdf4" isDark={isDark} />
+          <KpiCard icon={FileJson} label="System Event Format" value="JSON Payload" subtitle="Kafka Consumer Service" color="#8b5cf6" bg="#f5f3ff" isDark={isDark} />
+          <KpiCard icon={Server} label="Active Filter" value={filterEventType ? filterEventType : 'All Events'} color="#f59e0b" bg="#fff7ed" isDark={isDark} />
+        </div>
+
+        {/* ── Data Table Container ────────────────────────────────────────── */}
+        <SectionCard title="Immutable Audit Trail" subtitle="Logged Kafka stream events across all microservices" icon={Server} isDark={isDark}>
+          <div style={{ overflowX: 'auto', margin: '-20px -22px', marginTop: '-20px', marginBottom: '-20px' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ background: headerBg, borderBottom: `2px solid ${border}` }}>
@@ -225,7 +233,7 @@ export default function AuditLogs() {
               </tbody>
             </table>
           </div>
-        </div>
+        </SectionCard>
 
         {/* ── Pagination ─────────────────────────────────────────────────── */}
         {!loading && totalPages > 1 && (

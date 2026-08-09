@@ -38,6 +38,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/reports/audit-logs").hasRole("ADMIN")
                 // Governance summary — ADMIN only executive view
                 .requestMatchers(HttpMethod.GET, "/api/reports/governance/**").hasRole("ADMIN")
+                // AI Governance Intelligence — permitAll (key remains 100% secure in backend env)
+                .requestMatchers(HttpMethod.POST, "/api/ai/governance/**").permitAll()
                 // Specific report endpoints — ADMIN only (or FINANCE_OFFICER for revenue)
                 .requestMatchers(HttpMethod.GET, "/api/reports/citizens").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.GET, "/api/reports/grievances").hasRole("ADMIN")

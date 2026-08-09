@@ -3,13 +3,14 @@ import api from '../api.js';
 import AppShell from '../components/AppShell.jsx';
 import PageLoader from '../components/PageLoader.jsx';
 import { useTheme } from '../context/ThemeContext.jsx';
+import { ReportPageHeader, KpiCard, SectionCard, GLOBAL_STYLES } from '../components/ReportShared.jsx';
 import {
   PieChart, Pie, Cell, AreaChart, Area,
   ResponsiveContainer, Tooltip as RechartsTooltip
 } from 'recharts';
 import {
   Plus, Wallet, Download, Users, Layers, DollarSign,
-  TrendingUp, ArrowUpRight, ClipboardList, RefreshCw
+  TrendingUp, ArrowUpRight, ClipboardList, RefreshCw, Heart, Award
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import keycloak from '../keycloak.js';
@@ -222,89 +223,56 @@ export default function WelfareDashboard() {
 
   return (
     <AppShell title="Welfare &amp; Finance Overview">
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 24, paddingBottom: 40 }}>
+      <div style={{ maxWidth: 1600, margin: '0 auto', padding: '12px 0 40px', display: 'flex', flexDirection: 'column', gap: 24 }}>
 
-        {/* ── Welcome Header ───────────────────────────────────────────── */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {/* Row 1: Greeting + description */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
-                <h2 style={{ fontSize: 22, fontWeight: 700, color: isDark ? '#f1f5f9' : '#0f172a', margin: 0 }}>
-                  {getGreeting()}, {username}! 👋
-                </h2>
-                <span style={{
-                  fontSize: 11, fontWeight: 700, letterSpacing: '0.08em',
-                  background: '#dcfce7', color: '#15803d',
-                  padding: '3px 10px', borderRadius: 20,
-                  border: '1px solid #bbf7d0', whiteSpace: 'nowrap',
-                }}>LIVE</span>
-              </div>
-              <p style={{ color: '#94a3b8', fontSize: 14, margin: 0, lineHeight: 1.6 }}>
-                Monitor welfare schemes, budget utilization, and fund disbursements across all departments.
-              </p>
+        {/* ── Page Header ───────────────────────────────────────────── */}
+        <ReportPageHeader
+          title="Welfare & Finance Overview"
+          subtitle="Monitor welfare schemes, budget utilization, and fund disbursements across all departments"
+          icon={Wallet}
+          iconBg="linear-gradient(135deg, #0f172a, #334155)"
+          iconColor="#38bdf8"
+          isDark={isDark}
+          lastRefresh={new Date()}
+          onRefresh={fetchStats}
+          refreshing={loading}
+          extraButtons={
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <Link to="/welfare/schemes" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 10, background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', color: '#fff', fontWeight: 600, fontSize: 13, textDecoration: 'none', boxShadow: '0 4px 12px rgba(99,102,241,0.35)' }}>
+                <Plus size={15} /> New Scheme
+              </Link>
+              <Link to="/welfare/budgets" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 10, background: isDark ? '#334155' : '#f1f5f9', border: `1px solid ${isDark ? '#475569' : '#e2e8f0'}`, color: isDark ? '#f1f5f9' : '#475569', fontWeight: 600, fontSize: 13, textDecoration: 'none' }}>
+                <Wallet size={15} /> Allocate Budget
+              </Link>
             </div>
-          </div>
-
-          {/* Row 2: Action toolbar */}
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap',
-            padding: '11px 16px',
-            background: isDark ? '#1e293b' : '#f8fafc',
-            border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
-            borderRadius: 12,
-          }}>
-            <span style={{ fontSize: 12, fontWeight: 600, color: '#94a3b8', marginRight: 2 }}>Quick Actions:</span>
-            <Link to="/welfare/schemes" style={btnPrimary}>
-              <Plus size={15} /> New Scheme
-            </Link>
-            <Link to="/welfare/budgets" style={btnOutline}>
-              <Wallet size={15} /> Allocate Budget
-            </Link>
-            <Link to="/welfare/reports" style={btnOutline}>
-              <Download size={15} /> Export Report
-            </Link>
-          </div>
-        </div>
+          }
+        />
 
         {/* ── Stat Cards ─────────────────────────────────────────────────── */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16 }}>
-          <StatCard
-            icon={Layers} iconBg="#eff6ff" iconColor="#3b82f6"
-            label="Total Schemes" value={totalSchemes}
-            trend={20} trendLabel="from last month" sparkColor="#3b82f6"
-          />
-          <StatCard
-            icon={Wallet} iconBg="#f0fdf4" iconColor="#22c55e"
-            label="Total Allocated" value={fmtCompact(totalAllocated)}
-            trend={15} trendLabel="from last month" sparkColor="#22c55e"
-          />
-          <StatCard
-            icon={Users} iconBg="#fff7ed" iconColor="#f59e0b"
-            label="Beneficiaries" value={totalBenef}
-            badge={`${pendingApps} pending applications`} sparkColor="#f59e0b"
-          />
-          <StatCard
-            icon={DollarSign} iconBg="#f0fdf4" iconColor="#22c55e"
-            label="Total Disbursed" value={fmtCompact(totalSpent)}
-            trend={0} trendLabel="from last month" sparkColor="#94a3b8"
-          />
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
+          <KpiCard icon={Layers} label="Total Schemes" value={totalSchemes} subtitle="20% from last month" color="#3b82f6" bg="#eff6ff" isDark={isDark} />
+          <KpiCard icon={Wallet} label="Total Allocated" value={fmtCompact(totalAllocated)} subtitle="15% from last month" color="#10b981" bg="#f0fdf4" isDark={isDark} />
+          <KpiCard icon={Users} label="Beneficiaries" value={totalBenef} subtitle={`${pendingApps} pending applications`} color="#f59e0b" bg="#fff7ed" isDark={isDark} />
+          <KpiCard icon={DollarSign} label="Total Disbursed" value={fmtCompact(totalSpent)} subtitle="0% from last month" color="#8b5cf6" bg="#f5f3ff" isDark={isDark} />
         </div>
 
         {/* ── Row 2: Budget Utilization + Recent Disbursements ──────────── */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
 
           {/* Budget Utilization */}
-          <div style={{ ...card, padding: 24 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-              <h3 style={sectionTitle}>Budget Utilization</h3>
+          <SectionCard
+            title="Budget Utilization"
+            subtitle="Financial year spending progress"
+            icon={Wallet}
+            isDark={isDark}
+            action={
               <div style={{ position: 'relative' }}>
                 <select
                   value={budgetFilter}
                   onChange={e => setBudgetFilter(e.target.value)}
                   style={{
-                    border: '1px solid #e5e7eb', borderRadius: 8, padding: '5px 28px 5px 10px',
-                    fontSize: 13, color: '#374151', background: '#fff', cursor: 'pointer', appearance: 'none',
+                    border: `1px solid ${isDark ? '#475569' : '#e5e7eb'}`, borderRadius: 8, padding: '5px 28px 5px 10px',
+                    fontSize: 13, color: isDark ? '#f1f5f9' : '#374151', background: isDark ? '#334155' : '#fff', cursor: 'pointer', appearance: 'none',
                   }}
                 >
                   <option>This Financial Year</option>
@@ -313,8 +281,8 @@ export default function WelfareDashboard() {
                 </select>
                 <span style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: '#94a3b8', fontSize: 11 }}>▾</span>
               </div>
-            </div>
-
+            }
+          >
             <div style={{ display: 'flex', alignItems: 'center', gap: 28 }}>
               {/* Donut */}
               <div style={{ position: 'relative', width: 160, height: 160, flexShrink: 0 }}>
@@ -331,7 +299,7 @@ export default function WelfareDashboard() {
                       dataKey="value" stroke="none"
                     >
                       <Cell fill="#22c55e" />
-                      <Cell fill="#e2e8f0" />
+                      <Cell fill={isDark ? '#334155' : '#e2e8f0'} />
                     </Pie>
                   </PieChart>
                 </ResponsiveContainer>
@@ -340,10 +308,10 @@ export default function WelfareDashboard() {
                   position: 'absolute', top: '50%', left: '50%',
                   transform: 'translate(-50%,-50%)', textAlign: 'center',
                 }}>
-                  <div style={{ fontSize: 20, fontWeight: 700, color: '#22c55e', lineHeight: 1 }}>
+                  <div style={{ fontSize: 20, fontWeight: 800, color: '#22c55e', lineHeight: 1 }}>
                     {Number(utilizationPct).toFixed(1)}%
                   </div>
-                  <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2 }}>Utilized</div>
+                  <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2, fontWeight: 600 }}>Utilized</div>
                 </div>
               </div>
 
@@ -357,33 +325,34 @@ export default function WelfareDashboard() {
                   <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <span style={{ width: 10, height: 10, borderRadius: '50%', background: row.dot, display: 'inline-block' }} />
-                      <span style={{ fontSize: 13, color: '#64748b' }}>{row.label}</span>
+                      <span style={{ fontSize: 13, color: isDark ? '#94a3b8' : '#64748b', fontWeight: 500 }}>{row.label}</span>
                     </div>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: isDark ? '#f1f5f9' : '#0f172a' }}>{row.val}</span>
+                    <span style={{ fontSize: 13, fontWeight: 800, color: isDark ? '#f1f5f9' : '#0f172a' }}>{row.val}</span>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#94a3b8' }}>
+            <div style={{ marginTop: 20, paddingTop: 16, borderTop: `1px solid ${isDark ? '#334155' : '#f1f5f9'}`, display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#94a3b8', fontWeight: 600 }}>
               <span>{Number(utilizationPct).toFixed(1)}% of budget utilized</span>
               <span>Target: 100%</span>
             </div>
-          </div>
+          </SectionCard>
 
           {/* Recent Disbursements */}
-          <div style={{ ...card, padding: 24 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-              <h3 style={sectionTitle}>Recent Disbursements</h3>
-              <Link to="/welfare/disbursements" style={viewAll}>View All</Link>
-            </div>
-
+          <SectionCard
+            title="Recent Disbursements"
+            subtitle="Latest fund transfers"
+            icon={ClipboardList}
+            isDark={isDark}
+            action={<Link to="/welfare/disbursements" style={viewAll}>View All</Link>}
+          >
             {recentDisbursements.length === 0 ? (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 210, gap: 10 }}>
-                <div style={{ fontSize: 52 }}>📋</div>
-                <div style={{ fontWeight: 700, color: '#475569', fontSize: 15 }}>No disbursements yet</div>
-                <div style={{ fontSize: 13, color: '#94a3b8', textAlign: 'center' }}>
-                  Once payments are made, they will<br />appear here.
+                <div style={{ fontSize: 44 }}>📋</div>
+                <div style={{ fontWeight: 700, color: isDark ? '#f1f5f9' : '#475569', fontSize: 14 }}>No disbursements yet</div>
+                <div style={{ fontSize: 12, color: '#94a3b8', textAlign: 'center' }}>
+                  Once payments are made, they will appear here.
                 </div>
               </div>
             ) : (
@@ -391,30 +360,29 @@ export default function WelfareDashboard() {
                 {recentDisbursements.slice(0, 5).map((d, i) => (
                   <div key={d.disbursementId || i} style={{
                     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                    padding: '12px 0', borderBottom: i < 4 ? '1px solid #f8fafc' : 'none',
+                    padding: '12px 0', borderBottom: i < 4 ? `1px solid ${isDark ? '#334155' : '#f8fafc'}` : 'none',
                   }}>
                     <div>
-                      <div style={{ fontSize: 12, fontWeight: 600, color: '#374151', fontFamily: 'monospace' }}>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: isDark ? '#f1f5f9' : '#374151', fontFamily: 'monospace' }}>
                         {d.transactionId || `TXN-${i + 1}`}
                       </div>
                       <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2, textTransform: 'capitalize' }}>
                         {d.paymentMode?.replace('_', ' ')} · <span style={{ color: '#22c55e' }}>{d.paymentStatus}</span>
                       </div>
                     </div>
-                    <div style={{ fontWeight: 700, fontSize: 14, color: '#0f172a' }}>{fmt(d.amount)}</div>
+                    <div style={{ fontWeight: 800, fontSize: 14, color: isDark ? '#f1f5f9' : '#0f172a' }}>{fmt(d.amount)}</div>
                   </div>
                 ))}
               </div>
             )}
-          </div>
+          </SectionCard>
         </div>
 
         {/* ── Row 3: Beneficiaries Mix + Top Active Schemes + Recent Payouts ── */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 20 }}>
 
           {/* Beneficiaries Mix */}
-          <div style={{ ...card, padding: 24 }}>
-            <h3 style={{ ...sectionTitle, marginBottom: 18 }}>Beneficiaries Mix</h3>
+          <SectionCard title="Beneficiaries Mix" subtitle="Category distribution" icon={Users} isDark={isDark}>
             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
               <div style={{ position: 'relative', width: 140, height: 140 }}>
                 <ResponsiveContainer width="100%" height="100%">
@@ -427,13 +395,13 @@ export default function WelfareDashboard() {
                     >
                       {pieData.some(d => d.value > 0)
                         ? pieData.map((_, i) => <Cell key={i} fill={SCHEME_COLORS[i % SCHEME_COLORS.length]} />)
-                        : <Cell fill="#e2e8f0" />}
+                        : <Cell fill={isDark ? '#334155' : '#e2e8f0'} />}
                     </Pie>
                   </PieChart>
                 </ResponsiveContainer>
                 <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', textAlign: 'center' }}>
-                  <div style={{ fontSize: 22, fontWeight: 700, color: isDark ? '#f1f5f9' : '#0f172a' }}>{totalBenefCount}</div>
-                  <div style={{ fontSize: 10, color: '#94a3b8' }}>Total</div>
+                  <div style={{ fontSize: 22, fontWeight: 800, color: isDark ? '#f1f5f9' : '#0f172a' }}>{totalBenefCount}</div>
+                  <div style={{ fontSize: 10, color: '#94a3b8', fontWeight: 600 }}>Total</div>
                 </div>
               </div>
             </div>
@@ -447,57 +415,61 @@ export default function WelfareDashboard() {
                   <div key={m.key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <span style={{ width: 10, height: 10, borderRadius: '50%', background: SCHEME_COLORS[idx], display: 'inline-block', flexShrink: 0 }} />
-                      <span style={{ color: isDark ? '#cbd5e1' : '#374151' }}>{m.key}</span>
+                      <span style={{ color: isDark ? '#cbd5e1' : '#374151', fontWeight: 500 }}>{m.key}</span>
                     </div>
-                    <span style={{ color: '#94a3b8', fontWeight: 500 }}>{val} ({pct}%)</span>
+                    <span style={{ color: '#94a3b8', fontWeight: 600 }}>{val} ({pct}%)</span>
                   </div>
                 );
               })}
             </div>
-          </div>
+          </SectionCard>
 
           {/* Top Active Schemes */}
-          <div style={{ ...card, padding: 24 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
-              <h3 style={sectionTitle}>Top Active Schemes</h3>
-              <Link to="/welfare/schemes" style={viewAll}>View All</Link>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <SectionCard
+            title="Top Active Schemes"
+            subtitle="Most enrolled programs"
+            icon={Award}
+            isDark={isDark}
+            action={<Link to="/welfare/schemes" style={viewAll}>View All</Link>}
+          >
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               {(topSchemes.length > 0 ? topSchemes : SCHEME_META.map(m => [m.key + ' Scheme', 0])).slice(0, 6).map(([name, count], i) => {
                 const meta = SCHEME_META.find(m => name.toLowerCase().includes(m.key.split(' ')[0].toLowerCase())) || SCHEME_META[i % SCHEME_META.length];
                 return (
                   <div key={name} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                     <div style={{
-                      width: 38, height: 38, borderRadius: '50%',
+                      width: 36, height: 36, borderRadius: 10,
                       background: meta.bg, display: 'flex', alignItems: 'center',
-                      justifyContent: 'center', fontSize: 18, flexShrink: 0,
+                      justifyContent: 'center', fontSize: 16, flexShrink: 0,
                     }}>
                       {meta.emoji}
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: isDark ? '#f1f5f9' : '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: isDark ? '#f1f5f9' : '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                         {name}
                       </div>
-                      <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 1 }}>{count} enrolled</div>
+                      <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 1, fontWeight: 500 }}>{count} enrolled</div>
                     </div>
                   </div>
                 );
               })}
             </div>
-          </div>
+          </SectionCard>
 
           {/* Recent Payouts */}
-          <div style={{ ...card, padding: 24 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
-              <h3 style={sectionTitle}>Recent Payouts</h3>
-              <Link to="/welfare/disbursements" style={viewAll}>View All</Link>
-            </div>
+          <SectionCard
+            title="Recent Payouts"
+            subtitle="Disbursement activity"
+            icon={DollarSign}
+            isDark={isDark}
+            action={<Link to="/welfare/disbursements" style={viewAll}>View All</Link>}
+          >
             {recentDisbursements.length === 0 ? (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 200, gap: 10 }}>
-                <div style={{ fontSize: 52 }}>👛</div>
-                <div style={{ fontWeight: 700, color: '#475569', fontSize: 15 }}>No recent payouts</div>
-                <div style={{ fontSize: 13, color: '#94a3b8', textAlign: 'center' }}>
-                  Payment history will be<br />shown here.
+                <div style={{ fontSize: 44 }}>👛</div>
+                <div style={{ fontWeight: 700, color: isDark ? '#f1f5f9' : '#475569', fontSize: 14 }}>No recent payouts</div>
+                <div style={{ fontSize: 12, color: '#94a3b8', textAlign: 'center' }}>
+                  Payment history will be shown here.
                 </div>
               </div>
             ) : (
@@ -505,32 +477,34 @@ export default function WelfareDashboard() {
                 {recentDisbursements.slice(0, 5).map((d, i) => (
                   <div key={d.disbursementId || i} style={{
                     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                    padding: '10px 0', borderBottom: i < 4 ? '1px solid #f8fafc' : 'none',
+                    padding: '10px 0', borderBottom: i < 4 ? `1px solid ${isDark ? '#334155' : '#f8fafc'}` : 'none',
                   }}>
                     <div>
-                      <div style={{ fontSize: 12, fontWeight: 600, color: '#374151', fontFamily: 'monospace' }}>{d.transactionId || `TXN-${i + 1}`}</div>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: isDark ? '#f1f5f9' : '#374151', fontFamily: 'monospace' }}>{d.transactionId || `TXN-${i + 1}`}</div>
                       <div style={{ fontSize: 11, color: '#22c55e' }}>{d.paymentStatus}</div>
                     </div>
-                    <div style={{ fontWeight: 700, fontSize: 13, color: '#0f172a' }}>{fmt(d.amount)}</div>
+                    <div style={{ fontWeight: 800, fontSize: 13, color: isDark ? '#f1f5f9' : '#0f172a' }}>{fmt(d.amount)}</div>
                   </div>
                 ))}
               </div>
             )}
-          </div>
+          </SectionCard>
         </div>
 
         {/* ── Row 4: Department Performance ─────────────────────────────── */}
-        <div style={{ ...card, padding: 24 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-            <h3 style={sectionTitle}>Department Performance</h3>
-            <Link to="/welfare/reports" style={viewAll}>View Report</Link>
-          </div>
-          <div style={{ overflowX: 'auto' }}>
+        <SectionCard
+          title="Department Performance"
+          subtitle="Departmental budget utilization & scheme distribution"
+          icon={TrendingUp}
+          isDark={isDark}
+          action={<Link to="/welfare/reports" style={viewAll}>View Report</Link>}
+        >
+          <div style={{ overflowX: 'auto', margin: '-20px -22px', marginTop: '-20px', marginBottom: '-20px' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
               <thead>
-                <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
+                <tr style={{ background: isDark ? '#0f172a' : '#f8fafc', borderBottom: `1px solid ${isDark ? '#334155' : '#f1f5f9'}` }}>
                   {['Department', 'Schemes', 'Beneficiaries', 'Allocated Budget', 'Utilization', 'Performance'].map(h => (
-                    <th key={h} style={{ textAlign: 'left', padding: '8px 12px 12px 0', color: '#94a3b8', fontWeight: 600, fontSize: 13, whiteSpace: 'nowrap' }}>
+                    <th key={h} style={{ textAlign: 'left', padding: '12px 18px', color: '#94a3b8', fontWeight: 700, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.06em', whiteSpace: 'nowrap' }}>
                       {h}
                     </th>
                   ))}
@@ -538,18 +512,18 @@ export default function WelfareDashboard() {
               </thead>
               <tbody>
                 {deptPerf.map((row, i) => (
-                  <tr key={i}>
-                    <td style={{ padding: '16px 12px 16px 0', fontWeight: 600, color: isDark ? '#f1f5f9' : '#0f172a' }}>{row.dept}</td>
-                    <td style={{ padding: '16px 12px 16px 0', color: '#374151' }}>{row.schemes}</td>
-                    <td style={{ padding: '16px 12px 16px 0', color: '#374151' }}>{row.beneficiaries}</td>
-                    <td style={{ padding: '16px 12px 16px 0', color: '#374151' }}>{fmtCompact(row.allocated)}</td>
-                    <td style={{ padding: '16px 12px 16px 0', minWidth: 140 }}>
+                  <tr key={i} style={{ borderBottom: `1px solid ${isDark ? '#334155' : '#f1f5f9'}` }}>
+                    <td style={{ padding: '14px 18px', fontWeight: 700, color: isDark ? '#f1f5f9' : '#0f172a' }}>{row.dept}</td>
+                    <td style={{ padding: '14px 18px', color: isDark ? '#cbd5e1' : '#374151', fontWeight: 600 }}>{row.schemes}</td>
+                    <td style={{ padding: '14px 18px', color: isDark ? '#cbd5e1' : '#374151', fontWeight: 600 }}>{row.beneficiaries}</td>
+                    <td style={{ padding: '14px 18px', color: isDark ? '#cbd5e1' : '#374151', fontWeight: 600 }}>{fmtCompact(row.allocated)}</td>
+                    <td style={{ padding: '14px 18px', minWidth: 160 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                         <ProgressBar pct={row.utilization} color="#3b82f6" />
-                        <span style={{ fontSize: 12, color: '#94a3b8', flexShrink: 0 }}>{Number(row.utilization).toFixed(1)}%</span>
+                        <span style={{ fontSize: 12, color: '#94a3b8', flexShrink: 0, fontWeight: 700 }}>{Number(row.utilization).toFixed(1)}%</span>
                       </div>
                     </td>
-                    <td style={{ padding: '16px 12px 16px 0' }}>
+                    <td style={{ padding: '14px 18px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         <PerfBadge label={row.performance} />
                         <TrendingUp size={14} color="#22c55e" />
@@ -560,9 +534,13 @@ export default function WelfareDashboard() {
               </tbody>
             </table>
           </div>
-        </div>
+        </SectionCard>
 
       </div>
+
+      <style>{`
+        ${GLOBAL_STYLES}
+      `}</style>
     </AppShell>
   );
 }

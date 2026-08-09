@@ -55,6 +55,8 @@ public class SecurityConfig {
                 .requestMatchers("/actuator/**").permitAll()
                 // Public registration — citizen creates their own Keycloak account
                 .requestMatchers("/api/citizens/auth/register").permitAll()
+                // AI Governance endpoints — permitAll (backend protects Gemini key)
+                .requestMatchers("/api/ai/**").permitAll()
                 // Everything else requires a valid JWT
                 .anyRequest().authenticated()
             )

@@ -112,14 +112,14 @@ export function SectionCard({ title, subtitle, icon: Icon, children, isDark, act
 // ── Page Header ───────────────────────────────────────────────────────────────
 export function ReportPageHeader({ title, subtitle, iconBg, icon: Icon, iconColor = '#fff', isDark, lastRefresh, onRefresh, refreshing, onExport, extraButtons }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16, marginBottom: 28 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <div style={{ width: 42, height: 42, borderRadius: 12, background: iconBg, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 14px rgba(0,0,0,0.2)' }}>
+    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16, marginTop: 18, marginBottom: 28 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+        <div style={{ width: 44, height: 44, borderRadius: 12, background: iconBg, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 14px rgba(0,0,0,0.15)', flexShrink: 0 }}>
           <Icon size={22} color={iconColor} />
         </div>
         <div>
-          <h2 style={{ fontSize: 22, fontWeight: 800, color: isDark ? '#f1f5f9' : '#0f172a', margin: 0 }}>{title}</h2>
-          <p style={{ color: '#94a3b8', fontSize: 13, margin: 0 }}>{subtitle}</p>
+          <h2 style={{ fontSize: 22, fontWeight: 800, color: isDark ? '#f1f5f9' : '#0f172a', margin: '0 0 6px 0', letterSpacing: '-0.02em' }}>{title}</h2>
+          <p style={{ color: '#94a3b8', fontSize: 13, margin: 0, fontWeight: 500 }}>{subtitle}</p>
         </div>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
@@ -236,4 +236,6 @@ export const GLOBAL_STYLES = `
   @keyframes fadeIn  { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
   @keyframes spin    { to{transform:rotate(360deg)} }
   .rpt-card { animation: fadeIn 0.4s ease both; }
+  input, select, textarea { box-sizing: border-box !important; line-height: normal !important; vertical-align: middle !important; }
+  input::placeholder, select::placeholder, textarea::placeholder { color: #94a3b8 !important; opacity: 1 !important; line-height: normal !important; }
 `;

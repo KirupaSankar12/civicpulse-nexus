@@ -2,15 +2,51 @@ import React, { useState, useEffect } from 'react';
 import api from '../api.js';
 import AppShell from '../components/AppShell.jsx';
 import PageLoader from '../components/PageLoader.jsx';
-import { Search, Filter, Plus, Edit2, Trash2, ShieldOff, KeyRound } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext.jsx';
+import { ReportPageHeader, KpiCard, SectionCard, GLOBAL_STYLES } from '../components/ReportShared.jsx';
+import { Search, Plus, Edit2, Trash2, UserCheck, Users, Mail, Phone, KeyRound, CheckCircle2, Award, Clock, ShieldCheck, X, Briefcase } from 'lucide-react';
+
+function OfficerAvatar({ name }) {
+  const initials = (name || 'Officer')
+    .split(' ')
+    .map(n => n[0])
+    .join('')
+    .substring(0, 2)
+    .toUpperCase();
+
+  const colors = [
+    { bg: 'linear-gradient(135deg, #3b82f6, #1d4ed8)', text: '#fff' },
+    { bg: 'linear-gradient(135deg, #10b981, #047857)', text: '#fff' },
+    { bg: 'linear-gradient(135deg, #8b5cf6, #6d28d9)', text: '#fff' },
+    { bg: 'linear-gradient(135deg, #f59e0b, #b45309)', text: '#fff' },
+    { bg: 'linear-gradient(135deg, #06b6d4, #0e7490)', text: '#fff' },
+  ];
+  
+  const charCode = (name || 'A').charCodeAt(0);
+  const theme = colors[charCode % colors.length];
+
+  return (
+    <div style={{
+      width: 38, height: 38, borderRadius: 12, background: theme.bg, color: theme.text,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      fontSize: 13, fontWeight: 800, flexShrink: 0, boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+    }}>
+      {initials}
+    </div>
+  );
+}
 
 function AdminOfficers() {
+  const { effectiveTheme } = useTheme();
+  const isDark = effectiveTheme === 'dark';
+
   const [officers, setOfficers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [deptFilter, setDeptFilter] = useState('ALL');
   const [statusFilter, setStatusFilter] = useState('ALL');
-  
+  const [lastRefresh, setLastRefresh] = useState(new Date());
+
   // App data for metrics
   const [complaints, setComplaints] = useState([]);
   const [applications, setApplications] = useState([]);
@@ -26,6 +62,7 @@ function AdminOfficers() {
     role: 'OFFICER',
     email: '',
     phoneNumber: '',
+    password: '',
     status: 'Active'
   });
 
@@ -42,10 +79,6 @@ function AdminOfficers() {
     'Urban Planning Department'
   ];
 
-  useEffect(() => {
-    fetchOfficers();
-  }, []);
-
   const fetchOfficers = async () => {
     try {
       setLoading(true);
@@ -54,15 +87,20 @@ function AdminOfficers() {
         api.get('/grievance-service/api/complaints?page=0&size=1000'),
         api.get('/service-management-service/api/services')
       ]);
-      setOfficers(officersRes.data);
+      setOfficers(officersRes.data || []);
       setComplaints(compRes.data.content || compRes.data || []);
       setApplications(appsRes.data || []);
     } catch (err) {
       console.error('Failed to fetch data for officers', err);
     } finally {
       setLoading(false);
+      setLastRefresh(new Date());
     }
   };
+
+  useEffect(() => {
+    fetchOfficers();
+  }, []);
 
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -77,6 +115,7 @@ function AdminOfficers() {
       role: 'OFFICER',
       email: '',
       phoneNumber: '',
+      password: '',
       status: 'Active'
     });
     setIsEditing(false);
@@ -92,6 +131,7 @@ function AdminOfficers() {
       role: officer.role || 'OFFICER',
       email: officer.email || '',
       phoneNumber: officer.phoneNumber || '',
+      password: '',
       status: officer.status || 'Active'
     });
     setIsEditing(true);
@@ -106,11 +146,11 @@ function AdminOfficers() {
         setToastMessage('Officer updated successfully!');
       } else {
         await api.post('/service-management-service/api/officers', formData);
-        setToastMessage('Officer created successfully!');
+        setToastMessage(`Officer created successfully! Username: @${formData.username}`);
       }
       setShowModal(false);
       fetchOfficers();
-      setTimeout(() => setToastMessage(''), 3000);
+      setTimeout(() => setToastMessage(''), 5000);
     } catch (err) {
       console.error('Failed to save officer', err);
       alert('Failed to save officer. Check console for details.');
@@ -128,10 +168,9 @@ function AdminOfficers() {
     }
   };
 
-  const filteredOfficers = officers.map(o => {
-    // Calculate metrics
+  const enrichedOfficers = officers.map(o => {
     const myComplaints = complaints.filter(c => c.assignedOfficer === o.username);
-    const myApps = applications.filter(a => a.department === o.department); // approximate assigned apps
+    const myApps = applications.filter(a => a.department === o.department);
 
     const totalAssigned = myComplaints.length + myApps.length;
     const resolvedComps = myComplaints.filter(c => ['RESOLVED', 'CLOSED'].includes(c.status)).length;
@@ -141,7 +180,9 @@ function AdminOfficers() {
     const resolutionRate = totalAssigned > 0 ? Math.round((totalResolved / totalAssigned) * 100) : 0;
     
     return { ...o, totalAssigned, totalResolved, resolutionRate };
-  }).filter(o => {
+  });
+
+  const filteredOfficers = enrichedOfficers.filter(o => {
     const matchSearch = o.officerName?.toLowerCase().includes(search.toLowerCase()) || 
                         o.username?.toLowerCase().includes(search.toLowerCase());
     const matchDept = deptFilter === 'ALL' || o.department === deptFilter;
@@ -149,154 +190,210 @@ function AdminOfficers() {
     return matchSearch && matchDept && matchStatus;
   });
 
+  const totalOfficersCount = officers.length;
+  const activeOfficersCount = officers.filter(o => o.status === 'Active').length;
+  const totalAssignedCases = enrichedOfficers.reduce((sum, o) => sum + o.totalAssigned, 0);
+  const avgResolutionRate = totalOfficersCount > 0 
+    ? Math.round(enrichedOfficers.reduce((sum, o) => sum + o.resolutionRate, 0) / totalOfficersCount) 
+    : 0;
+
+  if (loading && !officers.length) {
+    return <AppShell title="Manage Officers"><PageLoader message="Loading Officers..." /></AppShell>;
+  }
+
   return (
     <AppShell title="Manage Officers">
-      <div style={{ width: '100%', maxWidth: '100%', padding: '0 24px 40px 24px', margin: '0 auto', boxSizing: 'border-box' }}>
+      <div style={{ maxWidth: 1600, margin: '0 auto', padding: '12px 0 40px', display: 'flex', flexDirection: 'column', gap: 24 }}>
+        
+        {/* Toast Notification */}
         {toastMessage && (
-        <div style={{ position: 'fixed', bottom: 20, right: 20, zIndex: 1100 }}>
-          <div style={{ background: '#10b981', color: '#fff', padding: '12px 20px', borderRadius: 8, fontWeight: 700, boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
-            ✓ {toastMessage}
+          <div style={{ position: 'fixed', bottom: 24, right: 24, zIndex: 1100 }}>
+            <div style={{ background: 'linear-gradient(135deg,#10b981,#059669)', color: '#fff', padding: '12px 24px', borderRadius: 12, fontWeight: 800, boxShadow: '0 10px 25px rgba(16,185,129,0.3)', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <CheckCircle2 size={18} /> {toastMessage}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* ── Welcome Banner ── */}
-      <div style={{
-        background: 'linear-gradient(135deg, #0f172a, #334155)',
-        borderRadius: 16, padding: '24px 32px', color: '#fff',
-        display: 'flex', flexWrap: 'wrap', gap: 20, alignItems: 'center', justifyContent: 'space-between',
-        boxShadow: '0 10px 25px rgba(15,23,42,0.3)',
-        marginBottom: 30, position: 'relative', overflow: 'hidden'
-      }}>
-        <div style={{ position: 'absolute', top: -50, right: -50, width: 200, height: 200, background: '#fff', opacity: 0.03, borderRadius: '50%', filter: 'blur(30px)' }} />
-        
-        <div style={{ position: 'relative', zIndex: 1 }}>
-          <span style={{ background: 'rgba(255,255,255,0.1)', color: '#38bdf8', border: '1px solid rgba(56,189,248,0.3)', padding: '4px 12px', borderRadius: 20, fontSize: 11, fontWeight: 800, letterSpacing: '0.08em', display: 'inline-block' }}>
-            ADMINISTRATION
-          </span>
-          <h2 style={{ margin: '10px 0 6px', fontSize: 28, fontWeight: 800, color: '#ffffff' }}>Manage Officers</h2>
-          <p style={{ margin: 0, color: '#cbd5e1', maxWidth: 500, fontSize: 14 }}>
-            View and manage field officers assigned to municipal departments.
-          </p>
-        </div>
-        
-        <button onClick={openAddModal} style={{
-          background: '#fff', color: '#0f172a', border: 'none', padding: '12px 20px',
-          borderRadius: 12, fontWeight: 700, fontSize: 14, cursor: 'pointer',
-          display: 'flex', alignItems: 'center', gap: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-          position: 'relative', zIndex: 1
-        }}>
-          <Plus size={18} /> Add Officer
-        </button>
-      </div>
-
-      <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(15,23,42,0.04)', overflow: 'hidden', marginBottom: 24 }}>
-        <div style={{ padding: '16px 20px', borderBottom: '1px solid #e2e8f0', background: '#f8fafc', display: 'flex', flexWrap: 'wrap', gap: '16px', alignItems: 'center', justifyContent: 'space-between' }}>
-          
-          <div style={{ position: 'relative', flex: '1 1 300px' }}>
-            <input 
-              type="text" 
-              placeholder="Search by name or username..." 
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              style={{ width: '100%', padding: '8px 12px 8px 36px', borderRadius: 20, border: '1px solid #e2e8f0', fontSize: '14px', background: '#fff', color: '#0f172a', outline: 'none' }}
-            />
-            <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
-          </div>
-          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-            <select 
-              style={{ padding: '8px 16px', borderRadius: 20, border: '1px solid #e2e8f0', fontSize: '14px', background: '#fff', color: '#0f172a', outline: 'none' }}
-              value={deptFilter} onChange={e => setDeptFilter(e.target.value)}
+        {/* ── Page Header ──────────────────────────────────────────────────── */}
+        <ReportPageHeader
+          title="Manage Officers"
+          subtitle="View, assign, and provision field officers across all municipal departments"
+          icon={UserCheck}
+          iconBg="linear-gradient(135deg, #0f172a, #334155)"
+          iconColor="#38bdf8"
+          isDark={isDark}
+          lastRefresh={lastRefresh}
+          onRefresh={fetchOfficers}
+          refreshing={loading}
+          extraButtons={
+            <button
+              onClick={openAddModal}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 8, padding: '9px 18px', borderRadius: 10,
+                background: 'linear-gradient(135deg, #3b82f6, #2563eb)', color: '#ffffff',
+                border: 'none', fontSize: 13, fontWeight: 800, cursor: 'pointer',
+                boxShadow: '0 4px 14px rgba(59,130,246,0.35)', transition: 'transform 0.15s'
+              }}
             >
-              <option value="ALL">All Departments</option>
-              {departments.map(d => <option key={d} value={d}>{d}</option>)}
-            </select>
-            <select 
-              style={{ padding: '8px 16px', borderRadius: 20, border: '1px solid #e2e8f0', fontSize: '14px', background: '#fff', color: '#0f172a', outline: 'none' }}
-              value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
-            >
-              <option value="ALL">All Status</option>
-              <option value="Active">Active</option>
-              <option value="Inactive">Inactive</option>
-            </select>
-          </div>
+              <Plus size={16} /> Add Officer
+            </button>
+          }
+        />
+
+        {/* ── KPI Stat Cards ────────────────────────────────────────────────── */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
+          <KpiCard icon={Users} label="Total Officers" value={totalOfficersCount} color="#3b82f6" bg="#eff6ff" isDark={isDark} />
+          <KpiCard icon={CheckCircle2} label="Active Field Officers" value={activeOfficersCount} subtitle={`${((activeOfficersCount / (totalOfficersCount || 1)) * 100).toFixed(0)}% available`} color="#10b981" bg="#f0fdf4" isDark={isDark} />
+          <KpiCard icon={Briefcase} label="Total Assigned Cases" value={totalAssignedCases} subtitle="Complaints & applications" color="#8b5cf6" bg="#f5f3ff" isDark={isDark} />
+          <KpiCard icon={Award} label="Avg Resolution Rate" value={`${avgResolutionRate}%`} subtitle="Performance score" color="#f59e0b" bg="#fff7ed" isDark={isDark} />
         </div>
 
-        {loading ? (
-          <div style={{ padding: 40, textAlign: 'center' }}><PageLoader message="Fetching officers..." /></div>
-        ) : (
-          <div style={{ overflowX: 'auto', padding: '0 0 20px 0' }}>
+        {/* ── Section Card Container ───────────────────────────────────────── */}
+        <SectionCard
+          title="Field Officers Directory"
+          subtitle="Filter and inspect individual municipal officer workloads"
+          icon={UserCheck}
+          isDark={isDark}
+          action={
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+              <div style={{ position: 'relative', width: 240 }}>
+                <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+                <input 
+                  type="text" 
+                  placeholder="Search by name or @username..." 
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  style={{
+                    width: '100%', padding: '6px 10px 6px 32px', borderRadius: 8,
+                    border: `1px solid ${isDark ? '#475569' : '#e2e8f0'}`, fontSize: 13,
+                    background: isDark ? '#1e293b' : '#fff', color: isDark ? '#f1f5f9' : '#0f172a', outline: 'none'
+                  }}
+                />
+                {search && (
+                  <button onClick={() => setSearch('')} style={{
+                    position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
+                    background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8',
+                  }}>
+                    <X size={13} />
+                  </button>
+                )}
+              </div>
+
+              <select 
+                style={{
+                  padding: '6px 12px', borderRadius: 8, border: `1px solid ${isDark ? '#475569' : '#e2e8f0'}`,
+                  fontSize: 13, background: isDark ? '#1e293b' : '#fff', color: isDark ? '#f1f5f9' : '#0f172a', outline: 'none', fontWeight: 600
+                }}
+                value={deptFilter} onChange={e => setDeptFilter(e.target.value)}
+              >
+                <option value="ALL">All Departments</option>
+                {departments.map(d => <option key={d} value={d}>{d}</option>)}
+              </select>
+
+              <select 
+                style={{
+                  padding: '6px 12px', borderRadius: 8, border: `1px solid ${isDark ? '#475569' : '#e2e8f0'}`,
+                  fontSize: 13, background: isDark ? '#1e293b' : '#fff', color: isDark ? '#f1f5f9' : '#0f172a', outline: 'none', fontWeight: 600
+                }}
+                value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
+              >
+                <option value="ALL">All Statuses</option>
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+              </select>
+            </div>
+          }
+        >
+          <div style={{ overflowX: 'auto', margin: '-20px -22px', marginTop: '-20px', marginBottom: '-20px' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
               <thead>
-                <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-                  <th style={{ padding: '12px 20px', fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Officer Name</th>
-                  <th style={{ padding: '12px 20px', fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Username</th>
-                  <th style={{ padding: '12px 20px', fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Department</th>
-                  <th style={{ padding: '12px 20px', fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Role</th>
-                  <th style={{ padding: '12px 20px', fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Contact Info</th>
-                  <th style={{ padding: '12px 20px', fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Cases (Total/Res)</th>
-                  <th style={{ padding: '12px 20px', fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Resolution %</th>
-                  <th style={{ padding: '12px 20px', fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Status</th>
-                  <th style={{ padding: '12px 20px', fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', textAlign: 'right' }}>Actions</th>
+                <tr style={{ background: isDark ? '#0f172a' : '#f8fafc', borderBottom: `1px solid ${isDark ? '#334155' : '#e2e8f0'}` }}>
+                  <th style={{ padding: '12px 16px', fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Officer</th>
+                  <th style={{ padding: '12px 16px', fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Username</th>
+                  <th style={{ padding: '12px 16px', fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Department</th>
+                  <th style={{ padding: '12px 16px', fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Role</th>
+                  <th style={{ padding: '12px 16px', fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Contact Details</th>
+                  <th style={{ padding: '12px 16px', fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Workload</th>
+                  <th style={{ padding: '12px 16px', fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Resolution %</th>
+                  <th style={{ padding: '12px 16px', fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Status</th>
+                  <th style={{ padding: '12px 16px', fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em', textAlign: 'right' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredOfficers.map((o) => (
-                  <tr key={o.id} style={{ borderBottom: '1px solid #e2e8f0' }}>
-                    <td style={{ padding: '16px 20px', fontWeight: '600', color: '#0f172a' }}>{o.officerName}</td>
-                    <td style={{ padding: '16px 20px', fontSize: 13, fontFamily: 'monospace', color: '#64748b' }}>@{o.username}</td>
-                    <td style={{ padding: '16px 20px', fontSize: 14 }}>{o.department}</td>
-                    <td style={{ padding: '16px 20px' }}>
-                      <span style={{
-                        background: o.role === 'SENIOR_OFFICER' ? '#cff4fc' : '#cfe2ff',
-                        color: o.role === 'SENIOR_OFFICER' ? '#055160' : '#084298',
-                        padding: '3px 9px', borderRadius: 20, fontSize: 11, fontWeight: 700, border: '1px solid rgba(0,0,0,0.05)'
-                      }}>
-                        {o.role?.replace('_', ' ')}
-                      </span>
-                    </td>
-                    <td style={{ padding: '16px 20px', color: '#64748b', fontSize: '13px' }}>
-                      <div style={{ marginBottom: 4 }}>📧 {o.email}</div>
-                      <div>📞 {o.phoneNumber}</div>
-                    </td>
-                    <td style={{ padding: '16px 20px' }}>
-                      <div style={{ fontWeight: 700, color: '#0f172a' }}>{o.totalAssigned}</div>
-                      <div style={{ fontSize: 12, color: '#64748b' }}>{o.totalResolved} Resolved</div>
-                    </td>
-                    <td style={{ padding: '16px 20px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <div style={{ height: 6, width: 60, background: '#f1f5f9', borderRadius: 3, overflow: 'hidden' }}>
-                          <div style={{
-                            height: '100%',
-                            background: o.resolutionRate > 80 ? '#10b981' : o.resolutionRate > 50 ? '#f59e0b' : '#ef4444',
-                            width: `${o.resolutionRate}%`
-                          }}></div>
+                  <tr key={o.id} style={{ borderBottom: `1px solid ${isDark ? '#334155' : '#f1f5f9'}` }} onMouseEnter={e => e.currentTarget.style.background = isDark ? '#0f172a' : '#f8fafc'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                    <td style={{ padding: '14px 16px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <OfficerAvatar name={o.officerName} />
+                        <div>
+                          <div style={{ fontWeight: 700, color: isDark ? '#f1f5f9' : '#0f172a', fontSize: 14 }}>{o.officerName}</div>
+                          <div style={{ fontSize: 11, color: '#94a3b8', fontWeight: 500 }}>ID: {o.id?.toString().substring(0, 8)}</div>
                         </div>
-                        <span style={{ fontSize: 12, fontWeight: 700, color: '#0f172a' }}>{o.resolutionRate}%</span>
                       </div>
                     </td>
-                    <td style={{ padding: '16px 20px' }}>
+                    <td style={{ padding: '14px 16px', fontSize: 13, fontFamily: 'monospace', color: '#3b82f6', fontWeight: 700 }}>
+                      @{o.username}
+                    </td>
+                    <td style={{ padding: '14px 16px', fontSize: 13, color: isDark ? '#cbd5e1' : '#475569', fontWeight: 500 }}>
+                      {o.department}
+                    </td>
+                    <td style={{ padding: '14px 16px' }}>
                       <span style={{
-                        background: o.status === 'Active' ? '#f0fdf4' : '#f8fafc',
-                        color: o.status === 'Active' ? '#15803d' : '#64748b',
-                        padding: '3px 9px', borderRadius: 20, fontSize: 11, fontWeight: 700, border: o.status === 'Active' ? '1px solid #bbf7d0' : '1px solid #e2e8f0'
+                        padding: '3px 10px', borderRadius: 12, fontSize: 11, fontWeight: 800,
+                        background: o.role === 'SENIOR_OFFICER' ? (isDark ? 'rgba(124,58,237,0.15)' : '#f3e8ff') : (isDark ? 'rgba(37,99,235,0.15)' : '#eff6ff'),
+                        color: o.role === 'SENIOR_OFFICER' ? (isDark ? '#c084fc' : '#7c3aed') : (isDark ? '#60a5fa' : '#2563eb'),
+                        border: `1px solid ${o.role === 'SENIOR_OFFICER' ? (isDark ? 'rgba(124,58,237,0.3)' : '#ddd6fe') : (isDark ? 'rgba(37,99,235,0.3)' : '#bfdbfe')}`
                       }}>
+                        {o.role?.replace(/_/g, ' ')}
+                      </span>
+                    </td>
+                    <td style={{ padding: '14px 16px', fontSize: 12, color: isDark ? '#cbd5e1' : '#475569' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                        <Mail size={12} color="#94a3b8" /> {o.email}
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <Phone size={12} color="#94a3b8" /> {o.phoneNumber}
+                      </div>
+                    </td>
+                    <td style={{ padding: '14px 16px' }}>
+                      <div style={{ fontWeight: 800, color: isDark ? '#f1f5f9' : '#0f172a', fontSize: 13 }}>{o.totalAssigned} Cases</div>
+                      <div style={{ fontSize: 11, color: '#10b981', fontWeight: 600 }}>{o.totalResolved} Resolved</div>
+                    </td>
+                    <td style={{ padding: '14px 16px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <div style={{ height: 6, width: 60, background: isDark ? '#334155' : '#f1f5f9', borderRadius: 3, overflow: 'hidden' }}>
+                          <div style={{
+                            height: '100%',
+                            background: o.resolutionRate > 80 ? '#10b981' : o.resolutionRate > 40 ? '#f59e0b' : '#ef4444',
+                            width: `${o.resolutionRate}%`, borderRadius: 3
+                          }} />
+                        </div>
+                        <span style={{ fontSize: 12, fontWeight: 800, color: isDark ? '#f1f5f9' : '#0f172a' }}>{o.resolutionRate}%</span>
+                      </div>
+                    </td>
+                    <td style={{ padding: '14px 16px' }}>
+                      <span style={{
+                        display: 'inline-flex', alignItems: 'center', gap: 5,
+                        padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 800,
+                        background: o.status === 'Active' ? (isDark ? 'rgba(16,185,129,0.15)' : '#f0fdf4') : (isDark ? '#334155' : '#f8fafc'),
+                        color: o.status === 'Active' ? (isDark ? '#4ade80' : '#15803d') : '#94a3b8',
+                        border: `1px solid ${o.status === 'Active' ? (isDark ? 'rgba(16,185,129,0.3)' : '#bbf7d0') : (isDark ? '#475569' : '#e2e8f0')}`
+                      }}>
+                        <span style={{ width: 6, height: 6, borderRadius: '50%', background: o.status === 'Active' ? '#10b981' : '#94a3b8' }} />
                         {o.status}
                       </span>
                     </td>
-                    <td style={{ padding: '16px 20px', textAlign: 'right' }}>
+                    <td style={{ padding: '14px 16px', textAlign: 'right' }}>
                       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-                        <button onClick={() => openEditModal(o)} style={{
-                          background: '#fff', color: '#3b82f6', border: '1px solid #e2e8f0', padding: '6px',
-                          borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          width: 32, height: 32
+                        <button onClick={() => openEditModal(o)} title="Edit Officer" style={{
+                          background: isDark ? '#334155' : '#f1f5f9', color: isDark ? '#38bdf8' : '#2563eb', border: `1px solid ${isDark ? '#475569' : '#e2e8f0'}`,
+                          width: 32, height: 32, borderRadius: 8, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s'
                         }}>
                           <Edit2 size={14} />
                         </button>
-                        <button onClick={() => handleDelete(o.id)} style={{
-                          background: '#fff', color: '#ef4444', border: '1px solid #e2e8f0', padding: '6px',
-                          borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          width: 32, height: 32
+                        <button onClick={() => handleDelete(o.id)} title="Delete Officer" style={{
+                          background: isDark ? '#334155' : '#fef2f2', color: '#ef4444', border: `1px solid ${isDark ? '#475569' : '#fecaca'}`,
+                          width: 32, height: 32, borderRadius: 8, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s'
                         }}>
                           <Trash2 size={14} />
                         </button>
@@ -314,76 +411,154 @@ function AdminOfficers() {
               </tbody>
             </table>
           </div>
-        )}
+        </SectionCard>
       </div>
 
+      {/* Add / Edit Officer Modal */}
       {showModal && (
-        <>
-          <div className="modal-backdrop fade show"></div>
-          <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-            <div className="modal-dialog modal-dialog-centered modal-lg">
-              <div className="modal-content rounded-4 border-0 shadow-lg">
-                <div className="modal-header border-bottom-0 pb-0 pt-4 px-4">
-                  <h4 className="modal-title fw-bold">{isEditing ? 'Edit Officer' : 'Add New Officer'}</h4>
-                  <button type="button" className="btn-close" onClick={() => setShowModal(false)}></button>
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(15,23,42,0.6)', backdropFilter: 'blur(4px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20
+        }}>
+          <div style={{
+            background: isDark ? '#1e293b' : '#fff', borderRadius: 20, width: '100%', maxWidth: 640,
+            border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`, boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)', overflow: 'hidden'
+          }}>
+            <div style={{
+              padding: '20px 24px', borderBottom: `1px solid ${isDark ? '#334155' : '#f1f5f9'}`,
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: isDark ? '#0f172a' : '#f8fafc'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <UserCheck size={20} color="#3b82f6" />
+                <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: isDark ? '#f1f5f9' : '#0f172a' }}>
+                  {isEditing ? 'Edit Officer' : 'Add New Field Officer'}
+                </h3>
+              </div>
+              <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8' }}>
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmit} style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: isDark ? '#cbd5e1' : '#475569', marginBottom: 6 }}>Full Name *</label>
+                  <input
+                    required type="text" name="officerName" value={formData.officerName} onChange={handleInputChange}
+                    placeholder="e.g. John Officer"
+                    style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: `1px solid ${isDark ? '#475569' : '#cbd5e1'}`, background: isDark ? '#0f172a' : '#fff', color: isDark ? '#f1f5f9' : '#0f172a', fontSize: 13, outline: 'none', boxSizing: 'border-box' }}
+                  />
                 </div>
-                <div className="modal-body p-4">
-                  <form onSubmit={handleSubmit} className="row g-3">
-                    <div className="col-12">
-                      <label className="form-label fw-semibold">Full Name</label>
-                      <input required type="text" className="form-control" name="officerName" value={formData.officerName} onChange={handleInputChange} />
-                    </div>
-                    <div className="col-md-6">
-                      <label className="form-label fw-semibold">Username</label>
-                      <input required type="text" className="form-control" name="username" value={formData.username} onChange={handleInputChange} disabled={isEditing} />
-                      {!isEditing && <div className="form-text">Will be used for Keycloak login.</div>}
-                    </div>
-                    <div className="col-md-6">
-                      <label className="form-label fw-semibold">Email</label>
-                      <input required type="email" className="form-control" name="email" value={formData.email} onChange={handleInputChange} />
-                    </div>
-                    <div className="col-md-6">
-                      <label className="form-label fw-semibold">Phone Number</label>
-                      <input required type="text" className="form-control" name="phoneNumber" value={formData.phoneNumber} onChange={handleInputChange} />
-                    </div>
-                    <div className="col-md-6">
-                      <label className="form-label fw-semibold">Status</label>
-                      <select required className="form-select" name="status" value={formData.status} onChange={handleInputChange}>
-                        <option value="Active">Active</option>
-                        <option value="Inactive">Inactive</option>
-                      </select>
-                    </div>
-                    <div className="col-md-6">
-                      <label className="form-label fw-semibold">Department</label>
-                      <select required className="form-select" name="department" value={formData.department} onChange={handleInputChange}>
-                        {departments.map(d => <option key={d} value={d}>{d}</option>)}
-                      </select>
-                    </div>
-                    <div className="col-md-6">
-                      <label className="form-label fw-semibold">Role</label>
-                      <select required className="form-select" name="role" value={formData.role} onChange={handleInputChange}>
-                        <option value="OFFICER">Officer</option>
-                        <option value="SENIOR_OFFICER">Senior Officer</option>
-                      </select>
-                    </div>
-                    {!isEditing && (
-                      <div className="col-12 mt-4 bg-light p-3 rounded-3 text-muted small d-flex align-items-center gap-2">
-                        <KeyRound size={16} /> 
-                        <span>A default password <strong>Password123</strong> will be assigned to this user automatically upon creation.</span>
-                      </div>
-                    )}
-                    <div className="col-12 text-end mt-4">
-                      <button type="button" className="btn btn-light me-2" onClick={() => setShowModal(false)}>Cancel</button>
-                      <button type="submit" className="btn btn-primary px-4 fw-bold">{isEditing ? 'Save Changes' : 'Create Officer'}</button>
-                    </div>
-                  </form>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: isDark ? '#cbd5e1' : '#475569', marginBottom: 6 }}>Username *</label>
+                  <input
+                    required type="text" name="username" value={formData.username} onChange={handleInputChange} disabled={isEditing}
+                    placeholder="e.g. john"
+                    style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: `1px solid ${isDark ? '#475569' : '#cbd5e1'}`, background: isEditing ? (isDark ? '#334155' : '#f1f5f9') : (isDark ? '#0f172a' : '#fff'), color: isDark ? '#f1f5f9' : '#0f172a', fontSize: 13, outline: 'none', boxSizing: 'border-box' }}
+                  />
                 </div>
               </div>
-            </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: isDark ? '#cbd5e1' : '#475569', marginBottom: 6 }}>Email Address *</label>
+                  <input
+                    required type="email" name="email" value={formData.email} onChange={handleInputChange}
+                    placeholder="e.g. john@muni.gov"
+                    style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: `1px solid ${isDark ? '#475569' : '#cbd5e1'}`, background: isDark ? '#0f172a' : '#fff', color: isDark ? '#f1f5f9' : '#0f172a', fontSize: 13, outline: 'none', boxSizing: 'border-box' }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: isDark ? '#cbd5e1' : '#475569', marginBottom: 6 }}>Phone Number *</label>
+                  <input
+                    required type="text" name="phoneNumber" value={formData.phoneNumber} onChange={handleInputChange}
+                    placeholder="e.g. 9100000000"
+                    style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: `1px solid ${isDark ? '#475569' : '#cbd5e1'}`, background: isDark ? '#0f172a' : '#fff', color: isDark ? '#f1f5f9' : '#0f172a', fontSize: 13, outline: 'none', boxSizing: 'border-box' }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: isDark ? '#cbd5e1' : '#475569', marginBottom: 6 }}>Department *</label>
+                  <select
+                    required name="department" value={formData.department} onChange={handleInputChange}
+                    style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: `1px solid ${isDark ? '#475569' : '#cbd5e1'}`, background: isDark ? '#0f172a' : '#fff', color: isDark ? '#f1f5f9' : '#0f172a', fontSize: 13, outline: 'none' }}
+                  >
+                    {departments.map(d => <option key={d} value={d}>{d}</option>)}
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: isDark ? '#cbd5e1' : '#475569', marginBottom: 6 }}>Role *</label>
+                  <select
+                    required name="role" value={formData.role} onChange={handleInputChange}
+                    style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: `1px solid ${isDark ? '#475569' : '#cbd5e1'}`, background: isDark ? '#0f172a' : '#fff', color: isDark ? '#f1f5f9' : '#0f172a', fontSize: 13, outline: 'none' }}
+                  >
+                    <option value="OFFICER">Officer</option>
+                    <option value="SENIOR_OFFICER">Senior Officer</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: isDark ? '#cbd5e1' : '#475569', marginBottom: 6 }}>Status *</label>
+                  <select
+                    required name="status" value={formData.status} onChange={handleInputChange}
+                    style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: `1px solid ${isDark ? '#475569' : '#cbd5e1'}`, background: isDark ? '#0f172a' : '#fff', color: isDark ? '#f1f5f9' : '#0f172a', fontSize: 13, outline: 'none' }}
+                  >
+                    <option value="Active">Active</option>
+                    <option value="Inactive">Inactive</option>
+                  </select>
+                </div>
+              </div>
+
+              {!isEditing && (
+                <div>
+                  <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: isDark ? '#cbd5e1' : '#475569', marginBottom: 6 }}>Keycloak Password</label>
+                  <input
+                    type="password" name="password" value={formData.password} onChange={handleInputChange}
+                    placeholder="Custom password (or default: Password123)"
+                    style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: `1px solid ${isDark ? '#475569' : '#cbd5e1'}`, background: isDark ? '#0f172a' : '#fff', color: isDark ? '#f1f5f9' : '#0f172a', fontSize: 13, outline: 'none', boxSizing: 'border-box' }}
+                  />
+                  <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 4 }}>
+                    Assigned for officer authentication.
+                  </div>
+                </div>
+              )}
+
+              {!isEditing && (
+                <div style={{ padding: 14, borderRadius: 12, background: isDark ? '#0f172a' : '#f8fafc', border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`, display: 'flex', alignItems: 'center', gap: 10, fontSize: 12, color: isDark ? '#cbd5e1' : '#64748b' }}>
+                  <KeyRound size={16} color="#3b82f6" />
+                  <span>
+                    New officer will be provisioned in <strong>Keycloak</strong> with <strong>{formData.role}</strong> role. They can log in immediately using @{formData.username || 'username'} or {formData.email || 'email'}.
+                  </span>
+                </div>
+              )}
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, marginTop: 12, paddingTop: 16, borderTop: `1px solid ${isDark ? '#334155' : '#f1f5f9'}` }}>
+                <button
+                  type="button" onClick={() => setShowModal(false)}
+                  style={{ padding: '8px 18px', borderRadius: 8, border: `1px solid ${isDark ? '#475569' : '#cbd5e1'}`, background: isDark ? '#334155' : '#fff', color: isDark ? '#f1f5f9' : '#475569', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  style={{ padding: '8px 22px', borderRadius: 8, border: 'none', background: 'linear-gradient(135deg,#3b82f6,#2563eb)', color: '#fff', fontSize: 13, fontWeight: 800, cursor: 'pointer', boxShadow: '0 4px 12px rgba(59,130,246,0.3)' }}
+                >
+                  {isEditing ? 'Save Changes' : 'Create Officer'}
+                </button>
+              </div>
+            </form>
           </div>
-        </>
+        </div>
       )}
-      </div>
+
+      <style>{`
+        ${GLOBAL_STYLES}
+      `}</style>
     </AppShell>
   );
 }

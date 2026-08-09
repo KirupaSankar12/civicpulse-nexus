@@ -202,6 +202,29 @@ public class KafkaConsumerService {
         }
     }
 
+    @KafkaListener(topics = "complaint-escalated", groupId = "notification-group")
+    public void consumeComplaintEscalated(String message) {
+        try {
+            ComplaintEvent event = objectMapper.readValue(message, ComplaintEvent.class);
+            saveNotification("admin", "Complaint Escalated Alert",
+                    "Complaint " + (event.getComplaintId() != null ? event.getComplaintId() : "") + " has breached SLA deadline and requires immediate administrative attention.",
+                    event.getComplaintId(), "COMPLAINT", "complaint-escalated", "ADMIN");
+        } catch (Exception e) {
+            System.err.println("Failed to process complaint-escalated: " + e.getMessage());
+        }
+    }
+
+    @KafkaListener(topics = "budget-threshold-alert", groupId = "notification-group")
+    public void consumeBudgetThresholdAlert(String message) {
+        try {
+            saveNotification("admin", "Budget Threshold Alert",
+                    "Welfare budget utilization has exceeded normal operating threshold. Please review fund allocations.",
+                    "BUDGET", "WELFARE", "budget-threshold-alert", "ADMIN");
+        } catch (Exception e) {
+            System.err.println("Failed to process budget-threshold-alert: " + e.getMessage());
+        }
+    }
+
 
     // ────────────────────────────────────────────────────────────────────────
     // WELFARE EVENTS (Milestone 3 - 10 Core Notifications)

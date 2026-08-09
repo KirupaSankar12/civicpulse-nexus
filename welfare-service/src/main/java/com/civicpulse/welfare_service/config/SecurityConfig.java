@@ -71,6 +71,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/welfare/receipts/**").authenticated()
 
                 // ── Dashboard ─────────────────────────────────────────────
+                .requestMatchers(HttpMethod.GET, "/api/welfare/dashboard/stats").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/welfare/dashboard/**").hasAnyRole("ADMIN", "APPROVER", "AUTHORITY", "FINANCE_OFFICER")
 
                 .anyRequest().authenticated()

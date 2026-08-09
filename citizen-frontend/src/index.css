@@ -140,6 +140,20 @@
   color-scheme: dark;
 }
 
+/* Universal Input & Placeholder Alignment Fix */
+input, select, textarea {
+  box-sizing: border-box !important;
+  line-height: normal !important;
+  vertical-align: middle !important;
+}
+
+input::placeholder, select::placeholder, textarea::placeholder {
+  color: #94a3b8 !important;
+  opacity: 1 !important;
+  line-height: normal !important;
+  vertical-align: middle !important;
+}
+
 /* ==========================================
    CLASSIC WHITE & BLUE THEME OVERRIDES
    ========================================== */
@@ -2886,6 +2900,96 @@ main > div > div:first-child[style*="border-radius: 20"],
 .page-hero {
   margin-top: 6px !important;
 }
+
+/* ==========================================
+   MODERN WEBAPP KEYFRAMES & GLASS STYLES
+   ========================================== */
+@keyframes civicPulseGlow {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+}
+
+@keyframes civicFloatSlow {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes civicShimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes storyRingSpin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes chatBubbleSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.civic-pulse-badge {
+  animation: civicPulseGlow 2.5s infinite ease-in-out;
+}
+
+.civic-float {
+  animation: civicFloatSlow 4s infinite ease-in-out;
+}
+
+.civic-chat-bubble {
+  animation: chatBubbleSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.civic-glass-card {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.civic-glass-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.12);
+}
+
+/* Custom scrollbar for modern app feel */
+.civic-scrollbar::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+.civic-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.civic-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.4);
+  border-radius: 9999px;
+}
+.civic-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.7);
+}
+
 
 
 

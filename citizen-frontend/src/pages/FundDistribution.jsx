@@ -1,6 +1,8 @@
 import { useEffect, useState, useMemo } from 'react';
 import api from '../api.js';
 import AppShell from '../components/AppShell.jsx';
+import { useTheme } from '../context/ThemeContext.jsx';
+import { ReportPageHeader, KpiCard, SectionCard, GLOBAL_STYLES } from '../components/ReportShared.jsx';
 import { 
   DollarSign, CheckCircle2, CheckCircle, Download, FileText, Search, X, Hash, Calendar, Building2, Layers, Check, ShieldCheck, Landmark, Clock
 } from 'lucide-react';
@@ -27,6 +29,9 @@ function StatCard({ label, value, icon: Icon, color }) {
 }
 
 export default function FundDistribution() {
+  const { effectiveTheme } = useTheme();
+  const isDark = effectiveTheme === 'dark';
+
   const [payments, setPayments] = useState([]);
   const [schemes, setSchemes] = useState({});
   const [loading, setLoading] = useState(true);
@@ -70,60 +75,45 @@ export default function FundDistribution() {
   const todayStr = new Date().toISOString().split('T')[0];
   const todayPayments = payments.filter(p => p.approvedDate && p.approvedDate.startsWith(todayStr)).length;
 
-  const thStyle = {
-    padding: '12px 14px', fontSize: 11, fontWeight: 700, color: '#475569',
-    textTransform: 'uppercase', letterSpacing: '0.06em', whiteSpace: 'nowrap',
-    background: '#f8fafc', borderBottom: '2px solid #e2e8f0', textAlign: 'left'
-  };
-
   return (
     <AppShell title="Payment History">
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 22, paddingBottom: 40 }}>
+      <div style={{ maxWidth: 1600, margin: '0 auto', padding: '12px 0 40px', display: 'flex', flexDirection: 'column', gap: 24 }}>
 
         {/* ── Page Header ──────────────────────────────────────────────────── */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{
-              width: 38, height: 38, borderRadius: 10,
-              background: 'linear-gradient(135deg,#f59e0b,#d97706)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 4px 12px rgba(245,158,11,0.35)',
-            }}>
-              <DollarSign size={18} color="#fff" />
-            </div>
-            <div>
-              <h1 style={{ fontSize: 20, fontWeight: 800, color: '#0f172a', margin: 0 }}>
-                Payment History
-              </h1>
-              <p style={{ fontSize: 13, color: '#64748b', margin: 0, marginTop: 2 }}>
-                Track every Direct Benefit Transfer (DBT) transaction.
-              </p>
-            </div>
-          </div>
-        </div>
+        <ReportPageHeader
+          title="Payment History"
+          subtitle="Track every Direct Benefit Transfer (DBT) transaction across all welfare schemes"
+          icon={DollarSign}
+          iconBg="linear-gradient(135deg, #0f172a, #334155)"
+          iconColor="#38bdf8"
+          isDark={isDark}
+          lastRefresh={new Date()}
+          onRefresh={load}
+          refreshing={loading}
+        />
 
         {/* ── Stats Row ────────────────────────────────────────────────────── */}
-        <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
-          <StatCard label="Total Payments" value={payments.length} icon={FileText} color="#3b82f6" />
-          <StatCard label="Today's Payments" value={todayPayments} icon={Calendar} color="#f59e0b" />
-          <StatCard label="Total Amount Disbursed" value={`₹${totalAmount.toLocaleString('en-IN')}`} icon={DollarSign} color="#10b981" />
-          <StatCard label="Pending Payments" value={0} icon={Clock} color="#64748b" />
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
+          <KpiCard icon={FileText} label="Total Payments" value={payments.length} color="#3b82f6" bg="#eff6ff" isDark={isDark} />
+          <KpiCard icon={Calendar} label="Today's Payments" value={todayPayments} color="#f59e0b" bg="#fff7ed" isDark={isDark} />
+          <KpiCard icon={DollarSign} label="Total Amount Disbursed" value={`₹${totalAmount.toLocaleString('en-IN')}`} color="#10b981" bg="#f0fdf4" isDark={isDark} />
+          <KpiCard icon={Clock} label="Pending Payments" value={0} color="#8b5cf6" bg="#f5f3ff" isDark={isDark} />
         </div>
 
-        {/* ── Main Card ────────────────────────────────────────────────────── */}
-        <div style={{
-          background: '#fff', borderRadius: 16, border: '1.5px solid #e2e8f0',
-          boxShadow: '0 2px 12px rgba(15,23,42,0.07)', overflow: 'hidden',
-        }}>
-          {/* Toolbar */}
-          <div style={{ padding: '14px 18px', borderBottom: '2px solid #f1f5f9', display: 'flex', gap: 10, alignItems: 'center', background: '#fafbfc' }}>
-            <div style={{ position: 'relative', flex: '1 1 200px', maxWidth: 400 }}>
+        {/* ── Main Section Card ────────────────────────────────────────────── */}
+        <SectionCard
+          title="Disbursement Audit Trail"
+          subtitle="Verified Direct Benefit Transfer history and receipt generation"
+          icon={DollarSign}
+          isDark={isDark}
+          action={
+            <div style={{ position: 'relative', width: 300 }}>
               <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
               <input
-                placeholder="Search by Transaction ID, Beneficiary ID or Name..." value={search} onChange={e => setSearch(e.target.value)}
+                placeholder="Search Transaction ID, Beneficiary ID or Name..." value={search} onChange={e => setSearch(e.target.value)}
                 style={{
-                  width: '100%', padding: '8px 10px 8px 32px', border: '1.5px solid #e2e8f0', borderRadius: 9,
-                  fontSize: 13, color: '#1e293b', background: '#fff', outline: 'none', boxSizing: 'border-box',
+                  width: '100%', padding: '6px 10px 6px 32px', border: `1px solid ${isDark ? '#475569' : '#e2e8f0'}`, borderRadius: 8,
+                  fontSize: 13, color: isDark ? '#f1f5f9' : '#1e293b', background: isDark ? '#1e293b' : '#fff', outline: 'none', boxSizing: 'border-box',
                 }}
               />
               {search && (
@@ -135,9 +125,8 @@ export default function FundDistribution() {
                 </button>
               )}
             </div>
-          </div>
-
-          {/* Table */}
+          }
+        >
           {loading ? (
             <div style={{ padding: 60, textAlign: 'center' }}>
               <div style={{
@@ -150,55 +139,55 @@ export default function FundDistribution() {
           ) : filtered.length === 0 ? (
             <div style={{ padding: 60, textAlign: 'center' }}>
               <div style={{ fontSize: 56, marginBottom: 12 }}>💳</div>
-              <div style={{ fontSize: 16, fontWeight: 700, color: '#334155', marginBottom: 6 }}>No transactions found</div>
+              <div style={{ fontSize: 16, fontWeight: 700, color: isDark ? '#f1f5f9' : '#334155', marginBottom: 6 }}>No transactions found</div>
             </div>
           ) : (
-            <div style={{ overflowX: 'auto' }}>
+            <div style={{ overflowX: 'auto', margin: '-20px -22px', marginTop: '-20px', marginBottom: '-20px' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
-                  <tr>
-                    <th style={thStyle}>Transaction ID</th>
-                    <th style={thStyle}>Beneficiary</th>
-                    <th style={thStyle}>Scheme</th>
-                    <th style={thStyle}>Amount</th>
-                    <th style={thStyle}>Date</th>
-                    <th style={thStyle}>Status</th>
-                    <th style={{ ...thStyle, width: 120 }}>Receipt</th>
+                  <tr style={{ background: isDark ? '#0f172a' : '#f8fafc', borderBottom: `1px solid ${isDark ? '#334155' : '#e2e8f0'}` }}>
+                    <th style={{ padding: '12px 16px', fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em', textAlign: 'left' }}>Transaction ID</th>
+                    <th style={{ padding: '12px 16px', fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em', textAlign: 'left' }}>Beneficiary</th>
+                    <th style={{ padding: '12px 16px', fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em', textAlign: 'left' }}>Scheme</th>
+                    <th style={{ padding: '12px 16px', fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em', textAlign: 'left' }}>Amount</th>
+                    <th style={{ padding: '12px 16px', fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em', textAlign: 'left' }}>Date</th>
+                    <th style={{ padding: '12px 16px', fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em', textAlign: 'left' }}>Status</th>
+                    <th style={{ padding: '12px 16px', fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em', textAlign: 'left', width: 120 }}>Receipt</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filtered.map(p => (
-                    <tr key={p.beneficiaryId} style={{ borderBottom: '1px solid #f1f5f9' }} onMouseEnter={e => e.currentTarget.style.background = '#f8fafc'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                      <td style={{ padding: '13px 14px', fontFamily: 'monospace', fontWeight: 700, color: '#3b82f6', fontSize: 13 }}>
+                    <tr key={p.beneficiaryId} style={{ borderBottom: `1px solid ${isDark ? '#334155' : '#f1f5f9'}` }} onMouseEnter={e => e.currentTarget.style.background = isDark ? '#0f172a' : '#f8fafc'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                      <td style={{ padding: '14px 16px', fontFamily: 'monospace', fontWeight: 700, color: '#3b82f6', fontSize: 13 }}>
                         {p.transactionId}
                       </td>
-                      <td style={{ padding: '13px 14px' }}>
-                        <div style={{ fontWeight: 700, color: '#1e293b', fontSize: 13 }}>{p.applicantName}</div>
-                        <div style={{ fontSize: 11, color: '#64748b', fontFamily: 'monospace' }}>{p.beneficiaryCode}</div>
+                      <td style={{ padding: '14px 16px' }}>
+                        <div style={{ fontWeight: 700, color: isDark ? '#f1f5f9' : '#1e293b', fontSize: 13 }}>{p.applicantName}</div>
+                        <div style={{ fontSize: 11, color: '#94a3b8', fontFamily: 'monospace' }}>{p.beneficiaryCode}</div>
                       </td>
-                      <td style={{ padding: '13px 14px', color: '#475569', fontSize: 13, fontWeight: 500 }}>
+                      <td style={{ padding: '14px 16px', color: isDark ? '#cbd5e1' : '#475569', fontSize: 13, fontWeight: 500 }}>
                         {schemes[p.schemeId] || p.schemeId?.substring(0, 8)}
                       </td>
-                      <td style={{ padding: '13px 14px', fontWeight: 800, color: '#059669', fontSize: 14 }}>
+                      <td style={{ padding: '14px 16px', fontWeight: 800, color: '#059669', fontSize: 14 }}>
                         ₹{Number(p.disbursedAmount || 0).toLocaleString('en-IN')}
                       </td>
-                      <td style={{ padding: '13px 14px', color: '#64748b', fontSize: 13, fontWeight: 500 }}>
+                      <td style={{ padding: '14px 16px', color: isDark ? '#cbd5e1' : '#64748b', fontSize: 13, fontWeight: 500 }}>
                         {p.approvedDate ? new Date(p.approvedDate).toLocaleDateString('en-IN') : '—'}
                       </td>
-                      <td style={{ padding: '13px 14px' }}>
+                      <td style={{ padding: '14px 16px' }}>
                         <span style={{
                           display: 'inline-flex', alignItems: 'center', padding: '3px 9px', borderRadius: 20,
-                          background: '#f0fdf4', color: '#15803d', border: '1px solid #bbf7d0', fontSize: 11, fontWeight: 700,
+                          background: isDark ? '#064e3b' : '#f0fdf4', color: isDark ? '#6ee7b7' : '#15803d', border: `1px solid ${isDark ? '#047857' : '#bbf7d0'}`, fontSize: 11, fontWeight: 700,
                         }}>
                           {p.fundTransferStatus || 'SUCCESS'}
                         </span>
                       </td>
-                      <td style={{ padding: '13px 14px' }}>
+                      <td style={{ padding: '14px 16px' }}>
                         <button onClick={() => setReceiptModal(p)} style={{
                           display: 'inline-flex', alignItems: 'center', gap: 5, padding: '6px 12px', borderRadius: 8,
-                          background: '#f1f5f9', color: '#1e293b', fontSize: 12, fontWeight: 700, cursor: 'pointer',
-                          border: '1px solid #e2e8f0', transition: 'background 0.2s'
-                        }} onMouseEnter={e => e.currentTarget.style.background = '#e2e8f0'} onMouseLeave={e => e.currentTarget.style.background = '#f1f5f9'}>
+                          background: isDark ? '#334155' : '#f1f5f9', color: isDark ? '#f1f5f9' : '#1e293b', fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                          border: `1px solid ${isDark ? '#475569' : '#e2e8f0'}`, transition: 'background 0.2s'
+                        }}>
                           <Download size={13} /> Download
                         </button>
                       </td>
@@ -208,7 +197,7 @@ export default function FundDistribution() {
               </table>
             </div>
           )}
-        </div>
+        </SectionCard>
 
         {/* Digital Receipt Modal */}
         {receiptModal && (

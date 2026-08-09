@@ -434,23 +434,12 @@ export default function DepartmentWelfareDashboard() {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#1e293b', padding: '6px 12px', borderRadius: 10, border: '1px solid #475569' }}>
-              <span style={{ fontSize: 12, color: '#94a3b8', fontWeight: 600 }}>Filter Dept:</span>
-              <select
-                value={selectedDept}
-                onChange={e => setSelectedDept(e.target.value)}
-                style={{
-                  background: '#0f172a', color: '#38bdf8', border: '1px solid #0284c7',
-                  borderRadius: 8, padding: '6px 10px', fontSize: 13, fontWeight: 700,
-                  cursor: 'pointer', outline: 'none'
-                }}
-              >
-                <option value="Social Welfare Department">Social Welfare Department</option>
-                <option value="Health Department">Health Department</option>
-                <option value="Education Department">Education Department</option>
-                <option value="All Departments">All Departments</option>
-              </select>
-            </div>
+            <span style={{
+              background: 'rgba(56,189,248,0.12)', color: '#38bdf8', border: '1px solid rgba(56,189,248,0.3)',
+              padding: '6px 14px', borderRadius: 20, fontSize: 12, fontWeight: 800, letterSpacing: '0.04em'
+            }}>
+              🏢 {selectedDept}
+            </span>
 
             <button
               onClick={loadData}

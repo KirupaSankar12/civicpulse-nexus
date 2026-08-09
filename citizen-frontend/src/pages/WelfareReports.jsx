@@ -6,7 +6,7 @@ import {
   PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid,
   Tooltip as RechartsTooltip, ResponsiveContainer, LineChart, Line, AreaChart, Area
 } from 'recharts';
-import { Users, Layers, Wallet, TrendingUp, Printer, BarChart2, CheckCircle2, ShieldAlert } from 'lucide-react';
+import { Users, Layers, Wallet, TrendingUp, Printer, BarChart2, CheckCircle2, ShieldAlert, Download } from 'lucide-react';
 import {
   KpiCard, SectionCard, ReportPageHeader, ErrorBanner,
   EmptyState, ChartTooltip, Skeleton, InfoCard, GLOBAL_STYLES, PALETTE
@@ -119,12 +119,50 @@ export default function WelfareReports() {
     return `₹${num.toLocaleString('en-IN')}`;
   }
 
+  const handleExportExecutiveSummary = () => {
+    const summaryRows = [
+      { Category: 'EXECUTIVE_SUMMARY', Metric: 'Total Beneficiaries', Value: stats?.totalBeneficiaries || 0 },
+      { Category: 'EXECUTIVE_SUMMARY', Metric: 'Total Schemes', Value: stats?.totalSchemes || 0 },
+      { Category: 'EXECUTIVE_SUMMARY', Metric: 'Total Budget Allocated (INR)', Value: stats?.totalBudgetAllocated || 0 },
+      { Category: 'EXECUTIVE_SUMMARY', Metric: 'Fund Utilization Percent', Value: `${Number(stats?.overallUtilizationPercent || 0).toFixed(1)}%` },
+    ];
+
+    if (stats?.budgetByDepartment) {
+      Object.entries(stats.budgetByDepartment).forEach(([dept, amount]) => {
+        summaryRows.push({ Category: 'DEPARTMENT_BUDGET', Metric: dept, Value: amount });
+      });
+    }
+
+    if (stats?.beneficiariesByScheme) {
+      Object.entries(stats.beneficiariesByScheme).forEach(([scheme, count]) => {
+        summaryRows.push({ Category: 'SCHEME_ENROLLMENT', Metric: scheme, Value: count });
+      });
+    }
+
+    exportCSV('welfare_executive_summary_report.csv', summaryRows);
+  };
+
+  const [selectedReport, setSelectedReport] = useState('budget');
+
+  const handleExportSelectedReport = () => {
+    if (selectedReport === 'budget') handleExportBudgetReport();
+    else if (selectedReport === 'beneficiary') handleExportBeneficiaryReport();
+    else if (selectedReport === 'payment') handleExportPaymentReport();
+    else handleExportExecutiveSummary();
+  };
+
   const surface = isDark ? '#1e293b' : '#fff';
   const border = isDark ? '#334155' : '#f1f5f9';
 
   return (
     <AppShell title="Welfare Reports">
-      <style>{GLOBAL_STYLES}</style>
+      <style>{`
+        ${GLOBAL_STYLES}
+        @media print {
+          body { background: #fff !important; color: #000 !important; }
+          nav, header, sidebar, .app-sidebar, button, select { display: none !important; }
+        }
+      `}</style>
       <div style={{ maxWidth: 1600, margin: '0 auto', paddingBottom: 40 }}>
         
         <ReportPageHeader
@@ -134,31 +172,45 @@ export default function WelfareReports() {
           isDark={isDark} lastRefresh={lastRefresh}
           onRefresh={() => fetchAll(true)} refreshing={refreshing}
           extraButtons={
-            <>
-              <select onChange={(e) => {
-                if(e.target.value === 'budget') handleExportBudgetReport();
-                else if(e.target.value === 'beneficiary') handleExportBeneficiaryReport();
-                else if(e.target.value === 'payment') handleExportPaymentReport();
-                e.target.value = '';
-              }} style={{
-                padding: '8px 12px', borderRadius: 10, border: `1px solid ${isDark ? '#475569' : '#e2e8f0'}`,
-                background: isDark ? '#334155' : '#fff', color: isDark ? '#f1f5f9' : '#475569',
-                fontSize: 13, fontWeight: 600, outline: 'none', cursor: 'pointer'
-              }}>
-                <option value="" disabled hidden>Export CSV ▼</option>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+              <select
+                value={selectedReport}
+                onChange={(e) => setSelectedReport(e.target.value)}
+                style={{
+                  padding: '8px 14px', borderRadius: 10, border: `1px solid ${isDark ? '#475569' : '#e2e8f0'}`,
+                  background: isDark ? '#334155' : '#fff', color: isDark ? '#f1f5f9' : '#374151',
+                  fontSize: 13, fontWeight: 600, outline: 'none', cursor: 'pointer'
+                }}
+              >
                 <option value="budget">Budget Report</option>
                 <option value="beneficiary">Beneficiary Report</option>
                 <option value="payment">Payment Report</option>
+                <option value="summary">Executive Summary</option>
               </select>
-              <button onClick={() => window.print()} style={{
-                display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 10,
-                background: 'linear-gradient(135deg,#8b5cf6,#6d28d9)', border: 'none',
-                color: '#fff', fontWeight: 600, fontSize: 13, cursor: 'pointer',
-                boxShadow: '0 4px 12px rgba(139,92,246,0.35)',
-              }}>
+
+              <button
+                onClick={handleExportSelectedReport}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 10,
+                  background: isDark ? '#334155' : '#f1f5f9', border: `1px solid ${isDark ? '#475569' : '#cbd5e1'}`,
+                  color: isDark ? '#f1f5f9' : '#334155', fontWeight: 700, fontSize: 13, cursor: 'pointer',
+                }}
+              >
+                <Download size={14} /> Export CSV
+              </button>
+
+              <button
+                onClick={() => window.print()}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 10,
+                  background: 'linear-gradient(135deg,#8b5cf6,#6d28d9)', border: 'none',
+                  color: '#fff', fontWeight: 600, fontSize: 13, cursor: 'pointer',
+                  boxShadow: '0 4px 12px rgba(139,92,246,0.35)',
+                }}
+              >
                 <Printer size={14} /> Print Report
               </button>
-            </>
+            </div>
           }
         />
 

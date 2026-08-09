@@ -244,7 +244,7 @@ function AppShell({ children, title }) {
 
         {/* Page Content */}
         <main className="flex-1 overflow-y-auto px-6 py-6 sm:px-8 sm:py-8 lg:px-12 lg:py-10" style={{ background: 'var(--bg)' }}>
-          <div className="w-full pt-1 sm:pt-2 px-1 sm:px-3">
+          <div className="w-full pt-5 sm:pt-6 px-1 sm:px-3">
             <div className="mb-5 sm:hidden">
               <h1 className="text-xl font-semibold text-slate-900 dark:text-white">
                 {title || 'CivicPulse Nexus'}

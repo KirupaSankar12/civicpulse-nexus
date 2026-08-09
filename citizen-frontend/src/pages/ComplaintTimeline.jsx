@@ -94,12 +94,20 @@ function ComplaintTimeline() {
 
   return (
     <AppShell title="Complaint Detail">
-      <div className="page-header">
-        <Link to="/complaints" style={{ fontSize: '13.5px', color: 'var(--color-text-secondary)', display: 'flex', alignItems: 'center', gap: '4px', textDecoration: 'none' }}>
+      <div className="page-header" style={{ marginBottom: 20 }}>
+        <Link 
+          to="/complaints" 
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 16px', borderRadius: 20,
+            background: 'var(--surface, #ffffff)', color: 'var(--text, #0f172a)',
+            border: '1px solid var(--border, #cbd5e1)', fontSize: 13, fontWeight: 700,
+            textDecoration: 'none', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', transition: 'all 0.15s'
+          }}
+        >
           <ArrowLeft size={16} /> Back to Complaints
         </Link>
-        <h1 style={{ color: 'var(--color-primary)', marginTop: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <ClipboardList size={28} /> {complaint.title}
+        <h1 style={{ color: 'var(--color-primary)', marginTop: '14px', display: 'flex', alignItems: 'center', gap: '10px', fontSize: 22, fontWeight: 800 }}>
+          <ClipboardList size={26} color="#3b82f6" /> {complaint.title}
         </h1>
       </div>
 

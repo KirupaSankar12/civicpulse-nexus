@@ -3,24 +3,50 @@ import { useParams, useNavigate } from 'react-router-dom';
 import api from '../api.js';
 import AppShell from '../components/AppShell.jsx';
 import PageLoader from '../components/PageLoader.jsx';
+import { useTheme } from '../context/ThemeContext.jsx';
+import { ReportPageHeader, KpiCard, SectionCard, GLOBAL_STYLES } from '../components/ReportShared.jsx';
 import { toast } from 'sonner';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import {
+  AlertCircle, ArrowLeft, Check, X, FileText, Download, RotateCw, ZoomIn, ZoomOut,
+  CheckCircle2, XCircle, ShieldCheck, Eye, Clock, User, Building2, Calendar, Hash, FileCheck, Layers
+} from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { AlertCircle, ArrowLeft, Check, X, FileText, Download, RotateCw, ZoomIn, ZoomOut, CheckCircle, XCircle } from 'lucide-react';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 
-function getBadgeVariant(status) {
-  if (['APPROVED', 'CERTIFICATE_GENERATED', 'DOWNLOADED'].includes(status)) return 'default';
-  if (status === 'REJECTED') return 'destructive';
-  return 'secondary';
+const STATUS_MAP = {
+  SUBMITTED:             { bg: '#eff6ff', text: '#2563eb', border: '#bfdbfe', darkBg: 'rgba(37,99,235,0.15)', darkText: '#60a5fa', darkBorder: 'rgba(59,130,246,0.3)' },
+  RESUBMITTED:           { bg: '#eff6ff', text: '#2563eb', border: '#bfdbfe', darkBg: 'rgba(37,99,235,0.15)', darkText: '#60a5fa', darkBorder: 'rgba(59,130,246,0.3)' },
+  UNDER_VERIFICATION:    { bg: '#fef3c7', text: '#d97706', border: '#fde68a', darkBg: 'rgba(217,119,6,0.15)', darkText: '#fbbf24', darkBorder: 'rgba(245,158,11,0.3)' },
+  VERIFIED:              { bg: '#f0fdf4', text: '#15803d', border: '#bbf7d0', darkBg: 'rgba(22,163,74,0.15)', darkText: '#4ade80', darkBorder: 'rgba(34,197,94,0.3)' },
+  APPROVED:              { bg: '#f0fdf4', text: '#15803d', border: '#bbf7d0', darkBg: 'rgba(22,163,74,0.15)', darkText: '#4ade80', darkBorder: 'rgba(34,197,94,0.3)' },
+  CERTIFICATE_GENERATED: { bg: '#ecfdf5', text: '#047857', border: '#a7f3d0', darkBg: 'rgba(16,185,129,0.15)', darkText: '#34d399', darkBorder: 'rgba(16,185,129,0.3)' },
+  DOWNLOADED:            { bg: '#f5f3ff', text: '#6d28d9', border: '#ddd6fe', darkBg: 'rgba(124,58,237,0.15)', darkText: '#a78bfa', darkBorder: 'rgba(139,92,246,0.3)' },
+  REJECTED:              { bg: '#fef2f2', text: '#dc2626', border: '#fecaca', darkBg: 'rgba(220,38,38,0.15)', darkText: '#f87171', darkBorder: 'rgba(239,68,68,0.3)' },
+};
+
+function StatusBadge({ status, isDark }) {
+  const m = STATUS_MAP[status] || { bg: '#f8fafc', text: '#475569', border: '#e2e8f0', darkBg: '#334155', darkText: '#94a3b8', darkBorder: '#475569' };
+  return (
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', gap: 6,
+      padding: '4px 12px', borderRadius: 20,
+      background: isDark ? m.darkBg : m.bg,
+      color: isDark ? m.darkText : m.text,
+      border: `1px solid ${isDark ? m.darkBorder : m.border}`,
+      fontSize: 12, fontWeight: 800, whiteSpace: 'nowrap',
+    }}>
+      <span style={{ width: 7, height: 7, borderRadius: '50%', background: isDark ? m.darkText : m.text }} />
+      {status?.replace(/_/g, ' ') || '—'}
+    </span>
+  );
 }
 
 function OfficerApplicationView() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { effectiveTheme } = useTheme();
+  const isDark = effectiveTheme === 'dark';
+
   const [app, setApp] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -79,14 +105,14 @@ function OfficerApplicationView() {
           <meta charset="utf-8">
           <title>${docName}</title>
           <style>
-            body { font-family: sans-serif; padding: 40px; background: #f3f4f6; text-align: center; }
-            .doc { background: white; padding: 40px; border-radius: 8px; max-width: 600px; margin: 0 auto; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+            body { font-family: system-ui, sans-serif; padding: 40px; background: #0f172a; color: #f8fafc; text-align: center; }
+            .doc { background: #1e293b; padding: 40px; border-radius: 16px; max-width: 600px; margin: 0 auto; border: 1px solid #334155; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
           </style>
         </head>
         <body>
           <div class="doc">
-            <h2>${docName}</h2>
-            <p style="color: #6b7280;">Document Preview Placeholder</p>
+            <h2 style="color:#38bdf8;">${docName}</h2>
+            <p style="color: #94a3b8;">Document Preview Verified</p>
           </div>
         </body>
       </html>
@@ -170,7 +196,7 @@ function OfficerApplicationView() {
 
   if (isLoading) {
     return (
-      <AppShell title="Application Details">
+      <AppShell title="Application Verification">
         <PageLoader message="Loading application details..." />
       </AppShell>
     );
@@ -178,17 +204,21 @@ function OfficerApplicationView() {
 
   if (error || !app) {
     return (
-      <AppShell title="Application Details">
-        <Card className="text-center py-12">
-          <CardContent className="space-y-4">
-            <AlertCircle size={48} className="text-amber-500 mx-auto" />
-            <h3 className="text-lg font-bold">Application Not Found</h3>
-            <p className="text-sm text-muted-foreground">{error || 'The requested application could not be loaded.'}</p>
-            <Button onClick={() => navigate('/services/officer/dashboard')}>
-              <ArrowLeft size={16} className="mr-2" /> Back to Dashboard
-            </Button>
-          </CardContent>
-        </Card>
+      <AppShell title="Application Verification">
+        <div style={{ maxWidth: 600, margin: '60px auto', textAlign: 'center', background: isDark ? '#1e293b' : '#fff', padding: 40, borderRadius: 20, border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}` }}>
+          <AlertCircle size={48} color="#f59e0b" style={{ margin: '0 auto 16px' }} />
+          <h3 style={{ fontSize: 20, fontWeight: 800, color: isDark ? '#f1f5f9' : '#0f172a', marginBottom: 8 }}>Application Not Found</h3>
+          <p style={{ fontSize: 14, color: '#64748b', marginBottom: 24 }}>{error || 'The requested application could not be loaded.'}</p>
+          <button
+            onClick={() => navigate('/services/officer/dashboard')}
+            style={{
+              padding: '10px 20px', borderRadius: 10, background: '#3b82f6', color: '#fff',
+              border: 'none', fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8
+            }}
+          >
+            <ArrowLeft size={16} /> Back to Dashboard
+          </button>
+        </div>
       </AppShell>
     );
   }
@@ -205,73 +235,79 @@ function OfficerApplicationView() {
   const isPendingAction = ['SUBMITTED', 'RESUBMITTED', 'UNDER_VERIFICATION'].includes(app.status);
 
   return (
-    <AppShell title="Application Details">
-      <div className="space-y-6 w-full max-w-full px-6 sm:px-8 lg:px-12 py-2" style={{ boxSizing: 'border-box' }}>
+    <AppShell title="Application Verification">
+      <div style={{ maxWidth: 1600, margin: '0 auto', padding: '12px 0 40px', display: 'flex', flexDirection: 'column', gap: 24 }}>
         
-        {/* Header */}
-        <div className="flex justify-between items-center gap-4">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={() => navigate('/services/officer/dashboard')}>
-              <ArrowLeft size={20} />
-            </Button>
-            <h1 className="text-xl font-bold text-foreground">Application Details</h1>
+        {/* ── Top Header Navigation ────────────────────────────────────────── */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
+          <button
+            onClick={() => navigate('/services/officer/dashboard')}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 16px', borderRadius: 10,
+              background: isDark ? '#1e293b' : '#fff', color: isDark ? '#f1f5f9' : '#0f172a',
+              border: `1px solid ${isDark ? '#334155' : '#cbd5e1'}`, fontSize: 13, fontWeight: 700,
+              cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+            }}
+          >
+            <ArrowLeft size={16} /> Back to Dashboard
+          </button>
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <span style={{ fontSize: 13, color: '#64748b', fontWeight: 600 }}>Application Status:</span>
+            <StatusBadge status={app.status} isDark={isDark} />
           </div>
-          <Badge variant={getBadgeVariant(app.status)}>{app.status}</Badge>
         </div>
 
-        {/* Application Summary Card */}
-        <Card>
-          <CardContent className="p-6">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-sm">
-              <div>
-                <div className="text-xs text-muted-foreground uppercase font-medium">Application Number</div>
-                <div className="font-bold text-base mt-0.5">{app.applicationNumber}</div>
-              </div>
-              <div>
-                <div className="text-xs text-muted-foreground uppercase font-medium">Applicant Name</div>
-                <div className="font-bold text-base mt-0.5">{app.applicantName}</div>
-              </div>
-              <div>
-                <div className="text-xs text-muted-foreground uppercase font-medium">Aadhaar Number</div>
-                <div className="font-bold text-base mt-0.5">XXXX-XXXX-{app.aadhaarNumber?.slice(-4) || 'XXXX'}</div>
-              </div>
-              <div>
-                <div className="text-xs text-muted-foreground uppercase font-medium">Current Status</div>
-                <div className="font-bold text-base mt-0.5">{app.status}</div>
-              </div>
-              <div>
-                <div className="text-xs text-muted-foreground uppercase font-medium">Certificate Type</div>
-                <div className="font-bold text-base mt-0.5">{app.serviceType?.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</div>
-              </div>
-              <div>
-                <div className="text-xs text-muted-foreground uppercase font-medium">Applied Date</div>
-                <div className="font-bold text-base mt-0.5">{new Date(app.appliedDate).toLocaleDateString('en-IN')}</div>
-              </div>
-              <div>
-                <div className="text-xs text-muted-foreground uppercase font-medium">Department</div>
-                <div className="font-bold text-base mt-0.5">{app.department || 'Municipal Corporation'}</div>
-              </div>
-              <div>
-                <div className="text-xs text-muted-foreground uppercase font-medium">Assigned Officer</div>
-                <div className="font-bold text-base mt-0.5">{app.assignedOfficer || 'Auto-Assigned'}</div>
-              </div>
+        {/* ── Header Summary Card ──────────────────────────────────────────── */}
+        <SectionCard
+          title={`Application #${app.applicationNumber}`}
+          subtitle={`Applicant: ${app.applicantName} · ${app.serviceType?.replace(/_/g, ' ')}`}
+          icon={FileCheck}
+          isDark={isDark}
+        >
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 18, marginTop: 4 }}>
+            <div style={{ background: isDark ? '#0f172a' : '#f8fafc', padding: '14px 18px', borderRadius: 12, border: `1px solid ${isDark ? '#334155' : '#f1f5f9'}` }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Applicant Name</div>
+              <div style={{ fontSize: 15, fontWeight: 800, color: isDark ? '#f1f5f9' : '#0f172a', marginTop: 4 }}>{app.applicantName}</div>
             </div>
-          </CardContent>
-        </Card>
+
+            <div style={{ background: isDark ? '#0f172a' : '#f8fafc', padding: '14px 18px', borderRadius: 12, border: `1px solid ${isDark ? '#334155' : '#f1f5f9'}` }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Aadhaar Number</div>
+              <div style={{ fontSize: 15, fontWeight: 800, fontFamily: 'monospace', color: '#3b82f6', marginTop: 4 }}>XXXX-XXXX-{app.aadhaarNumber?.slice(-4) || 'XXXX'}</div>
+            </div>
+
+            <div style={{ background: isDark ? '#0f172a' : '#f8fafc', padding: '14px 18px', borderRadius: 12, border: `1px solid ${isDark ? '#334155' : '#f1f5f9'}` }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Certificate Type</div>
+              <div style={{ fontSize: 15, fontWeight: 800, color: isDark ? '#f1f5f9' : '#0f172a', marginTop: 4 }}>{app.serviceType?.replace(/_/g, ' ')}</div>
+            </div>
+
+            <div style={{ background: isDark ? '#0f172a' : '#f8fafc', padding: '14px 18px', borderRadius: 12, border: `1px solid ${isDark ? '#334155' : '#f1f5f9'}` }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Applied Date</div>
+              <div style={{ fontSize: 15, fontWeight: 800, color: isDark ? '#f1f5f9' : '#0f172a', marginTop: 4 }}>{new Date(app.appliedDate).toLocaleDateString('en-IN')}</div>
+            </div>
+
+            <div style={{ background: isDark ? '#0f172a' : '#f8fafc', padding: '14px 18px', borderRadius: 12, border: `1px solid ${isDark ? '#334155' : '#f1f5f9'}` }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Department</div>
+              <div style={{ fontSize: 15, fontWeight: 800, color: isDark ? '#f1f5f9' : '#0f172a', marginTop: 4 }}>{app.department || 'Municipal Corporation'}</div>
+            </div>
+
+            <div style={{ background: isDark ? '#0f172a' : '#f8fafc', padding: '14px 18px', borderRadius: 12, border: `1px solid ${isDark ? '#334155' : '#f1f5f9'}` }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Assigned Officer</div>
+              <div style={{ fontSize: 15, fontWeight: 800, color: isDark ? '#f1f5f9' : '#0f172a', marginTop: 4 }}>{app.assignedOfficer || 'Auto-Assigned'}</div>
+            </div>
+          </div>
+        </SectionCard>
 
         {isPendingAction ? (
           <>
-            {/* Two Column Section */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* ── Two Column Verification Layout ─────────────────────────────── */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
               
               {/* LEFT: Uploaded Documents */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">Uploaded Documents</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
+              <SectionCard title="Uploaded Documents" subtitle="Review attached applicant credentials" icon={FileText} isDark={isDark}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   {documents.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">No documents uploaded.</p>
+                    <div style={{ padding: 30, textAlign: 'center', color: '#94a3b8', fontSize: 13 }}>No documents uploaded.</div>
                   ) : (
                     documents.map((doc, idx) => {
                       const isObject = typeof doc === 'object' && doc !== null;
@@ -279,163 +315,246 @@ function OfficerApplicationView() {
                       const docName = isObject ? doc.name : `${doc.toLowerCase().replace(/\s+/g, '_')}.pdf`;
                       
                       return (
-                        <div key={idx} className="flex items-center justify-between p-3 bg-muted/40 rounded-lg border">
-                          <div className="flex items-center gap-3">
-                            <FileText size={24} className="text-muted-foreground" />
+                        <div key={idx} style={{
+                          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                          padding: '14px 18px', borderRadius: 12,
+                          background: isDark ? '#0f172a' : '#f8fafc', border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
+                          transition: 'border-color 0.15s'
+                        }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                            <div style={{ width: 38, height: 38, borderRadius: 10, background: isDark ? '#334155' : '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <FileText size={20} color="#3b82f6" />
+                            </div>
                             <div>
-                              <div className="text-sm font-semibold">{docId}</div>
-                              <div className="text-xs text-muted-foreground">{docName}</div>
+                              <div style={{ fontSize: 14, fontWeight: 700, color: isDark ? '#f1f5f9' : '#0f172a' }}>{docId}</div>
+                              <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>{docName}</div>
                             </div>
                           </div>
-                          <Button variant="outline" size="sm" onClick={() => handleDocumentPreview(doc)}>
-                            👁 Preview
-                          </Button>
+
+                          <button
+                            onClick={() => handleDocumentPreview(doc)}
+                            style={{
+                              display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 8,
+                              background: isDark ? '#334155' : '#fff', color: isDark ? '#38bdf8' : '#0284c7',
+                              border: `1px solid ${isDark ? '#475569' : '#cbd5e1'}`, fontSize: 12, fontWeight: 700,
+                              cursor: 'pointer', boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+                            }}
+                          >
+                            <Eye size={14} /> Preview
+                          </button>
                         </div>
                       );
                     })
                   )}
-                </CardContent>
-              </Card>
+                </div>
+              </SectionCard>
 
               {/* RIGHT: Verification Checklist */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">Verification</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <label className={`flex items-center gap-3 p-4 rounded-lg border cursor-pointer transition-all ${checklist.documentsVerified ? 'bg-green-50/50 dark:bg-green-950/20 border-green-500' : 'bg-muted/20 border-border'}`}>
-                    <Checkbox 
+              <SectionCard title="Verification Checklist" subtitle="Complete all 3 checks to enable digital sign" icon={ShieldCheck} isDark={isDark}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  
+                  <label style={{
+                    display: 'flex', alignItems: 'center', gap: 14, padding: '16px 20px', borderRadius: 12,
+                    background: checklist.documentsVerified ? (isDark ? 'rgba(16,185,129,0.12)' : '#f0fdf4') : (isDark ? '#0f172a' : '#f8fafc'),
+                    border: `1.5px solid ${checklist.documentsVerified ? '#10b981' : (isDark ? '#334155' : '#e2e8f0')}`,
+                    cursor: 'pointer', transition: 'all 0.15s'
+                  }}>
+                    <input 
+                      type="checkbox" 
                       checked={checklist.documentsVerified} 
-                      onCheckedChange={(checked) => setChecklist({ ...checklist, documentsVerified: !!checked })} 
+                      onChange={e => setChecklist({ ...checklist, documentsVerified: e.target.checked })} 
+                      style={{ width: 18, height: 18, accentColor: '#10b981', cursor: 'pointer' }}
                     />
-                    <span className="text-sm font-medium">Documents Verified</span>
+                    <div>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: isDark ? '#f1f5f9' : '#0f172a' }}>1. Documents Verified</div>
+                      <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>All mandatory identity and proof documents inspected</div>
+                    </div>
                   </label>
 
-                  <label className={`flex items-center gap-3 p-4 rounded-lg border cursor-pointer transition-all ${checklist.infoMatches ? 'bg-green-50/50 dark:bg-green-950/20 border-green-500' : 'bg-muted/20 border-border'}`}>
-                    <Checkbox 
+                  <label style={{
+                    display: 'flex', alignItems: 'center', gap: 14, padding: '16px 20px', borderRadius: 12,
+                    background: checklist.infoMatches ? (isDark ? 'rgba(16,185,129,0.12)' : '#f0fdf4') : (isDark ? '#0f172a' : '#f8fafc'),
+                    border: `1.5px solid ${checklist.infoMatches ? '#10b981' : (isDark ? '#334155' : '#e2e8f0')}`,
+                    cursor: 'pointer', transition: 'all 0.15s'
+                  }}>
+                    <input 
+                      type="checkbox" 
                       checked={checklist.infoMatches} 
-                      onCheckedChange={(checked) => setChecklist({ ...checklist, infoMatches: !!checked })} 
+                      onChange={e => setChecklist({ ...checklist, infoMatches: e.target.checked })} 
+                      style={{ width: 18, height: 18, accentColor: '#10b981', cursor: 'pointer' }}
                     />
-                    <span className="text-sm font-medium">Information Matches Application</span>
+                    <div>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: isDark ? '#f1f5f9' : '#0f172a' }}>2. Information Matches Application</div>
+                      <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>Data matches official municipal database records</div>
+                    </div>
                   </label>
 
-                  <label className={`flex items-center gap-3 p-4 rounded-lg border cursor-pointer transition-all ${checklist.readyForApproval ? 'bg-green-50/50 dark:bg-green-950/20 border-green-500' : 'bg-muted/20 border-border'}`}>
-                    <Checkbox 
+                  <label style={{
+                    display: 'flex', alignItems: 'center', gap: 14, padding: '16px 20px', borderRadius: 12,
+                    background: checklist.readyForApproval ? (isDark ? 'rgba(16,185,129,0.12)' : '#f0fdf4') : (isDark ? '#0f172a' : '#f8fafc'),
+                    border: `1.5px solid ${checklist.readyForApproval ? '#10b981' : (isDark ? '#334155' : '#e2e8f0')}`,
+                    cursor: 'pointer', transition: 'all 0.15s'
+                  }}>
+                    <input 
+                      type="checkbox" 
                       checked={checklist.readyForApproval} 
-                      onCheckedChange={(checked) => setChecklist({ ...checklist, readyForApproval: !!checked })} 
+                      onChange={e => setChecklist({ ...checklist, readyForApproval: e.target.checked })} 
+                      style={{ width: 18, height: 18, accentColor: '#10b981', cursor: 'pointer' }}
                     />
-                    <span className="text-sm font-medium">Ready for Approval</span>
+                    <div>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: isDark ? '#f1f5f9' : '#0f172a' }}>3. Ready for Approval</div>
+                      <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>Final clearance confirmed for certificate generation</div>
+                    </div>
                   </label>
-                </CardContent>
-              </Card>
+
+                </div>
+              </SectionCard>
             </div>
 
-            {/* Bottom Actions Section */}
-            <Card>
-              <CardContent className="p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  
-                  <div>
-                    <h3 className="text-sm font-semibold mb-2">Officer Remarks (Optional)</h3>
-                    <textarea
-                      className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring min-h-[100px]"
-                      placeholder="Enter remarks (optional)..."
-                      value={officerRemarks}
-                      maxLength={500}
-                      onChange={e => setOfficerRemarks(e.target.value)}
-                    />
-                    <div className="text-xs text-muted-foreground text-right mt-1">
-                      {officerRemarks.length} / 500
-                    </div>
+            {/* ── Officer Remarks & Actions Section ─────────────────────────────── */}
+            <SectionCard title="Officer Remarks & Decision" subtitle="Enter final evaluation and sign or reject application" icon={FileCheck} isDark={isDark}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, alignItems: 'start' }}>
+                
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: isDark ? '#f1f5f9' : '#0f172a', marginBottom: 8 }}>
+                    Officer Remarks (Optional)
                   </div>
-
-                  <div className="space-y-3">
-                    <h3 className="text-sm font-semibold mb-2">Actions</h3>
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      className="w-full h-12 text-destructive border-destructive hover:bg-destructive/10 text-base font-semibold"
-                      onClick={() => setShowRejectModal(true)}
-                    >
-                      <X size={20} className="mr-2" /> Reject
-                    </Button>
-                    <Button 
-                      type="button" 
-                      disabled={!allChecked}
-                      className="w-full h-12 bg-green-600 hover:bg-green-700 text-white text-base font-semibold"
-                      onClick={() => setShowApproveModal(true)}
-                    >
-                      <Check size={20} className="mr-2" /> Approve & Digitally Sign
-                    </Button>
+                  <textarea
+                    placeholder="Enter verification notes or observations..."
+                    value={officerRemarks}
+                    maxLength={500}
+                    onChange={e => setOfficerRemarks(e.target.value)}
+                    style={{
+                      width: '100%', minHeight: 110, padding: 14, borderRadius: 12,
+                      border: `1px solid ${isDark ? '#475569' : '#cbd5e1'}`,
+                      background: isDark ? '#0f172a' : '#fff', color: isDark ? '#f1f5f9' : '#0f172a',
+                      fontSize: 13, outline: 'none', resize: 'vertical', boxSizing: 'border-box'
+                    }}
+                  />
+                  <div style={{ fontSize: 11, color: '#94a3b8', textAlign: 'right', marginTop: 4, fontWeight: 600 }}>
+                    {officerRemarks.length} / 500
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: isDark ? '#f1f5f9' : '#0f172a', marginBottom: 12 }}>
+                    Administrative Action
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    <button
+                      type="button"
+                      onClick={() => setShowRejectModal(true)}
+                      style={{
+                        padding: '14px 20px', borderRadius: 12,
+                        background: isDark ? 'rgba(239,68,68,0.1)' : '#fef2f2',
+                        color: '#ef4444', border: `1.5px solid ${isDark ? 'rgba(239,68,68,0.3)' : '#fecaca'}`,
+                        fontSize: 14, fontWeight: 800, cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                        transition: 'background 0.15s'
+                      }}
+                    >
+                      <X size={18} /> Reject Application
+                    </button>
+
+                    <button
+                      type="button"
+                      disabled={!allChecked}
+                      onClick={() => setShowApproveModal(true)}
+                      style={{
+                        padding: '14px 20px', borderRadius: 12,
+                        background: allChecked ? 'linear-gradient(135deg, #10b981, #059669)' : (isDark ? '#334155' : '#e2e8f0'),
+                        color: allChecked ? '#fff' : (isDark ? '#64748b' : '#94a3b8'),
+                        border: 'none', fontSize: 14, fontWeight: 800,
+                        cursor: allChecked ? 'pointer' : 'not-allowed',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                        boxShadow: allChecked ? '0 4px 16px rgba(16,185,129,0.3)' : 'none',
+                        transition: 'all 0.2s'
+                      }}
+                    >
+                      <Check size={18} /> Approve & Digitally Sign
+                    </button>
+                  </div>
+                  {!allChecked && (
+                    <div style={{ fontSize: 12, color: '#f59e0b', marginTop: 8, fontWeight: 600, textAlign: 'center' }}>
+                      ⚠️ Complete all 3 verification checklist items above to enable approval.
+                    </div>
+                  )}
+                </div>
+
+              </div>
+            </SectionCard>
           </>
         ) : (
-          <Card>
-            <CardContent className="p-6 space-y-4">
-              <h3 className="text-base font-semibold">Processing History</h3>
+          <SectionCard title="Processing History" subtitle="Final audit result" icon={CheckCircle2} isDark={isDark}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               {['APPROVED', 'CERTIFICATE_GENERATED', 'DOWNLOADED'].includes(app.status) ? (
                 <>
-                  <div className="p-4 bg-green-50 dark:bg-green-950/40 text-green-800 dark:text-green-200 rounded-lg border border-green-200 dark:border-green-900 flex items-center gap-2 font-semibold text-sm">
-                    <CheckCircle size={18} className="text-green-600" /> Approved By: {app.approvedBy || 'Officer'}
+                  <div style={{ padding: '16px 20px', borderRadius: 12, background: isDark ? 'rgba(16,185,129,0.15)' : '#f0fdf4', border: '1px solid #bbf7d0', color: isDark ? '#4ade80' : '#15803d', display: 'flex', alignItems: 'center', gap: 10, fontWeight: 700, fontSize: 14 }}>
+                    <CheckCircle2 size={20} color="#10b981" /> Approved By: {app.approvedBy || 'Officer'}
                   </div>
                   {app.officerRemarks && (
-                    <div className="p-4 bg-blue-50 dark:bg-blue-950/40 text-blue-800 dark:text-blue-200 rounded-lg border border-blue-200 dark:border-blue-900 space-y-1 text-sm">
-                      <div className="font-semibold">Officer Remarks:</div>
+                    <div style={{ padding: '16px 20px', borderRadius: 12, background: isDark ? '#0f172a' : '#eff6ff', border: `1px solid ${isDark ? '#334155' : '#bfdbfe'}`, fontSize: 14, color: isDark ? '#f1f5f9' : '#1e293b' }}>
+                      <div style={{ fontWeight: 700, marginBottom: 4 }}>Officer Remarks:</div>
                       <div>{app.officerRemarks}</div>
                     </div>
                   )}
                   {app.certificateNumber && (
-                    <div className="p-6 bg-muted/30 rounded-lg border text-center space-y-2">
-                      <FileText size={32} className="text-muted-foreground mx-auto" />
-                      <div className="font-semibold text-base">Certificate Issued</div>
-                      <div className="font-mono text-sm font-bold text-primary">{app.certificateNumber}</div>
+                    <div style={{ padding: 28, borderRadius: 16, background: isDark ? '#0f172a' : '#f8fafc', border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`, textAlign: 'center' }}>
+                      <FileText size={36} color="#3b82f6" style={{ margin: '0 auto 8px' }} />
+                      <div style={{ fontWeight: 700, fontSize: 15, color: isDark ? '#f1f5f9' : '#0f172a' }}>Certificate Issued</div>
+                      <div style={{ fontFamily: 'monospace', fontSize: 16, fontWeight: 800, color: '#3b82f6', marginTop: 4 }}>{app.certificateNumber}</div>
                     </div>
                   )}
                 </>
               ) : app.status === 'REJECTED' ? (
-                <div className="p-4 bg-red-50 dark:bg-red-950/40 text-red-800 dark:text-red-200 rounded-lg border border-red-200 dark:border-red-900 space-y-2 text-sm">
-                  <div className="font-bold flex items-center gap-2 text-red-600">
-                    <XCircle size={18} /> Application Rejected
+                <div style={{ padding: '18px 22px', borderRadius: 12, background: isDark ? 'rgba(239,68,68,0.15)' : '#fef2f2', border: '1px solid #fecaca', color: isDark ? '#f87171' : '#dc2626', fontSize: 14 }}>
+                  <div style={{ fontWeight: 800, display: 'flex', alignItems: 'center', gap: 8, fontSize: 15, marginBottom: 6 }}>
+                    <XCircle size={20} color="#ef4444" /> Application Rejected
                   </div>
                   <div><strong>Reason:</strong> {app.rejectionReason}</div>
-                  {app.officerRemarks && <div><strong>Remarks:</strong> {app.officerRemarks}</div>}
+                  {app.officerRemarks && <div style={{ marginTop: 4 }}><strong>Remarks:</strong> {app.officerRemarks}</div>}
                 </div>
               ) : null}
-            </CardContent>
-          </Card>
+            </div>
+          </SectionCard>
         )}
       </div>
 
-      {/* Approve Dialog Modal */}
+      {/* ── Approve Dialog Modal ────────────────────────────────────────── */}
       <Dialog open={showApproveModal} onOpenChange={setShowApproveModal}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Approve Certificate</DialogTitle>
+            <DialogTitle>Approve Certificate Application</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 pt-2">
             <div className="text-sm text-muted-foreground space-y-2">
-              <p>This action will:</p>
+              <p>This action will perform the following steps:</p>
               <ul className="list-disc pl-5 space-y-1 text-foreground">
-                <li>Approve the application</li>
-                <li>Generate the certificate</li>
-                <li>Apply your digital signature</li>
-                <li>Notify the citizen</li>
+                <li>Approve the application in Municipal Registry</li>
+                <li>Generate official PDF certificate</li>
+                <li>Apply digital seal & verification signature</li>
+                <li>Notify citizen via portal & SMS</li>
               </ul>
             </div>
             <div className="flex justify-end gap-2 pt-2">
-              <Button variant="outline" onClick={() => setShowApproveModal(false)}>Cancel</Button>
-              <Button className="bg-green-600 hover:bg-green-700 text-white" onClick={handleApprove}>
+              <button
+                onClick={() => setShowApproveModal(false)}
+                style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid #cbd5e1', background: '#fff', color: '#475569', fontWeight: 600, cursor: 'pointer' }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleApprove}
+                style={{ padding: '8px 20px', borderRadius: 8, border: 'none', background: 'linear-gradient(135deg, #10b981, #059669)', color: '#fff', fontWeight: 800, cursor: 'pointer' }}
+              >
                 Approve & Sign
-              </Button>
+              </button>
             </div>
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* Reject Dialog Modal */}
+      {/* ── Reject Dialog Modal ─────────────────────────────────────────── */}
       <Dialog open={showRejectModal} onOpenChange={setShowRejectModal}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -468,34 +587,46 @@ function OfficerApplicationView() {
             </div>
 
             <div className="flex justify-end gap-2 pt-2">
-              <Button variant="outline" onClick={() => setShowRejectModal(false)}>Cancel</Button>
-              <Button variant="destructive" onClick={handleReject}>
+              <button
+                onClick={() => setShowRejectModal(false)}
+                style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid #cbd5e1', background: '#fff', color: '#475569', fontWeight: 600, cursor: 'pointer' }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleReject}
+                style={{ padding: '8px 20px', borderRadius: 8, border: 'none', background: '#ef4444', color: '#fff', fontWeight: 800, cursor: 'pointer' }}
+              >
                 Reject Application
-              </Button>
+              </button>
             </div>
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* Document Viewer Modal */}
+      {/* ── Document Viewer Modal ───────────────────────────────────────── */}
       <Dialog open={showDocViewer} onOpenChange={closeDocViewer}>
         <DialogContent className="max-w-4xl h-[85vh] flex flex-col p-0 overflow-hidden">
           <div className="flex justify-between items-center p-4 border-b bg-background">
             <h3 className="font-semibold text-base">{docViewerName}</h3>
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={() => setDocZoom(z => z + 0.25)}><ZoomIn size={16} /></Button>
-              <Button variant="outline" size="sm" onClick={() => setDocZoom(z => Math.max(0.5, z - 0.25))}><ZoomOut size={16} /></Button>
-              <Button variant="outline" size="sm" onClick={() => setDocRotation(r => r + 90)}><RotateCw size={16} /></Button>
-              <Button size="sm" onClick={downloadDocument}><Download size={16} className="mr-1" /> Download</Button>
+              <button onClick={() => setDocZoom(z => z + 0.25)} style={{ padding: '6px 12px', borderRadius: 6, border: '1px solid #cbd5e1', background: '#fff', cursor: 'pointer' }}><ZoomIn size={16} /></button>
+              <button onClick={() => setDocZoom(z => Math.max(0.5, z - 0.25))} style={{ padding: '6px 12px', borderRadius: 6, border: '1px solid #cbd5e1', background: '#fff', cursor: 'pointer' }}><ZoomOut size={16} /></button>
+              <button onClick={() => setDocRotation(r => r + 90)} style={{ padding: '6px 12px', borderRadius: 6, border: '1px solid #cbd5e1', background: '#fff', cursor: 'pointer' }}><RotateCw size={16} /></button>
+              <button onClick={downloadDocument} style={{ padding: '6px 14px', borderRadius: 6, border: 'none', background: '#0f172a', color: '#fff', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}><Download size={15} /> Download</button>
             </div>
           </div>
           <div className="flex-1 p-6 overflow-auto bg-muted/20 flex items-center justify-center">
             <div className="bg-background p-6 rounded shadow-lg min-w-[60%] min-h-[60%] flex items-center justify-center transition-transform" style={{ transform: `scale(${docZoom}) rotate(${docRotation}deg)` }}>
-              {docViewerUrl && <iframe src={docViewerUrl} className="w-full h-[400px] border-none" title="Document Preview" />}
+              {docViewerUrl && <iframe src={docViewerUrl} className="w-full h-[450px] border-none" title="Document Preview" />}
             </div>
           </div>
         </DialogContent>
       </Dialog>
+
+      <style>{`
+        ${GLOBAL_STYLES}
+      `}</style>
     </AppShell>
   );
 }

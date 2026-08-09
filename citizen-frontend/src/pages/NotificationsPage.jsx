@@ -124,9 +124,12 @@ function NotificationsPage() {
 
   const roles = keycloak.tokenParsed?.realm_access?.roles || [];
   const isOfficer = roles.includes('OFFICER') || roles.includes('officer');
-  const recipient = isOfficer
-    ? keycloak.tokenParsed?.preferred_username
-    : keycloak.tokenParsed?.sub;
+  const isAdmin = roles.includes('ADMIN') || roles.includes('admin');
+
+  const username = keycloak.tokenParsed?.preferred_username;
+  const sub = keycloak.tokenParsed?.sub;
+
+  const recipient = (isOfficer || isAdmin) ? (username || 'admin') : (sub || username || 'admin');
 
   useEffect(() => {
     if (!recipient) return;

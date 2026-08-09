@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import AppShell from '../components/AppShell.jsx';
 import api from '../api.js';
 import { useTheme } from '../context/ThemeContext.jsx';
+import { ReportPageHeader } from '../components/ReportShared.jsx';
 import {
   IndianRupee, Receipt, BarChart2, TrendingUp, Award,
   Download, RefreshCw, AlertCircle, Wifi, WifiOff,
@@ -231,64 +232,20 @@ export default function RevenueReports() {
         .rev-card { animation: fadeIn 0.4s ease both; }
       `}</style>
 
-      <div style={{ maxWidth: 1600, margin: '0 auto', paddingBottom: 40 }}>
+      <div style={{ maxWidth: 1600, margin: '0 auto', padding: '12px 0 40px' }}>
 
         {/* ── Page Header ──────────────────────────────────────────────────── */}
-        <div style={{
-          display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between',
-          flexWrap: 'wrap', gap: 16, marginBottom: 28,
-        }}>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6 }}>
-              <div style={{
-                width: 42, height: 42, borderRadius: 12,
-                background: 'linear-gradient(135deg,#6366f1,#8b5cf6)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                boxShadow: '0 4px 14px rgba(99,102,241,0.35)',
-              }}>
-                <IndianRupee size={22} color="#fff" />
-              </div>
-              <div>
-                <h2 style={{ fontSize: 22, fontWeight: 800, color: isDark ? '#f1f5f9' : '#0f172a', margin: 0 }}>
-                  Revenue Reports
-                </h2>
-                <p style={{ color: '#94a3b8', fontSize: 13, margin: 0 }}>
-                  Fee collection analytics from service-management-service
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-            <span style={{ fontSize: 12, color: '#94a3b8', fontWeight: 500 }}>
-              Last updated {lastRefresh.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
-            </span>
-            <button
-              onClick={() => fetchAll(true)}
-              disabled={refreshing || loading}
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: 6,
-                padding: '8px 16px', borderRadius: 10,
-                background: isDark ? '#334155' : '#f1f5f9',
-                border: `1px solid ${isDark ? '#475569' : '#e2e8f0'}`,
-                color: isDark ? '#94a3b8' : '#475569',
-                fontWeight: 600, fontSize: 13, cursor: 'pointer',
-              }}
-            >
-              <RefreshCw size={14} style={{ animation: refreshing ? 'spin 1s linear infinite' : 'none' }} />
-              {refreshing ? 'Refreshing…' : 'Refresh'}
-            </button>
-            <button style={{
-              display: 'inline-flex', alignItems: 'center', gap: 6,
-              padding: '8px 16px', borderRadius: 10,
-              background: 'linear-gradient(135deg,#6366f1,#8b5cf6)',
-              border: 'none', color: '#fff', fontWeight: 600, fontSize: 13, cursor: 'pointer',
-              boxShadow: '0 4px 12px rgba(99,102,241,0.35)',
-            }}>
-              <Download size={14} /> Export CSV
-            </button>
-          </div>
-        </div>
+        <ReportPageHeader
+          title="Revenue Reports"
+          subtitle="Fee collection analytics from service-management-service"
+          icon={IndianRupee}
+          iconBg="linear-gradient(135deg, #0f172a, #334155)"
+          iconColor="#38bdf8"
+          isDark={isDark}
+          lastRefresh={lastRefresh}
+          onRefresh={() => fetchAll(true)}
+          refreshing={refreshing}
+        />
 
         {/* ── Unavailable State ────────────────────────────────────────────── */}
         {isUnavailable && !loading && (

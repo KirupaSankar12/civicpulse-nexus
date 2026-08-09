@@ -2,6 +2,8 @@ import { useEffect, useState, useMemo } from 'react';
 import api from '../api.js';
 import keycloak from '../keycloak.js';
 import AppShell from '../components/AppShell.jsx';
+import { useTheme } from '../context/ThemeContext.jsx';
+import { ReportPageHeader, KpiCard, SectionCard, GLOBAL_STYLES } from '../components/ReportShared.jsx';
 import { toast } from 'sonner';
 import {
   Layers, Plus, Edit2, Search, X, Users, Wallet, Target, Building2, TrendingUp, ShieldCheck
@@ -63,6 +65,9 @@ const initialForm = {
 };
 
 export default function SchemeManagement() {
+  const { effectiveTheme } = useTheme();
+  const isDark = effectiveTheme === 'dark';
+
   const roles = keycloak.tokenParsed?.realm_access?.roles || [];
   const isAdmin = roles.includes('ADMIN') || roles.includes('admin');
 
@@ -142,83 +147,72 @@ export default function SchemeManagement() {
 
   return (
     <AppShell title="Scheme Management">
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 22, paddingBottom: 40 }}>
+      <div style={{ maxWidth: 1600, margin: '0 auto', padding: '12px 0 40px', display: 'flex', flexDirection: 'column', gap: 24 }}>
 
         {/* ── Page Header ──────────────────────────────────────────────────── */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12 }}>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <div style={{
-                width: 38, height: 38, borderRadius: 10,
-                background: 'linear-gradient(135deg,#ec4899,#db2777)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
+        <ReportPageHeader
+          title="Welfare Schemes"
+          subtitle="Manage active welfare programs and view allocations"
+          icon={Layers}
+          iconBg="linear-gradient(135deg, #0f172a, #334155)"
+          iconColor="#38bdf8"
+          isDark={isDark}
+          lastRefresh={new Date()}
+          onRefresh={load}
+          refreshing={loading}
+          extraButtons={
+            isAdmin && (
+              <button onClick={openNew} style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 18px',
+                borderRadius: 10, background: 'linear-gradient(135deg,#ec4899,#db2777)',
+                color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', border: 'none',
                 boxShadow: '0 4px 12px rgba(236,72,153,0.35)',
               }}>
-                <Layers size={18} color="#fff" />
-              </div>
-              <div>
-                <h1 style={{ fontSize: 20, fontWeight: 800, color: '#0f172a', margin: 0 }}>
-                  Welfare Schemes
-                </h1>
-                <p style={{ fontSize: 13, color: '#64748b', margin: 0, marginTop: 2 }}>
-                  Manage active welfare programs and view allocations.
-                </p>
-              </div>
-            </div>
-          </div>
-          {isAdmin && (
-            <button onClick={openNew} style={{
-              display: 'flex', alignItems: 'center', gap: 6, padding: '8px 18px',
-              borderRadius: 9, background: 'linear-gradient(135deg,#ec4899,#db2777)',
-              color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', border: 'none',
-              boxShadow: '0 4px 12px rgba(236,72,153,0.35)',
-            }}>
-              <Plus size={15} /> New Scheme
-            </button>
-          )}
-        </div>
+                <Plus size={15} /> New Scheme
+              </button>
+            )
+          }
+        />
 
         {/* ── Stats Row ────────────────────────────────────────────────────── */}
-        <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
-          <StatCard label="Total Schemes" value={schemes.length} icon={Layers} color="#ec4899" sub={`${activeCount} active`} />
-          <StatCard label="Total Beneficiaries" value={totalBen} icon={Users} color="#3b82f6" />
-          <StatCard label="Total Budget Allocated" value={`₹${(totalBudget/100000).toFixed(1)}L`} icon={Wallet} color="#10b981" />
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+          <KpiCard icon={Layers} label="Total Schemes" value={schemes.length} subtitle={`${activeCount} active`} color="#ec4899" bg="#fce7f3" isDark={isDark} />
+          <KpiCard icon={Users} label="Total Beneficiaries" value={totalBen} color="#3b82f6" bg="#eff6ff" isDark={isDark} />
+          <KpiCard icon={Wallet} label="Total Budget Allocated" value={`₹${(totalBudget/100000).toFixed(1)}L`} color="#10b981" bg="#f0fdf4" isDark={isDark} />
         </div>
 
-        {/* ── Main Card ────────────────────────────────────────────────────── */}
-        <div style={{
-          background: '#fff', borderRadius: 16, border: '1.5px solid #e2e8f0',
-          boxShadow: '0 2px 12px rgba(15,23,42,0.07)', overflow: 'hidden',
-        }}>
-          {/* Toolbar */}
-          <div style={{
-            padding: '14px 18px', borderBottom: '2px solid #f1f5f9',
-            display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', background: '#fafbfc',
-          }}>
-            <div style={{ position: 'relative', flex: '1 1 200px', minWidth: 180 }}>
-              <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
-              <input
-                placeholder="Search schemes or departments..." value={search} onChange={e => setSearch(e.target.value)}
-                style={{
-                  width: '100%', padding: '8px 10px 8px 32px', border: '1.5px solid #e2e8f0', borderRadius: 9,
-                  fontSize: 13, color: '#1e293b', background: '#fff', outline: 'none', boxSizing: 'border-box',
-                }}
-              />
-              {search && (
-                <button onClick={() => setSearch('')} style={{
-                  position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
-                  background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8',
-                }}>
-                  <X size={13} />
-                </button>
-              )}
+        {/* ── Main Section Card ────────────────────────────────────────────── */}
+        <SectionCard
+          title="Welfare Schemes Directory"
+          subtitle="All active and pending welfare programs across departments"
+          icon={Layers}
+          isDark={isDark}
+          action={
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ position: 'relative', width: 260 }}>
+                <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+                <input
+                  placeholder="Search schemes or departments..." value={search} onChange={e => setSearch(e.target.value)}
+                  style={{
+                    width: '100%', padding: '6px 10px 6px 32px', border: `1px solid ${isDark ? '#475569' : '#e2e8f0'}`, borderRadius: 8,
+                    fontSize: 13, color: isDark ? '#f1f5f9' : '#1e293b', background: isDark ? '#1e293b' : '#fff', outline: 'none', boxSizing: 'border-box',
+                  }}
+                />
+                {search && (
+                  <button onClick={() => setSearch('')} style={{
+                    position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
+                    background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8',
+                  }}>
+                    <X size={13} />
+                  </button>
+                )}
+              </div>
+              <div style={{ fontSize: 12, color: '#94a3b8', fontWeight: 600 }}>
+                {filtered.length} of {schemes.length} shown
+              </div>
             </div>
-            <div style={{ fontSize: 12, color: '#94a3b8', fontWeight: 500 }}>
-              {filtered.length} of {schemes.length} shown
-            </div>
-          </div>
-
-          {/* Table */}
+          }
+        >
           {loading ? (
             <div style={{ padding: 60, textAlign: 'center' }}>
               <div style={{
@@ -231,21 +225,21 @@ export default function SchemeManagement() {
           ) : filtered.length === 0 ? (
             <div style={{ padding: 60, textAlign: 'center' }}>
               <div style={{ fontSize: 56, marginBottom: 12 }}>📋</div>
-              <div style={{ fontSize: 16, fontWeight: 700, color: '#334155', marginBottom: 6 }}>No schemes found</div>
+              <div style={{ fontSize: 16, fontWeight: 700, color: isDark ? '#f1f5f9' : '#334155', marginBottom: 6 }}>No schemes found</div>
             </div>
           ) : (
-            <div style={{ overflowX: 'auto' }}>
+            <div style={{ overflowX: 'auto', margin: '-20px -22px', marginTop: '-20px', marginBottom: '-20px' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
-                  <tr>
-                    <th style={thStyle}>Scheme Name</th>
-                    <th style={thStyle}>Department</th>
-                    <th style={thStyle}>Beneficiaries</th>
-                    <th style={thStyle}>Budget Allocated</th>
-                    <th style={thStyle}>Spent</th>
-                    <th style={{ ...thStyle, width: 140 }}>Utilization</th>
-                    <th style={thStyle}>Status</th>
-                    <th style={{ ...thStyle, width: 80 }}>Actions</th>
+                  <tr style={{ background: isDark ? '#0f172a' : '#f8fafc', borderBottom: `1px solid ${isDark ? '#334155' : '#e2e8f0'}` }}>
+                    <th style={{ padding: '12px 16px', fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em', textAlign: 'left' }}>Scheme Name</th>
+                    <th style={{ padding: '12px 16px', fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em', textAlign: 'left' }}>Department</th>
+                    <th style={{ padding: '12px 16px', fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em', textAlign: 'left' }}>Beneficiaries</th>
+                    <th style={{ padding: '12px 16px', fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em', textAlign: 'left' }}>Budget Allocated</th>
+                    <th style={{ padding: '12px 16px', fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em', textAlign: 'left' }}>Spent</th>
+                    <th style={{ padding: '12px 16px', fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em', textAlign: 'left', width: 140 }}>Utilization</th>
+                    <th style={{ padding: '12px 16px', fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em', textAlign: 'left' }}>Status</th>
+                    <th style={{ padding: '12px 16px', fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em', textAlign: 'left', width: 80 }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -253,11 +247,11 @@ export default function SchemeManagement() {
                     const util = s.budgetAllocated > 0 ? Number(((s.budgetSpent || 0) / s.budgetAllocated * 100).toFixed(1)) : 0;
                     const dc = deptColor(s.department);
                     return (
-                      <tr key={s.schemeId} style={{ borderBottom: '1px solid #f1f5f9' }} onMouseEnter={e => e.currentTarget.style.background = '#f8fafc'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                        <td style={{ padding: '13px 14px', fontWeight: 700, color: '#1e293b', fontSize: 13 }}>
+                      <tr key={s.schemeId} style={{ borderBottom: `1px solid ${isDark ? '#334155' : '#f1f5f9'}` }} onMouseEnter={e => e.currentTarget.style.background = isDark ? '#0f172a' : '#f8fafc'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                        <td style={{ padding: '14px 16px', fontWeight: 700, color: isDark ? '#f1f5f9' : '#1e293b', fontSize: 13 }}>
                           {s.schemeName}
                         </td>
-                        <td style={{ padding: '13px 14px' }}>
+                        <td style={{ padding: '14px 16px' }}>
                           <span style={{
                             display: 'inline-flex', alignItems: 'center', gap: 6,
                             padding: '4px 10px', borderRadius: 20,
@@ -267,33 +261,33 @@ export default function SchemeManagement() {
                             <Building2 size={10} /> {s.department || '—'}
                           </span>
                         </td>
-                        <td style={{ padding: '13px 14px', fontWeight: 600, color: '#475569' }}>
+                        <td style={{ padding: '14px 16px', fontWeight: 600, color: isDark ? '#cbd5e1' : '#475569' }}>
                           {s.beneficiaryCount || 0}
                         </td>
-                        <td style={{ padding: '13px 14px', fontWeight: 600, color: '#10b981' }}>
+                        <td style={{ padding: '14px 16px', fontWeight: 700, color: '#10b981' }}>
                           ₹{Number(s.budgetAllocated || 0).toLocaleString('en-IN')}
                         </td>
-                        <td style={{ padding: '13px 14px', fontWeight: 600, color: '#3b82f6' }}>
+                        <td style={{ padding: '14px 16px', fontWeight: 700, color: '#3b82f6' }}>
                           ₹{Number(s.budgetSpent || 0).toLocaleString('en-IN')}
                         </td>
-                        <td style={{ padding: '13px 14px' }}>
+                        <td style={{ padding: '14px 16px' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                            <div style={{ height: 6, flex: 1, background: '#f1f5f9', borderRadius: 3, overflow: 'hidden' }}>
+                            <div style={{ height: 6, flex: 1, background: isDark ? '#334155' : '#f1f5f9', borderRadius: 3, overflow: 'hidden' }}>
                               <div style={{ height: '100%', width: `${Math.min(util, 100)}%`, background: '#10b981', borderRadius: 3 }} />
                             </div>
-                            <span style={{ fontSize: 11, fontWeight: 700, color: '#64748b' }}>{util}%</span>
+                            <span style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8' }}>{util}%</span>
                           </div>
                         </td>
-                        <td style={{ padding: '13px 14px' }}>
+                        <td style={{ padding: '14px 16px' }}>
                           <StatusBadge status={s.status} />
                         </td>
-                        <td style={{ padding: '13px 14px' }}>
+                        <td style={{ padding: '14px 16px' }}>
                           {isAdmin && (
                             <button onClick={() => openEdit(s)} style={{
                               display: 'inline-flex', alignItems: 'center', gap: 5, padding: '6px 12px', borderRadius: 8,
-                              background: '#f1f5f9', color: '#1e293b', fontSize: 12, fontWeight: 700, cursor: 'pointer',
-                              border: '1px solid #e2e8f0', transition: 'background 0.12s',
-                            }} onMouseEnter={e => e.currentTarget.style.background = '#e2e8f0'} onMouseLeave={e => e.currentTarget.style.background = '#f1f5f9'}>
+                              background: isDark ? '#334155' : '#f1f5f9', color: isDark ? '#f1f5f9' : '#1e293b', fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                              border: `1px solid ${isDark ? '#475569' : '#e2e8f0'}`, transition: 'background 0.12s',
+                            }}>
                               <Edit2 size={13} /> Edit
                             </button>
                           )}
@@ -305,7 +299,7 @@ export default function SchemeManagement() {
               </table>
             </div>
           )}
-        </div>
+        </SectionCard>
 
         {/* Form Modal (HTML/CSS Modal) */}
         {showForm && (

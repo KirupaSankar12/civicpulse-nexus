@@ -37,10 +37,9 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.PUT, "/api/services/approve/**").hasAnyRole("OFFICER", "ADMIN")
                 .requestMatchers(HttpMethod.PUT, "/api/services/reject/**").hasAnyRole("OFFICER", "ADMIN")
                 .requestMatchers(HttpMethod.GET, "/api/services/pending").hasAnyRole("OFFICER", "ADMIN")
-                // Revenue summary — restricted to ADMIN, FINANCE_OFFICER
-                .requestMatchers(HttpMethod.GET, "/api/services/revenue/summary").hasAnyRole("ADMIN", "FINANCE_OFFICER")
-                // Dashboard stats — accessible by authenticated users (used by reporting-service)
-                .requestMatchers(HttpMethod.GET, "/api/services/dashboard/stats").authenticated()
+                // Revenue summary & dashboard stats — accessible for reporting aggregation
+                .requestMatchers(HttpMethod.GET, "/api/services/revenue/summary").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/services/dashboard/stats").permitAll()
                 // Admin endpoints
                 .requestMatchers(HttpMethod.GET, "/api/services/stats").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.GET, "/api/services").hasAnyRole("OFFICER", "ADMIN")

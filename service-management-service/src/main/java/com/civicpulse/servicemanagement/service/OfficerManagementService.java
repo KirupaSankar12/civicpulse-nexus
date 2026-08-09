@@ -46,7 +46,7 @@ public class OfficerManagementService {
         DepartmentOfficer saved = repository.save(officer);
 
         // 2. Provision in Keycloak
-        provisionKeycloakUser(officer.getUsername(), officer.getOfficerName(), officer.getRole());
+        provisionKeycloakUser(officer.getUsername(), officer.getOfficerName(), officer.getEmail(), officer.getPassword(), officer.getRole());
 
         return saved;
     }
@@ -93,12 +93,16 @@ public class OfficerManagementService {
         }
     }
 
-    private void provisionKeycloakUser(String username, String name, String roleName) {
+    private void provisionKeycloakUser(String username, String name, String email, String password, String roleName) {
         try {
             String token = getAdminToken();
             HttpHeaders headers = new HttpHeaders();
             headers.setBearerAuth(token);
             headers.setContentType(MediaType.APPLICATION_JSON);
+
+            String userEmail = (email != null && !email.isBlank()) ? email : (username + "@muni.gov");
+            String userPassword = (password != null && !password.isBlank()) ? password : "Password123";
+            String keycloakRole = ("SENIOR_OFFICER".equalsIgnoreCase(roleName) || "Senior Officer".equalsIgnoreCase(roleName)) ? "SENIOR_OFFICER" : "OFFICER";
 
             // Create user
             Map<String, Object> userBody = Map.of(
@@ -106,10 +110,10 @@ public class OfficerManagementService {
                     "enabled", true,
                     "emailVerified", true,
                     "firstName", name,
-                    "email", username + "@muni.gov",
+                    "email", userEmail,
                     "credentials", List.of(Map.of(
                             "type", "password",
-                            "value", "Password123",
+                            "value", userPassword,
                             "temporary", false
                     ))
             );
@@ -119,7 +123,7 @@ public class OfficerManagementService {
                     keycloakServer + "/admin/realms/" + realm + "/users", createReq, String.class);
 
             if (createRes.getStatusCode().is2xxSuccessful()) {
-                log.info("Successfully created Keycloak user: {}", username);
+                log.info("Successfully created Keycloak user: {} with email {}", username, userEmail);
                 
                 // Fetch userId
                 ResponseEntity<List> usersRes = restTemplate.exchange(
@@ -132,7 +136,7 @@ public class OfficerManagementService {
 
                     // Fetch roleId
                     ResponseEntity<Map> roleRes = restTemplate.exchange(
-                            keycloakServer + "/admin/realms/" + realm + "/roles/" + roleName,
+                            keycloakServer + "/admin/realms/" + realm + "/roles/" + keycloakRole,
                             HttpMethod.GET, new HttpEntity<>(headers), Map.class);
                     
                     if (roleRes.getBody() != null) {
@@ -143,7 +147,7 @@ public class OfficerManagementService {
                         restTemplate.postForEntity(
                                 keycloakServer + "/admin/realms/" + realm + "/users/" + userId + "/role-mappings/realm",
                                 roleReq, String.class);
-                        log.info("Successfully assigned role {} to {}", roleName, username);
+                        log.info("Successfully assigned role {} to {}", keycloakRole, username);
                     }
                 }
             } else {
@@ -153,5 +157,6 @@ public class OfficerManagementService {
             log.error("Failed to provision Keycloak user: {}", username, e);
             // Non-blocking error. Will continue saving in DB.
         }
+    }
     }
 }

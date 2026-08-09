@@ -183,7 +183,7 @@ export default function GovernanceCommand() {
 
   return (
     <AppShell title="Governance Command">
-      <div style={{ maxWidth: 1600, margin: '0 auto', padding: '0 0 40px' }}>
+      <div style={{ maxWidth: 1600, margin: '0 auto', padding: '12px 0 40px' }}>
 
         {/* Header */}
         <ReportPageHeader
@@ -259,11 +259,35 @@ export default function GovernanceCommand() {
             ] : null}
           />
 
-          {/* Empty center-bottom cell — intentional for hub layout */}
+          {/* Center-bottom cell — CONNECTED status badge */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div style={{ textAlign: 'center', color: '#cbd5e1' }}>
-              <Activity size={28} style={{ margin: '0 auto 8px', opacity: 0.3 }} />
-              <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.06em' }}>CONNECTED</div>
+            <div style={{
+              textAlign: 'center',
+              background: isDark ? 'rgba(16, 185, 129, 0.12)' : '#ecfdf5',
+              border: '1px solid rgba(16, 185, 129, 0.35)',
+              padding: '16px 28px',
+              borderRadius: 16,
+              boxShadow: '0 4px 20px rgba(16, 185, 129, 0.15)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 6,
+              transition: 'transform 0.2s',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{
+                  width: 8, height: 8, borderRadius: '50%', background: '#10b981',
+                  boxShadow: '0 0 10px #10b981',
+                  animation: 'pulse-dot 1.5s infinite'
+                }} />
+                <Activity size={22} color="#10b981" />
+              </div>
+              <div style={{ fontSize: 13, fontWeight: 900, color: '#10b981', letterSpacing: '0.12em' }}>
+                CONNECTED
+              </div>
+              <div style={{ fontSize: 11, fontWeight: 600, color: isDark ? '#94a3b8' : '#64748b' }}>
+                Real-Time Service Mesh
+              </div>
             </div>
           </div>
 

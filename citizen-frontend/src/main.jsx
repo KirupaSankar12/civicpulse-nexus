@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import App from './App.jsx';
 import keycloak from './keycloak.js';
 import { ThemeProvider } from './context/ThemeContext.jsx';
+import FullPagePreloader from './components/FullPagePreloader.jsx';
 import './index.css';
 
 let initPromise = null;
@@ -12,6 +13,11 @@ function Root() {
   const [authenticated, setAuthenticated] = useState(false);
 
   useEffect(() => {
+    // Safety fallback: if Keycloak SSO check takes longer than 2.5 seconds, unblock UI so visitor can view landing page
+    const timeout = setTimeout(() => {
+      setKcReady(true);
+    }, 2200);
+
     const token = localStorage.getItem('kc_token');
     const refreshToken = localStorage.getItem('kc_refreshToken');
     const idToken = localStorage.getItem('kc_idToken');
@@ -33,6 +39,7 @@ function Root() {
 
     initPromise
       .then((auth) => {
+        clearTimeout(timeout);
         if (auth) {
           localStorage.setItem('kc_token', keycloak.token);
           localStorage.setItem('kc_refreshToken', keycloak.refreshToken);
@@ -44,30 +51,23 @@ function Root() {
           localStorage.removeItem('kc_refreshToken');
           localStorage.removeItem('kc_idToken');
         }
-        setAuthenticated(auth);
+        setAuthenticated(!!auth);
         setKcReady(true);
       })
       .catch((err) => {
-        console.error('Keycloak init failed', err);
-        // Clear corrupt tokens
+        clearTimeout(timeout);
+        console.warn('Keycloak init check bypassed', err);
         localStorage.removeItem('kc_token');
         localStorage.removeItem('kc_refreshToken');
         localStorage.removeItem('kc_idToken');
         setKcReady(true);
       });
+
+    return () => clearTimeout(timeout);
   }, []);
 
   if (!kcReady) {
-    return (
-      <div className="loading-screen">
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>🏛️</div>
-          <div className="spinner" />
-          <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '15px', marginTop: '16px', fontWeight: '500' }}>Loading CivicPulse Nexus...</p>
-          <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '12px', marginTop: '6px' }}>Smart Governance Platform</p>
-        </div>
-      </div>
-    );
+    return <FullPagePreloader />;
   }
 
   return <App authenticated={authenticated} />;
