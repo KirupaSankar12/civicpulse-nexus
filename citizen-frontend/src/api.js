@@ -2,8 +2,10 @@ import axios from 'axios';
 import keycloak from './keycloak.js';
 
 // Authenticated API — sends Bearer token with every request
+const API_BASE_URL = import.meta.env.VITE_API_GATEWAY_URL || (window.location.hostname === 'localhost' ? 'http://localhost:8080' : '');
+
 const api = axios.create({
-  baseURL: 'http://localhost:8080',
+  baseURL: API_BASE_URL,
 });
 
 api.interceptors.request.use(async (config) => {

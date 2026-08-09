@@ -1,7 +1,9 @@
 import Keycloak from 'keycloak-js';
 
+const KEYCLOAK_URL = import.meta.env.VITE_KEYCLOAK_URL || (window.location.hostname === 'localhost' ? 'http://localhost:8180' : `${window.location.protocol}//${window.location.hostname}:8180`);
+
 const keycloak = new Keycloak({
-  url: 'http://localhost:8180',
+  url: KEYCLOAK_URL,
   realm: 'civicpulse',
   clientId: 'civicpulse-frontend',
 });
@@ -20,7 +22,7 @@ keycloak.logout = async function(options) {
       params.append('client_id', 'civicpulse-frontend');
       params.append('refresh_token', refreshToken);
       
-      await fetch('http://localhost:8180/realms/civicpulse/protocol/openid-connect/logout', {
+      await fetch(`${KEYCLOAK_URL}/realms/civicpulse/protocol/openid-connect/logout`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded'
