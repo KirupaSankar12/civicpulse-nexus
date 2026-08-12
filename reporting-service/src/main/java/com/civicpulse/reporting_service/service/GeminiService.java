@@ -16,14 +16,17 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Calls the Google Gemini REST API (free tier, gemini-flash-latest model)
- * using Spring's RestClient — no external SDK jar required.
+ * Calls the Google Gemini REST API (gemini-flash-latest) using Spring's RestClient.
  *
  * SECURITY:
  *  - API key is read from the GEMINI_API_KEY environment variable only.
- *  - The key is never logged, never returned in any response.
- *  - Only aggregated governance statistics are sent to Gemini.
- *  - No PII (names, Aadhaar, JWTs, passwords, bank data) is ever included.
+ *  - The key is never logged, never returned in any response, never sent to the frontend.
+ *  - Only aggregated governance statistics (PII-free) are sent to Gemini.
+ *  - No names, Aadhaar, JWTs, passwords, or bank data are ever included.
+ *
+ * M4 Enhancement:
+ *  - Richer prompt requesting section-level intelligence:
+ *    departmentPriorities, welfareInsights, financialInsights, serviceInsights, slaInsights.
  */
 @Service
 public class GeminiService {
@@ -55,7 +58,7 @@ public class GeminiService {
 
     /**
      * Generates a full governance analysis using live CivicPulse data.
-     * If Gemini is unavailable, returns a graceful fallback.
+     * If Gemini is unavailable, returns a graceful fallback with aiUnavailable=true.
      */
     public AiGovernanceResponse analyzeGovernance() {
         if (!isConfigured()) {
@@ -105,10 +108,11 @@ public class GeminiService {
 
             STRICT RULES:
             - Use ONLY the data provided. Do NOT invent statistics, department names, citizens, or financial values.
-            - If a value is 0 or unavailable, report it as 0 or "unavailable" — never fabricate a positive number.
+            - If a value is 0 or unavailable, report it honestly — never fabricate a positive number.
             - If satisfactionDataAvailable is false, say satisfaction data is unavailable.
+            - If dataAvailable for any section is false, note that service is unreachable.
             - Be direct, factual, and actionable.
-            - Keep each insight/warning/recommendation to one concise sentence (max 20 words).
+            - Keep each insight/warning/recommendation to one concise sentence (max 25 words).
 
             GOVERNANCE DATA:
             %s
@@ -117,9 +121,14 @@ public class GeminiService {
             {
               "overallStatus": "HIGH_PERFORMANCE | GOOD | NEEDS_ATTENTION | CRITICAL",
               "summary": "One paragraph executive summary based strictly on the above data.",
-              "insights": ["insight 1", "insight 2", "insight 3"],
-              "warnings": ["warning 1"],
+              "insights": ["insight 1 (max 25 words)", "insight 2", "insight 3"],
+              "warnings": ["warning 1 if critical issue exists"],
               "recommendations": ["recommendation 1", "recommendation 2", "recommendation 3"],
+              "departmentPriorities": ["Dept needing most attention based on volume/resolution rate", "second priority dept"],
+              "welfareInsights": ["Insight about welfare beneficiary count or budget utilization", "second welfare insight"],
+              "financialInsights": ["Insight about revenue collected vs budget disbursed", "second financial insight"],
+              "serviceInsights": ["Insight about certificate/permit approval rates or pending backlog", "second service insight"],
+              "slaInsights": ["Insight about overdue complaints or turnaround times", "second SLA insight"],
               "dataTimestamp": "%s"
             }
             """.formatted(statsJson, LocalDateTime.now().toString());
@@ -148,6 +157,11 @@ public class GeminiService {
               "insights": ["relevant observation 1", "relevant observation 2"],
               "warnings": [],
               "recommendations": ["actionable recommendation if applicable"],
+              "departmentPriorities": [],
+              "welfareInsights": [],
+              "financialInsights": [],
+              "serviceInsights": [],
+              "slaInsights": [],
               "dataTimestamp": "%s"
             }
             """.formatted(statsJson, question, LocalDateTime.now().toString());
@@ -158,7 +172,6 @@ public class GeminiService {
     // ─────────────────────────────────────────────────────────────────────────
 
     private AiGovernanceResponse callGemini(String prompt) {
-        // Build Gemini request body
         Map<String, Object> requestBody = Map.of(
             "contents", List.of(
                 Map.of("parts", List.of(Map.of("text", prompt)))
@@ -193,17 +206,13 @@ public class GeminiService {
             StringBuilder sb = new StringBuilder();
             if (parts.isArray()) {
                 for (JsonNode part : parts) {
-                    if (part.has("text")) {
-                        sb.append(part.path("text").asText());
-                    }
+                    if (part.has("text")) sb.append(part.path("text").asText());
                 }
             }
 
-            String fullText = sb.toString();
-            String jsonText = extractJsonString(fullText);
-
-            // Parse the JSON the AI returned
+            String jsonText = extractJsonString(sb.toString());
             JsonNode aiJson = objectMapper.readTree(jsonText);
+
             AiGovernanceResponse response = new AiGovernanceResponse();
             response.setOverallStatus(aiJson.path("overallStatus").asText("UNKNOWN"));
             response.setSummary(aiJson.path("summary").asText(""));
@@ -213,6 +222,11 @@ public class GeminiService {
             response.setInsights(toStringList(aiJson.path("insights")));
             response.setWarnings(toStringList(aiJson.path("warnings")));
             response.setRecommendations(toStringList(aiJson.path("recommendations")));
+            response.setDepartmentPriorities(toStringList(aiJson.path("departmentPriorities")));
+            response.setWelfareInsights(toStringList(aiJson.path("welfareInsights")));
+            response.setFinancialInsights(toStringList(aiJson.path("financialInsights")));
+            response.setServiceInsights(toStringList(aiJson.path("serviceInsights")));
+            response.setSlaInsights(toStringList(aiJson.path("slaInsights")));
 
             return response;
         } catch (Exception e) {
@@ -225,7 +239,7 @@ public class GeminiService {
         if (rawText == null || rawText.isBlank()) return "{}";
         String s = rawText.strip();
         int firstBrace = s.indexOf('{');
-        int lastBrace = s.lastIndexOf('}');
+        int lastBrace  = s.lastIndexOf('}');
         if (firstBrace != -1 && lastBrace > firstBrace) {
             return s.substring(firstBrace, lastBrace + 1);
         }

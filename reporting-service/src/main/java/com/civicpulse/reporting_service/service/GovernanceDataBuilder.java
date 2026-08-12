@@ -32,27 +32,86 @@ public class GovernanceDataBuilder {
         sb.append("  \"reportDate\": \"").append(LocalDateTime.now().toLocalDate()).append("\",\n");
         sb.append("  \"reportTime\": \"").append(LocalDateTime.now().toLocalTime().withNano(0)).append("\",\n");
 
-        // Citizen count (aggregate only — no names/IDs)
+        // ── Cross-service totals ──────────────────────────────────────────────
         sb.append("  \"totalCitizens\": ").append(summary.getTotalCitizens()).append(",\n");
         sb.append("  \"totalRequests\": ").append(summary.getTotalRequests()).append(",\n");
-
-        // Resolution & performance
         sb.append("  \"overallResolutionRate\": ").append(round2(summary.getOverallResolutionRate())).append(",\n");
         sb.append("  \"overdueOrEscalatedCount\": ").append(summary.getOverdueOrEscalatedCount()).append(",\n");
-
-        // Revenue (aggregate total — no individual transactions)
-        sb.append("  \"totalRevenueINR\": ").append(
-            summary.getTotalRevenue() != null ? summary.getTotalRevenue().toPlainString() : "0"
-        ).append(",\n");
-
-        // Welfare (aggregate statistics — no beneficiary names/IDs)
-        sb.append("  \"budgetUtilizationPercent\": ").append(round2(summary.getBudgetUtilizationPercent())).append(",\n");
-
-        // Satisfaction (average score — no individual responses)
         sb.append("  \"citizenSatisfactionScore\": ").append(round2(summary.getCitizenSatisfactionScore())).append(",\n");
         sb.append("  \"satisfactionDataAvailable\": ").append(summary.getCitizenSatisfactionScore() > 0).append(",\n");
 
-        // Data availability flags
+        // ── Grievance detail ─────────────────────────────────────────────────
+        sb.append("  \"grievance\": {\n");
+        sb.append("    \"total\": ").append(summary.getTotalComplaints()).append(",\n");
+        sb.append("    \"resolved\": ").append(summary.getResolvedComplaints()).append(",\n");
+        sb.append("    \"pending\": ").append(summary.getPendingComplaints()).append(",\n");
+        sb.append("    \"overdue\": ").append(summary.getOverdueComplaints()).append(",\n");
+        sb.append("    \"resolutionRate\": ").append(round2(summary.getGrievanceResolutionRate())).append(",\n");
+        sb.append("    \"dataAvailable\": ").append(!summary.isGrievanceDataUnavailable()).append(",\n");
+
+        // Department distribution (aggregate only)
+        sb.append("    \"byDepartment\": {");
+        if (summary.getGrievanceByDepartment() != null && !summary.getGrievanceByDepartment().isEmpty()) {
+            List<Map.Entry<String, Long>> entries = new ArrayList<>(summary.getGrievanceByDepartment().entrySet());
+            for (int i = 0; i < entries.size(); i++) {
+                sb.append("\"").append(sanitise(entries.get(i).getKey())).append("\": ").append(entries.get(i).getValue());
+                if (i < entries.size() - 1) sb.append(", ");
+            }
+        }
+        sb.append("},\n");
+
+        // Status distribution
+        sb.append("    \"byStatus\": {");
+        if (summary.getGrievanceByStatus() != null && !summary.getGrievanceByStatus().isEmpty()) {
+            List<Map.Entry<String, Long>> statusEntries = new ArrayList<>(summary.getGrievanceByStatus().entrySet());
+            for (int i = 0; i < statusEntries.size(); i++) {
+                sb.append("\"").append(statusEntries.get(i).getKey()).append("\": ").append(statusEntries.get(i).getValue());
+                if (i < statusEntries.size() - 1) sb.append(", ");
+            }
+        }
+        sb.append("}\n");
+        sb.append("  },\n");
+
+        // ── Certificate / Permit detail ──────────────────────────────────────
+        sb.append("  \"certificates\": {\n");
+        sb.append("    \"totalApplications\": ").append(summary.getTotalApplications()).append(",\n");
+        sb.append("    \"pending\": ").append(summary.getPendingApplications()).append(",\n");
+        sb.append("    \"underVerification\": ").append(summary.getUnderVerificationApplications()).append(",\n");
+        sb.append("    \"approved\": ").append(summary.getApprovedApplications()).append(",\n");
+        sb.append("    \"rejected\": ").append(summary.getRejectedApplications()).append(",\n");
+        sb.append("    \"issued\": ").append(summary.getCertificatesIssued()).append(",\n");
+        sb.append("    \"dataAvailable\": ").append(!summary.isCertificateDataUnavailable()).append("\n");
+        sb.append("  },\n");
+
+        // ── Revenue ──────────────────────────────────────────────────────────
+        sb.append("  \"revenue\": {\n");
+        sb.append("    \"totalFeesCollectedINR\": ").append(
+            summary.getTotalRevenue() != null ? summary.getTotalRevenue().toPlainString() : "0"
+        ).append("\n");
+        sb.append("  },\n");
+
+        // ── Welfare ──────────────────────────────────────────────────────────
+        sb.append("  \"welfare\": {\n");
+        sb.append("    \"totalBeneficiaries\": ").append(summary.getWelfareBeneficiaries()).append(",\n");
+        sb.append("    \"pendingApplications\": ").append(summary.getWelfarePendingApplications()).append(",\n");
+        sb.append("    \"activeSchemes\": ").append(summary.getActiveSchemes()).append(",\n");
+        sb.append("    \"budgetAllocatedINR\": ").append(
+            summary.getBudgetAllocated() != null ? summary.getBudgetAllocated().toPlainString() : "0"
+        ).append(",\n");
+        sb.append("    \"budgetDisbursedINR\": ").append(
+            summary.getBudgetDisbursed() != null ? summary.getBudgetDisbursed().toPlainString() : "0"
+        ).append(",\n");
+        sb.append("    \"utilizationPercent\": ").append(round2(summary.getBudgetUtilizationPercent())).append(",\n");
+        sb.append("    \"dataAvailable\": ").append(!summary.isWelfareDataUnavailable()).append("\n");
+        sb.append("  },\n");
+
+        // ── Audit / Activity ─────────────────────────────────────────────────
+        sb.append("  \"audit\": {\n");
+        sb.append("    \"totalEvents\": ").append(summary.getAuditTotalEvents()).append(",\n");
+        sb.append("    \"recentEvents24h\": ").append(summary.getAuditRecentEvents24h()).append("\n");
+        sb.append("  },\n");
+
+        // ── Data availability flags ──────────────────────────────────────────
         sb.append("  \"dataAvailability\": {\n");
         sb.append("    \"grievance\": ").append(!summary.isGrievanceDataUnavailable()).append(",\n");
         sb.append("    \"certificate\": ").append(!summary.isCertificateDataUnavailable()).append(",\n");
@@ -60,7 +119,7 @@ public class GovernanceDataBuilder {
         sb.append("    \"citizen\": ").append(!summary.isCitizenDataUnavailable()).append("\n");
         sb.append("  },\n");
 
-        // Department performance (names + aggregated metrics only)
+        // ── Department performance ────────────────────────────────────────────
         sb.append("  \"departments\": [\n");
         Map<String, DepartmentPerformance> depts = summary.getDepartmentPerformance();
         if (depts != null && !depts.isEmpty()) {

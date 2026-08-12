@@ -158,5 +158,4 @@ public class OfficerManagementService {
             // Non-blocking error. Will continue saving in DB.
         }
     }
-    }
 }

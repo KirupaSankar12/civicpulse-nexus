@@ -44,6 +44,7 @@ import AdminWelfareDashboard from './pages/AdminWelfareDashboard.jsx';
 // ── Governance Analytics (Milestone 4) routes ─────────────────────────────
 import GovernanceDashboard from './pages/GovernanceDashboard.jsx';
 import GovernanceCommand from './pages/GovernanceCommand.jsx';
+import ReportsDashboard from './pages/ReportsDashboard.jsx';
 import CitizenReports from './pages/CitizenReports.jsx';
 import GrievanceReports from './pages/GrievanceReports.jsx';
 import RevenueReports from './pages/RevenueReports.jsx';
@@ -202,20 +203,23 @@ function App({ authenticated }) {
         <Route path="/governance/command" element={
           <Protected><GovernanceCommand /></Protected>
         } />
+        <Route path="/reports" element={
+          <Protected><ReportsDashboard /></Protected>
+        } />
         <Route path="/reports/citizens" element={
-          <Protected><CitizenReports /></Protected>
+          <Protected><ReportsDashboard defaultTab="citizens" /></Protected>
         } />
         <Route path="/reports/grievances" element={
-          <Protected><GrievanceReports /></Protected>
+          <Protected><ReportsDashboard defaultTab="grievance" /></Protected>
         } />
         <Route path="/reports/revenue" element={
-          <Protected><RevenueReports /></Protected>
+          <Protected><ReportsDashboard defaultTab="revenue" /></Protected>
         } />
         <Route path="/reports/performance" element={
-          <Protected><PerformanceReports /></Protected>
+          <Protected><ReportsDashboard defaultTab="performance" /></Protected>
         } />
         <Route path="/reports/audit-logs" element={
-          <Protected><AuditLogs /></Protected>
+          <Protected><ReportsDashboard defaultTab="audit" /></Protected>
         } />
 
 

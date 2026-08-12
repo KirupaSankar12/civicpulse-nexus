@@ -34,10 +34,12 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:5173"));
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+        configuration.setAllowedOriginPatterns(List.of("http://localhost:*", "http://127.0.0.1:*"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD"));
         configuration.setAllowedHeaders(List.of("*"));
+        configuration.setExposedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
@@ -51,10 +53,14 @@ public class SecurityConfig {
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
+                // Allow all OPTIONS preflight requests globally
+                .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
                 // Health check — always public
                 .requestMatchers("/actuator/**").permitAll()
                 // Public registration — citizen creates their own Keycloak account
                 .requestMatchers("/api/citizens/auth/register").permitAll()
+                // Public dashboard stats
+                .requestMatchers("/api/complaints/dashboard/stats", "/api/services/dashboard/stats", "/api/welfare/dashboard/stats").permitAll()
                 // AI Governance endpoints — permitAll (backend protects Gemini key)
                 .requestMatchers("/api/ai/**").permitAll()
                 // Everything else requires a valid JWT

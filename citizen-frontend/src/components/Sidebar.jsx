@@ -33,7 +33,7 @@ const adminGroups = [
   {
     section: 'Dashboard', dot: '#60a5fa',
     links: [
-      { to: '/admin/dashboard', icon: LayoutDashboard, label: 'System Overview', chip: 'blue', exact: true },
+      { to: '/admin/dashboard', icon: LayoutDashboard, label: 'City Administration Dashboard', chip: 'blue', exact: true },
     ],
   },
   {
@@ -62,11 +62,7 @@ const adminGroups = [
     links: [
       { to: '/governance/command',   icon: Command,    label: 'Governance Command',    chip: 'violet' },
       { to: '/governance/dashboard', icon: TrendingUp, label: 'Analytics Dashboard',   chip: 'violet' },
-      { to: '/reports/grievances',   icon: AlertTriangle, label: 'Grievance Reports',  chip: 'orange' },
-      { to: '/reports/revenue',      icon: BarChart2,  label: 'Revenue Reports',       chip: 'emerald' },
-      { to: '/reports/performance',  icon: Activity,   label: 'Performance Reports',   chip: 'violet' },
-      { to: '/reports/audit-logs',   icon: BookOpen,   label: 'Audit Logs',            chip: 'indigo' },
-      { to: '/welfare/reports',      icon: PieChart,   label: 'Welfare Reports',       chip: 'pink' },
+      { to: '/reports',              icon: BarChart2,  label: 'Reports & Statistics',  chip: 'indigo' },
     ],
   },
 ];
